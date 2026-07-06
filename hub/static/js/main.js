@@ -64,8 +64,9 @@ document.addEventListener("DOMContentLoaded", function () {
   var net = document.querySelector(".hero-net");
   if (net && !reduce) {
     net.classList.add("anim");
-    var nodes = net.querySelectorAll(".core, .bub"); // document order: mids, then leaves
-    var STAGGER = 240, HOLD = 3600, GAP = 1000;
+    // document order = flow order: data → topics → concepts → outcome
+    var nodes = net.querySelectorAll(".bub");
+    var STAGGER = 180, HOLD = 3200, GAP = 1000;
     function build() {
       nodes.forEach(function (n, idx) {
         setTimeout(function () { n.classList.add("show"); }, idx * STAGGER);
