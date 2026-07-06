@@ -41,4 +41,40 @@ document.addEventListener("DOMContentLoaded", function () {
       setTimeout(function () { f.remove(); }, 500);
     });
   }, 6000);
+
+  // Count-up animation for stat numbers that carry a data-count target.
+  var reduce = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll("[data-count]").forEach(function (el) {
+    var target = parseInt(el.getAttribute("data-count"), 10);
+    if (isNaN(target) || reduce) { return; }
+    var start = null, dur = 1100;
+    el.textContent = "0";
+    function step(ts) {
+      if (start === null) { start = ts; }
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      el.textContent = Math.round(eased * target);
+      if (p < 1) { requestAnimationFrame(step); }
+    }
+    requestAnimationFrame(step);
+  });
+
+  // Hero concept-graph: staggered build → hold → clear → rebuild (a loop).
+  var net = document.querySelector(".hero-net");
+  if (net && !reduce) {
+    net.classList.add("anim");
+    var nodes = net.querySelectorAll(".core, .bub"); // document order: mids, then leaves
+    var STAGGER = 240, HOLD = 3600, GAP = 1000;
+    function build() {
+      nodes.forEach(function (n, idx) {
+        setTimeout(function () { n.classList.add("show"); }, idx * STAGGER);
+      });
+      setTimeout(function () {
+        nodes.forEach(function (n) { n.classList.remove("show"); });
+        setTimeout(build, GAP);          // reboot after the fade-out
+      }, nodes.length * STAGGER + HOLD);
+    }
+    build();
+  }
 });

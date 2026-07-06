@@ -371,6 +371,38 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 /* ---------- Landing / home page ------------------------------------------- */
 .home-hero h1 { font-size: 2.4rem; }
 .home-lead { font-size: 1.15rem; color: #dbe4f2; max-width: 640px; }
+.home-hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 2.5rem; align-items: center; }
+.home-hero-copy { animation: fadeUp .6s ease both; }
+.home-hero-art { animation: fadeUp .7s ease both; }
+.home-hero-art svg { width: 100%; height: auto; display: block; }
+.quick-tile .go { transition: letter-spacing .15s ease; }
+.quick-tile:hover .go { letter-spacing: .04em; }
+
+/* Hero: outer topics feed mid concepts feed a central AI hub.
+   Nodes are revealed in a staggered build by JS (adds .anim then .show),
+   held, cleared, and rebuilt — a coordinated loop, not random flicker. */
+@keyframes netPulse { 0% { opacity: .5; transform: scale(.8); } 100% { opacity: 0; transform: scale(1.95); } }
+@keyframes bioSweep { from { stroke-dashoffset: 980; } to { stroke-dashoffset: -80; } }
+.hero-net .bub, .hero-net .core { transition: opacity .6s ease; }
+.hero-net.anim .bub, .hero-net.anim .core { opacity: 0; }
+.hero-net.anim .bub.show, .hero-net.anim .core.show { opacity: 1; }
+.hero-net .pulse { transform-box: fill-box; transform-origin: center;
+  animation: netPulse 3.2s ease-out infinite; }
+.hero-net .pulse2 { animation-delay: 1.6s; }
+.hero-net .bio { stroke: rgba(255,255,255,.13); }
+.hero-net .bio-sweep { stroke-dasharray: 55 940; opacity: .8;
+  animation: bioSweep 3.4s linear infinite; }
+.hero-net .net-label { text-anchor: middle; dominant-baseline: central;
+  font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: #0a1f44; }
+.hero-net .net-label.sm { font-size: 10.5px; }
+.hero-net .net-label.w { fill: #ffffff; }
+.hero-net .net-ai { text-anchor: middle; dominant-baseline: central;
+  font-family: "Segoe UI", system-ui, sans-serif; font-size: 20px; font-weight: 800; fill: #0a1f44; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-net.anim .bub, .hero-net.anim .core { opacity: 1; }
+  .hero-net .pulse, .hero-net .bio-sweep, .svg-node, .svg-ecg, .svg-ring { animation: none; opacity: 0; }
+}
 .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1.1rem; }
 .quick-tile { display: block; background: #fff; border: 1px solid var(--grey-200);
   border-radius: var(--radius); padding: 1.3rem; box-shadow: var(--shadow-sm);
@@ -401,11 +433,14 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 .section-head h2 { font-size: 1.5rem; margin: 0 0 .4rem; }
 .lead { font-size: 1.12rem; color: var(--grey-700); max-width: 780px; }
 
-/* Mission aims */
-.aims { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 1.6rem 2.2rem; margin-top: 1.8rem; }
-.aim { border-left: 3px solid var(--grey-200); padding-left: 1.1rem; }
-.aim h4 { margin: 0 0 .35rem; color: var(--navy); }
-.aim p { margin: 0; color: var(--grey-600); font-size: .92rem; }
+/* Mission aims — 2×2 grid, each with an elegant line icon */
+.aims { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.4rem 3rem; margin-top: 2.2rem; }
+.aim { display: flex; gap: 1.2rem; align-items: flex-start; }
+.aim-ico { flex-shrink: 0; width: 60px; height: 60px; border-radius: 50%;
+  background: var(--panel, #eef2f8); display: grid; place-items: center; }
+.aim-ico svg { width: 32px; height: 32px; }
+.aim h4 { margin: .35rem 0 .45rem; color: var(--navy); font-size: 1.08rem; }
+.aim p { margin: 0; color: var(--grey-600); font-size: .93rem; line-height: 1.55; }
 
 /* Process (how it works) */
 .process { list-style: none; counter-reset: step; padding: 0; margin: 0;
@@ -557,5 +592,8 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
   .form-grid { grid-template-columns: 1fr; }
   .nav-links a span.label { display: none; }
   .about-hero { grid-template-columns: 1fr; }
+  .home-hero-grid { grid-template-columns: 1fr; }
+  .home-hero-art { max-width: 420px; margin: .5rem auto 0; }
+  .aims { grid-template-columns: 1fr; gap: 1.8rem; }
   .footer-grid { grid-template-columns: 1fr; gap: 1.4rem; }
 }
