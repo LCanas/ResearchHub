@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, ws_tag %}
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:760px">
+  <a class="small muted" href="{{ url_for('main.news') }}">← All announcements</a>
+
+  <div class="card card-pad mt">
+    <div class="flex space-between flex-wrap gap-sm">
+      <div class="flex gap-sm">
+        {% if post.pinned %}<span class="pill" style="background:#fff2dc;color:#b3641b">📌 Pinned</span>{% endif %}
+        {% if post.workstream %}{{ ws_tag(post.workstream) }}{% endif %}
+      </div>
+      <span class="small muted">{{ post.created_at.strftime('%d %B %Y, %H:%M') }}</span>
+    </div>
+
+    <h1 style="margin:.6rem 0">{{ post.title }}</h1>
+
+    {% if post.author %}
+    <div class="flex gap-sm" style="margin-bottom:1rem">
+      {{ avatar(post.author, 'avatar-sm') }}
+      <a href="{{ url_for('main.profile', user_id=post.author.id) }}"><b style="color:var(--navy)">{{ post.author.full_name }}</b></a>
+    </div>
+    {% endif %}
+
+    <div style="white-space:pre-line;font-size:1.02rem;color:var(--grey-800)">{{ post.body }}</div>
+
+    {% if current_user.is_admin or (post.author and post.author_id == current_user.id) %}
+    <hr class="divider">
+    <form method="post" action="{{ url_for('main.news_delete', post_id=post.id) }}"
+          data-confirm="Delete this announcement?">
+      <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

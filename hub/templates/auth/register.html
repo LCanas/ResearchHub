@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create account · {{ APP_NAME }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-brand">
+    <span class="brand-mark" style="margin-bottom:1.2rem">CH</span>
+    <h1>Join the Hub</h1>
+    <p style="font-size:1.05rem">Create your researcher profile and start collaborating on AI-in-healthcare projects at King's.</p>
+    <div class="auth-feature"><span class="b">›</span><span>Showcase your expertise, seniority and availability.</span></div>
+    <div class="auth-feature"><span class="b">›</span><span>Request to join projects that match your skills.</span></div>
+  </div>
+  <div class="auth-panel">
+    <div class="auth-card card card-pad">
+      <h2>Create account</h2>
+      <p class="muted small">You can complete the full profile after signing up.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('auth.register') }}">
+        <div class="form-row">
+          <label>Full name</label>
+          <input name="full_name" value="{{ form.get('full_name', '') }}" required autofocus>
+        </div>
+        <div class="form-row">
+          <label>KCL email</label>
+          <input type="email" name="email" value="{{ form.get('email', '') }}" required>
+        </div>
+        <div class="form-row">
+          <label>Department</label>
+          <select name="department">
+            <option value="">— Select —</option>
+            {% for d in DEPARTMENTS %}
+              <option value="{{ d }}" {{ 'selected' if form.get('department') == d }}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Contract type</label>
+            <select name="contract_type">
+              <option value="">— Select —</option>
+              {% for c in CONTRACT_TYPES %}
+                <option value="{{ c }}" {{ 'selected' if form.get('contract_type') == c }}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Role in database</label>
+            <select name="db_role">
+              {% for r in DB_ROLES %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Password</label>
+            <input type="password" name="password" required>
+          </div>
+          <div class="form-row">
+            <label>Confirm password</label>
+            <input type="password" name="confirm" required>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Create account</button>
+      </form>
+      <p class="text-center small mt">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

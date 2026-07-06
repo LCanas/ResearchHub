@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit project' if project else 'New project' }}{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:900px">
+  <div class="section-title">
+    <h1>{{ 'Edit project' if project else 'Propose a project' }}</h1>
+    <a class="btn btn-ghost" href="{{ url_for('main.projects') }}">Cancel</a>
+  </div>
+
+  <form method="post" class="card card-pad"
+        action="{{ url_for('main.project_edit', project_id=project.id) if project else url_for('main.project_new') }}">
+    <div class="form-grid">
+      <div class="form-row full">
+        <label>Project title</label>
+        <input name="title" value="{{ project.title if project else '' }}" required>
+      </div>
+      <div class="form-row full">
+        <label>One-line summary</label>
+        <input name="summary" value="{{ project.summary if project else '' }}" placeholder="A short pitch shown on cards">
+      </div>
+      <div class="form-row full">
+        <label>Description</label>
+        <textarea name="description" placeholder="Background, aims, methods…">{{ project.description if project else '' }}</textarea>
+      </div>
+
+      <div class="form-row">
+        <label>Lifecycle stage</label>
+        <select name="status" id="status-select">
+          {% for s in STAGE_NAMES %}
+            <option value="{{ s }}" {{ 'selected' if project and project.status == s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <span class="hint">Open → Waiting for PI → Launched → Ongoing → Completed</span>
+      </div>
+      <div class="form-row">
+        <label>Department</label>
+        <select name="department">
+          <option value="">— Select —</option>
+          {% for d in DEPARTMENTS %}
+            <option value="{{ d }}" {{ 'selected' if project and project.department == d }}>{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>Project type</label>
+        <select name="project_type">
+          <option value="">— Select —</option>
+          {% for t in PROJECT_TYPES %}
+            <option value="{{ t.name }}" {{ 'selected' if project and project.project_type == t.name }}>{{ t.name }} · {{ t.band }}</option>
+          {% endfor %}
+        </select>
+        <span class="hint">Short-term (Hackathon), medium-term (PoC / Product) or long-term (Grant).</span>
+      </div>
+      <div class="form-row">
+        <label>Research workstream</label>
+        <select name="workstream">
+          <option value="">— Select —</option>
+          {% for w in WORKSTREAMS %}
+            <option value="{{ w.name }}" {{ 'selected' if project and project.workstream == w.name }}>{{ w.icon }} {{ w.name }}</option>
+          {% endfor %}
+        </select>
+        <span class="hint">The research theme this project belongs to.</span>
+      </div>
+
+      <div class="form-row">
+        <label>Principal Investigator</label>
+        <select name="pi_id">
+          <option value="">— None yet —</option>
+          {% for u in users %}
+            <option value="{{ u.id }}" {{ 'selected' if project and project.pi_id == u.id }}>{{ u.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>GitHub URL</label>
+        <input name="github_url" value="{{ project.github_url if project else '' }}" placeholder="https://github.com/…">
+      </div>
+
+      <div class="form-row">
+        <label>Start date</label>
+        <input type="date" name="start_date" value="{{ project.start_date.isoformat() if project and project.start_date else '' }}">
+      </div>
+      <div class="form-row">
+        <label>Target end date</label>
+        <input type="date" name="end_date" value="{{ project.end_date.isoformat() if project and project.end_date else '' }}">
+      </div>
+
+      <div class="form-row full">
+        <label>Keywords <span class="hint">(comma separated)</span></label>
+        <input name="keywords" value="{{ project.keywords if project else '' }}" placeholder="machine learning, radiology, NLP">
+      </div>
+
+      <div class="form-row full" data-when-not-completed>
+        <label>Expected outcomes</label>
+        <textarea name="expected_outcomes">{{ project.expected_outcomes if project else '' }}</textarea>
+      </div>
+      <div class="form-row full" data-when-completed style="display:none">
+        <label>Actual outcomes <span class="hint">(shown when the project is Completed)</span></label>
+        <textarea name="actual_outcomes">{{ project.actual_outcomes if project else '' }}</textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">{{ 'Save changes' if project else 'Create project' }}</button>
+  </form>
+</div>
+{% endblock %}

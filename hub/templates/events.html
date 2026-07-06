@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import event_card %}
+{% block title %}Events{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Engagement</div>
+    <h1>Events &amp; seminars</h1>
+    <p>Seminars, training, data clubs and workshops across the hub. Sign up to
+       reserve your place.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="section-title">
+    <h2>Upcoming <span class="muted small">({{ upcoming|length }})</span></h2>
+    <a class="btn btn-primary" href="{{ url_for('main.event_new') }}">+ New event</a>
+  </div>
+
+  {% if upcoming %}
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">
+      {% for ev in upcoming %}{{ event_card(ev, my_ids) }}{% endfor %}
+    </div>
+  {% else %}
+    <div class="card empty">
+      <div class="big">📅</div>
+      <h3>No upcoming events</h3>
+      <a class="btn btn-outline mt" href="{{ url_for('main.event_new') }}">Schedule one</a>
+    </div>
+  {% endif %}
+
+  {% if past %}
+    <div class="section-title mt2"><h2>Past events <span class="muted small">({{ past|length }})</span></h2></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">
+      {% for ev in past %}{{ event_card(ev, my_ids) }}{% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

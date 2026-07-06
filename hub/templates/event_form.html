@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}New event{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:760px">
+  <div class="section-title">
+    <h1>New event</h1>
+    <a class="btn btn-ghost" href="{{ url_for('main.events') }}">Cancel</a>
+  </div>
+
+  <form method="post" action="{{ url_for('main.event_new') }}" class="card card-pad">
+    <div class="form-grid">
+      <div class="form-row full">
+        <label>Title</label>
+        <input name="title" required autofocus>
+      </div>
+      <div class="form-row">
+        <label>Type</label>
+        <select name="event_type">
+          {% for t in EVENT_TYPES %}<option value="{{ t }}">{{ EVENT_TYPE_ICONS.get(t,'') }} {{ t }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Related workstream <span class="hint">(optional)</span></label>
+        <select name="workstream">
+          <option value="">— None —</option>
+          {% for w in WORKSTREAMS %}<option value="{{ w.name }}">{{ w.icon }} {{ w.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Starts</label>
+        <input type="datetime-local" name="start_at" required>
+      </div>
+      <div class="form-row">
+        <label>Ends <span class="hint">(optional)</span></label>
+        <input type="datetime-local" name="end_at">
+      </div>
+      <div class="form-row">
+        <label>Location</label>
+        <input name="location" placeholder="Room / building, or leave blank if online">
+      </div>
+      <div class="form-row">
+        <label>Joining / sign-up link <span class="hint">(optional)</span></label>
+        <input name="url" placeholder="https://…">
+      </div>
+      <div class="form-row full">
+        <label class="flex small"><input type="checkbox" name="is_online" style="width:auto"> This is an online event</label>
+      </div>
+      <div class="form-row full">
+        <label>Description</label>
+        <textarea name="description" placeholder="What's the event about, who is it for…"></textarea>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Create event</button>
+  </form>
+</div>
+{% endblock %}

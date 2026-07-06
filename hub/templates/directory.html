@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, work_status_chip, ws_tag %}
+{% block title %}People{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Researcher directory</div>
+    <h1>People</h1>
+    <p>Find collaborators and PIs by expertise, availability, department and status.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+
+  <form class="filters" method="get" action="{{ url_for('main.directory') }}">
+    <div class="field grow">
+      <label>Search</label>
+      <input name="q" value="{{ q }}" placeholder="Name, skill, expertise…">
+    </div>
+    <div class="field">
+      <label>Workstream</label>
+      <select name="workstream" onchange="this.form.submit()">
+        <option value="">All</option>
+        {% for w in WORKSTREAMS %}<option value="{{ w.slug }}" {{ 'selected' if active_workstream == w.slug }}>{{ w.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Department</label>
+      <select name="department" onchange="this.form.submit()">
+        <option value="">All</option>
+        {% for d in DEPARTMENTS %}<option value="{{ d }}" {{ 'selected' if active_dept == d }}>{{ d }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select name="work_status" onchange="this.form.submit()">
+        <option value="">Any</option>
+        {% for w in WORK_STATUSES %}<option value="{{ w }}" {{ 'selected' if active_work_status == w }}>{{ w }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Role</label>
+      <select name="db_role" onchange="this.form.submit()">
+        <option value="">Any</option>
+        {% for r in DB_ROLES %}<option value="{{ r }}" {{ 'selected' if active_db_role == r }}>{{ r }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Min hrs/wk</label>
+      <input name="min_hours" value="{{ min_hours }}" type="number" min="0" style="width:90px">
+    </div>
+    <button class="btn btn-navy" type="submit">Filter</button>
+    {% if q or active_dept or active_work_status or active_db_role or min_hours or active_workstream %}
+      <a class="btn btn-ghost" href="{{ url_for('main.directory') }}">Reset</a>
+    {% endif %}
+  </form>
+
+  <div class="section-title"><h2>{{ people|length }} researcher{{ '' if people|length == 1 else 's' }}</h2></div>
+
+  {% if people %}
+  <div class="grid grid-cards">
+    {% for u in people %}
+    <article class="card card-pad text-center">
+      <a href="{{ url_for('main.profile', user_id=u.id) }}">{{ avatar(u, 'avatar-lg') }}</a>
+      <h3 style="margin:.9rem 0 .1rem"><a href="{{ url_for('main.profile', user_id=u.id) }}" style="color:var(--navy)">{{ u.full_name }}</a></h3>
+      <div class="small muted">{{ u.contract_type or 'Researcher' }}{% if u.seniority %} · {{ u.seniority }}{% endif %}</div>
+      {% if u.expertise %}<p class="small" style="margin:.5rem 0">{{ u.expertise|truncate(80) }}</p>{% endif %}
+      <div style="margin:.4rem 0">
+        {{ work_status_chip(u.work_status) }}
+        {% if u.db_role == 'PI' %}<span class="chip chip-crimson">PI</span>{% endif %}
+        {% if u.hours_available %}<span class="chip">{{ u.hours_available }} hrs/wk</span>{% endif %}
+      </div>
+      <div style="margin-top:.3rem">
+        {% for k in u.keyword_list[:3] %}<span class="chip">{{ k }}</span>{% endfor %}
+      </div>
+      {% if u.workstream_list %}
+      <div style="margin-top:.35rem;display:flex;flex-wrap:wrap;gap:.3rem;justify-content:center">
+        {% for w in u.workstream_list[:2] %}{{ ws_tag(w) }}{% endfor %}
+      </div>
+      {% endif %}
+      {% if u.department %}<div class="small muted mt">{{ u.department }}</div>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty">
+    <div class="big">👤</div>
+    <h3>No researchers match your filters</h3>
+    <a class="btn btn-outline mt" href="{{ url_for('main.directory') }}">Reset filters</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

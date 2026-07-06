@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stage_pill, ws_tag %}
+{% block title %}Home{% endblock %}
+
+{% block hero %}
+<section class="page-hero home-hero">
+  <div class="container">
+    <div class="hero-eyebrow">King's College London · FoLSM × BMEIS</div>
+    <h1>{{ APP_NAME }}</h1>
+    <p class="home-lead">An interactive matchmaking platform that bridges clinical
+       knowledge and AI expertise — helping healthcare researchers turn ideas into
+       collaborative, deployable AI projects.</p>
+    <div class="flex gap-sm" style="margin-top:1.4rem;flex-wrap:wrap">
+      <a class="btn btn-primary" href="{{ url_for('main.projects') }}">Browse projects</a>
+      <a class="btn btn-outline-light" href="{{ url_for('main.project_new') }}">Propose a project</a>
+      <a class="btn btn-outline-light" href="{{ url_for('main.about') }}">About the hub</a>
+    </div>
+    <div class="stat-strip">
+      <div class="stat"><b>{{ stats.projects }}</b><span>PROJECTS</span></div>
+      <div class="stat"><b>{{ stats.open }}</b><span>OPEN TO JOIN</span></div>
+      <div class="stat"><b>{{ stats.completed }}</b><span>COMPLETED</span></div>
+      <div class="stat"><b>{{ stats.researchers }}</b><span>RESEARCHERS</span></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+
+  {# ---- Quick navigation tiles ---- #}
+  <div class="quick-grid">
+    <a class="quick-tile" href="{{ url_for('main.projects') }}">
+      <h3>Projects</h3>
+      <p>Browse open calls, ongoing work and completed outcomes.</p>
+      <span class="go">Explore →</span>
+    </a>
+    <a class="quick-tile" href="{{ url_for('main.workstreams') }}">
+      <h3>Workstreams</h3>
+      <p>The research themes that organise our projects and people.</p>
+      <span class="go">Explore →</span>
+    </a>
+    <a class="quick-tile" href="{{ url_for('main.directory') }}">
+      <h3>People</h3>
+      <p>Find collaborators and PIs by expertise and availability.</p>
+      <span class="go">Explore →</span>
+    </a>
+    <a class="quick-tile" href="{{ url_for('main.events') }}">
+      <h3>Events</h3>
+      <p>Seminars, training, data clubs and workshops.</p>
+      <span class="go">Explore →</span>
+    </a>
+  </div>
+
+  {# ---- News + events ---- #}
+  <div class="two-col mt2" style="align-items:start">
+    <div class="card card-pad">
+      <div class="section-title"><h2>Latest news</h2><a class="small" href="{{ url_for('main.news') }}">All news →</a></div>
+      {% if latest_news %}
+        {% for p in latest_news %}
+        <div class="list-row">
+          <a href="{{ url_for('main.news_detail', post_id=p.id) }}"><b style="color:var(--navy)">{% if p.pinned %}<span class="pin">Pinned</span> {% endif %}{{ p.title }}</b></a>
+          <div class="small muted">{{ p.created_at.strftime('%d %b %Y') }}{% if p.author %} · {{ p.author.full_name }}{% endif %}</div>
+        </div>
+        {% endfor %}
+      {% else %}<p class="muted">No announcements yet.</p>{% endif %}
+    </div>
+
+    <div class="card card-pad">
+      <div class="section-title"><h2>Upcoming events</h2><a class="small" href="{{ url_for('main.events') }}">All events →</a></div>
+      {% if upcoming_events %}
+        {% for ev in upcoming_events %}
+        <a class="list-row event-row" href="{{ url_for('main.event_detail', event_id=ev.id) }}">
+          <span class="mini-date">
+            <span class="m">{{ ev.start_at.strftime('%b') }}</span>
+            <span class="d">{{ ev.start_at.strftime('%d') }}</span>
+          </span>
+          <span>
+            <b style="color:var(--navy)">{{ ev.title }}</b>
+            <span class="small muted" style="display:block">{{ ev.event_type }} · {{ ev.start_at.strftime('%H:%M') }}{% if not ev.is_online %} · {{ ev.location or 'TBC' }}{% else %} · Online{% endif %}</span>
+          </span>
+        </a>
+        {% endfor %}
+      {% else %}<p class="muted">No upcoming events.</p>{% endif %}
+    </div>
+  </div>
+
+  {# ---- Featured open projects ---- #}
+  {% if featured %}
+  <div class="section-title mt2">
+    <h2>Open calls for collaborators</h2>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('main.projects', status='Open') }}">See all open →</a>
+  </div>
+  <div class="grid grid-cards">
+    {% for p in featured %}
+    <article class="card project-card">
+      <div class="body">
+        <div class="flex space-between" style="margin-bottom:.6rem">
+          {{ stage_pill(p.status) }}
+          {% if p.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(p.project_type,'') }}">{{ p.project_type }}</span>{% endif %}
+        </div>
+        <h3 class="title"><a href="{{ url_for('main.project_detail', project_id=p.id) }}">{{ p.title }}</a></h3>
+        {% if p.workstream %}<div style="margin-bottom:.5rem">{{ ws_tag(p.workstream) }}</div>{% endif %}
+        <p class="summary">{{ p.summary or (p.description|truncate(120)) }}</p>
+      </div>
+      <div class="foot">
+        <span class="small muted">{{ p.department|truncate(30) }}</span>
+        <span class="small muted">{% if p.pi_user %}PI: {{ p.pi_user.full_name.split()[-1] }}{% else %}PI needed{% endif %}</span>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

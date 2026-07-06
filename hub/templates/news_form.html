@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}New announcement{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:720px">
+  <div class="section-title">
+    <h1>New announcement</h1>
+    <a class="btn btn-ghost" href="{{ url_for('main.news') }}">Cancel</a>
+  </div>
+
+  <form method="post" action="{{ url_for('main.news_new') }}" class="card card-pad">
+    <div class="form-row">
+      <label>Title</label>
+      <input name="title" required autofocus>
+    </div>
+    <div class="form-row">
+      <label>Body</label>
+      <textarea name="body" style="min-height:160px" placeholder="Share an update with the hub…"></textarea>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Related workstream <span class="hint">(optional)</span></label>
+        <select name="workstream">
+          <option value="">— None —</option>
+          {% for w in WORKSTREAMS %}<option value="{{ w.name }}">{{ w.icon }} {{ w.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-row" style="justify-content:flex-end">
+        <label class="flex small" style="margin-top:1.4rem">
+          <input type="checkbox" name="pinned" style="width:auto"> Pin to top
+        </label>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Publish</button>
+  </form>
+</div>
+{% endblock %}

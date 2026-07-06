@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar %}
+{% block title %}Edit profile{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:900px">
+  <div class="section-title">
+    <h1>Edit profile</h1>
+    <a class="btn btn-ghost" href="{{ url_for('main.profile', user_id=user.id) }}">Cancel</a>
+  </div>
+
+  <form method="post" action="{{ url_for('main.edit_profile') }}" enctype="multipart/form-data" class="card card-pad">
+    <div class="flex" style="gap:1.2rem;margin-bottom:1.2rem">
+      {{ avatar(user, 'avatar-lg') }}
+      <div class="form-row grow" style="margin:0">
+        <label>Profile photo <span class="hint">(shown as a round avatar)</span></label>
+        <input type="file" name="photo" accept="image/*">
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-row full">
+        <label>Full name</label>
+        <input name="full_name" value="{{ user.full_name }}" required>
+      </div>
+      <div class="form-row full">
+        <label>Expertise headline</label>
+        <input name="expertise" value="{{ user.expertise }}" placeholder="e.g. Clinical NLP &amp; ML deployment in the NHS">
+      </div>
+      <div class="form-row full">
+        <label>Quick bio</label>
+        <textarea name="bio">{{ user.bio }}</textarea>
+      </div>
+      <div class="form-row full">
+        <label>Skills &amp; keywords <span class="hint">(comma separated)</span></label>
+        <input name="keywords" value="{{ user.keywords }}" placeholder="Python, deep learning, radiology, MLOps">
+      </div>
+
+      <div class="form-row full">
+        <label>Research workstreams <span class="hint">(tick all that apply)</span></label>
+        <div class="checkbox-grid">
+          {% for w in WORKSTREAMS %}
+          <label class="checkbox-pill">
+            <input type="checkbox" name="workstreams" value="{{ w.name }}"
+                   {{ 'checked' if w.name in user.workstream_list }}>
+            <span>{{ w.icon }} {{ w.name }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Seniority</label>
+        <select name="seniority">
+          <option value="">— Select —</option>
+          {% for s in SENIORITY_LEVELS %}<option value="{{ s }}" {{ 'selected' if user.seniority == s }}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Contract type</label>
+        <select name="contract_type">
+          <option value="">— Select —</option>
+          {% for c in CONTRACT_TYPES %}<option value="{{ c }}" {{ 'selected' if user.contract_type == c }}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>Department</label>
+        <select name="department">
+          <option value="">— Select —</option>
+          {% for d in DEPARTMENTS %}<option value="{{ d }}" {{ 'selected' if user.department == d }}>{{ d }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Database role</label>
+        <select name="db_role">
+          {% for r in DB_ROLES %}<option value="{{ r }}" {{ 'selected' if user.db_role == r }}>{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>PI / Supervisor</label>
+        <input name="pi" value="{{ user.pi }}">
+      </div>
+      <div class="form-row">
+        <label>Line manager</label>
+        <input name="line_manager" value="{{ user.line_manager }}">
+      </div>
+
+      <div class="form-row">
+        <label>Working status</label>
+        <select name="work_status">
+          {% for w in WORK_STATUSES %}<option value="{{ w }}" {{ 'selected' if user.work_status == w }}>{{ w }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Availability <span class="hint">(hours / week)</span></label>
+        <input name="hours_available" type="number" min="0" value="{{ user.hours_available }}">
+      </div>
+
+      <div class="form-row">
+        <label>Phone</label>
+        <input name="phone" value="{{ user.phone }}">
+      </div>
+      <div class="form-row">
+        <label>LinkedIn URL</label>
+        <input name="linkedin_url" value="{{ user.linkedin_url }}" placeholder="https://linkedin.com/in/…">
+      </div>
+      <div class="form-row">
+        <label>Microsoft Teams link</label>
+        <input name="teams_url" value="{{ user.teams_url }}" placeholder="https://teams.microsoft.com/l/…">
+      </div>
+      <div class="form-row">
+        <label>KCL website</label>
+        <input name="kcl_url" value="{{ user.kcl_url }}" placeholder="https://kcl.ac.uk/people/…">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Save profile</button>
+  </form>
+</div>
+{% endblock %}

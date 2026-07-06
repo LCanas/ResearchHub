@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Review panel{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Governance</div>
+    <h1>The review panel</h1>
+    <p style="max-width:760px">A multidisciplinary panel of AI experts oversees the
+       pipeline. It meets monthly to evaluate new proposals, decides when a project
+       moves into the pipeline, and makes sure every project has clinical value, a
+       feasible technical plan and the right governance before work begins.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main about-page">
+
+  {# ---- What the panel weighs up ---- #}
+  <section class="about-section">
+    <div class="section-head">
+      <span class="kicker">How review works</span>
+      <h2>What the panel evaluates</h2>
+      <p class="muted">Each submission is assessed against four criteria before it
+         is approved for publication.</p>
+    </div>
+    <div class="criteria-grid">
+      {% for name, desc in REVIEW_CRITERIA %}
+      <div class="criterion">
+        <h4>{{ name }}</h4>
+        <p class="muted small">{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="muted small mt2">Approval takes up to one month, as the panel meets
+       once per month. Once approved, a project is published for up to a month to
+       find a PI and team, then launched.</p>
+  </section>
+
+  {# ---- Members ---- #}
+  <section class="about-section">
+    <div class="section-head">
+      <span class="kicker">Who's on the panel</span>
+      <h2>Panel members</h2>
+    </div>
+    <div class="panel-grid">
+      {% for m in PANEL_MEMBERS %}
+      {% set parts = m.name.replace('Prof.', '').replace('Dr', '').split() %}
+      {% set initials = (parts[0][0] ~ parts[-1][0])|upper if parts|length > 1 else parts[0][:2]|upper %}
+      <div class="panel-card">
+        <div class="panel-top">
+          <div class="avatar avatar-md avatar-fallback">{{ initials }}</div>
+          <div>
+            <b class="panel-name">{{ m.name }}</b>
+            <span class="panel-role">{{ m.role }}</span>
+            <span class="small muted">{{ m.affiliation }}</span>
+          </div>
+        </div>
+        <p class="muted small">{{ m.desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

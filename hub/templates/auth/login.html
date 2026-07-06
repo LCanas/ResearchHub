@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · {{ APP_NAME }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-brand">
+    <span class="brand-mark" style="margin-bottom:1.2rem">CH</span>
+    <h1>{{ APP_NAME }}</h1>
+    <p style="font-size:1.05rem">{{ APP_SUBTITLE }} — King's College London.</p>
+    <div class="auth-feature"><span class="b">›</span><span>Discover open projects and express your interest to join.</span></div>
+    <div class="auth-feature"><span class="b">›</span><span>Find collaborators by expertise, availability and department.</span></div>
+    <div class="auth-feature"><span class="b">›</span><span>Track roadmaps, contributions and outcomes in one place.</span></div>
+  </div>
+  <div class="auth-panel">
+    <div class="auth-card card card-pad">
+      <h2>Welcome back</h2>
+      <p class="muted small">Sign in to the Collaboration Hub.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('auth.login') }}">
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" name="email" value="{{ email }}" required autofocus>
+        </div>
+        <div class="form-row">
+          <label>Password</label>
+          <input type="password" name="password" required>
+        </div>
+        <label class="flex small" style="margin-bottom:1rem">
+          <input type="checkbox" name="remember" style="width:auto"> Remember me
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+      <p class="text-center small mt">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

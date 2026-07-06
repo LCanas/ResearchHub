@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, stage_pill, ws_tag %}
+{% block title %}{{ project.title }}{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="flex space-between flex-wrap" style="gap:1rem">
+      <div>
+        <div class="flex gap-sm flex-wrap" style="margin-bottom:.6rem">
+          {{ stage_pill(project.status) }}
+          {% if project.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(project.project_type,'') }}">{{ project.project_type }} · {{ PROJECT_TYPE_BAND.get(project.project_type,'') }}</span>{% endif %}
+          {% if project.department %}<span class="chip" style="background:rgba(255,255,255,.12);color:#fff;border-color:transparent">{{ project.department }}</span>{% endif %}
+        </div>
+        <h1>{{ project.title }}</h1>
+        <p>{{ project.summary }}</p>
+      </div>
+      {% if can_manage %}
+      <div class="flex gap-sm">
+        <a class="btn btn-outline" href="{{ url_for('main.project_edit', project_id=project.id) }}">Edit</a>
+        <form class="inline-form" method="post" action="{{ url_for('main.project_delete', project_id=project.id) }}"
+              data-confirm="Delete this project permanently?">
+          <button class="btn btn-danger" type="submit">Delete</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+
+  {# ---- Lifecycle stepper ---- #}
+  <div class="card card-pad" style="margin-bottom:1.5rem">
+    <div class="stepper">
+      {% set idx = STAGE_NAMES.index(project.status) %}
+      {% for s in STAGE_NAMES %}
+        {% set pos = loop.index0 %}
+        <div class="step {{ 'done' if pos < idx }}{{ 'current' if pos == idx }}">
+          <div class="line"></div>
+          <div class="dot"></div>
+          <div class="name">{{ s }}</div>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="small muted" style="margin:.9rem 0 0">{{ STAGE_DESCRIPTIONS.get(project.status, '') }}</p>
+  </div>
+
+  <div class="two-col">
+    {# ================= MAIN COLUMN ================= #}
+    <div>
+      <div class="card card-pad">
+        <h2>About this project</h2>
+        {% if project.workstream %}
+          <div style="margin-bottom:.8rem">Workstream: {{ ws_tag(project.workstream) }}</div>
+        {% endif %}
+        <p style="white-space:pre-line">{{ project.description or 'No description provided yet.' }}</p>
+        {% if project.keyword_list %}
+          <div class="mt">
+            {% for k in project.keyword_list %}<span class="chip chip-crimson">{{ k }}</span>{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      {# ---- Roadmap / Gantt ---- #}
+      <div class="card card-pad mt2">
+        <div class="section-title"><h2>Roadmap</h2></div>
+        {% if gantt_rows %}
+          <div class="gantt">
+            <div class="gantt-axis">
+              {% for lab in gantt_labels %}
+                <span class="tick" style="left: {{ lab.offset_pct }}%">{{ lab.text }}</span>
+              {% endfor %}
+            </div>
+            {% for row in gantt_rows %}
+              <div class="gantt-row">
+                <div class="lab">{{ row.milestone.name }}</div>
+                <div class="track">
+                  <div class="gantt-bar bar-{{ row.milestone.status|lower|replace(' ', '-') }}"
+                       style="left: {{ row.offset_pct }}%; width: {{ row.width_pct }}%"
+                       title="{{ row.milestone.name }} · {{ row.milestone.start_date }} → {{ row.milestone.end_date }} ({{ row.milestone.status }})">
+                    {{ row.milestone.status }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="flex gap-sm small muted mt">
+            <span class="pill bar-planned" style="color:#fff">Planned</span>
+            <span class="pill bar-in-progress" style="color:#fff">In Progress</span>
+            <span class="pill bar-done" style="color:#fff">Done</span>
+          </div>
+        {% else %}
+          <p class="muted">No roadmap milestones yet.</p>
+        {% endif %}
+
+        {% if can_manage %}
+        <hr class="divider">
+        <h4>Add a milestone</h4>
+        <form method="post" action="{{ url_for('main.milestone_add', project_id=project.id) }}">
+          <div class="form-grid">
+            <div class="form-row full"><label>Milestone name</label><input name="name" required></div>
+            <div class="form-row"><label>Start</label><input type="date" name="start_date" required></div>
+            <div class="form-row"><label>End</label><input type="date" name="end_date" required></div>
+            <div class="form-row"><label>Status</label>
+              <select name="status">{% for s in MILESTONE_STATUSES %}<option>{{ s }}</option>{% endfor %}</select>
+            </div>
+          </div>
+          <button class="btn btn-navy btn-sm" type="submit">Add milestone</button>
+        </form>
+        {% if project.milestones %}
+        <div class="mt small">
+          {% for m in project.milestones %}
+            <div class="flex space-between" style="padding:.3rem 0;border-bottom:1px solid var(--grey-100)">
+              <span>{{ m.name }} <span class="muted">({{ m.start_date }} → {{ m.end_date }})</span></span>
+              <form class="inline-form" method="post" action="{{ url_for('main.milestone_delete', milestone_id=m.id) }}">
+                <button class="btn btn-ghost btn-sm" type="submit">Remove</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+
+      {# ---- Outcomes: expected vs actual depending on stage (req 7) ---- #}
+      <div class="card card-pad mt2">
+        {% if project.is_completed %}
+          <h2>Outcomes</h2>
+          <p style="white-space:pre-line">{{ project.actual_outcomes or 'Outcomes will be published here.' }}</p>
+        {% else %}
+          <h2>Expected outcomes</h2>
+          <p style="white-space:pre-line">{{ project.expected_outcomes or 'Not specified yet.' }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ================= SIDEBAR ================= #}
+    <aside>
+      {# ---- Join / status action ---- #}
+      <div class="card card-pad">
+        {% if is_collaborator %}
+          <div class="flash flash-success" style="margin:0">You are a collaborator on this project.</div>
+        {% elif my_request and my_request.status == 'Pending' %}
+          <div class="flash flash-info" style="margin:0">Your request to join is pending review.</div>
+        {% elif my_request and my_request.status == 'Rejected' %}
+          <div class="flash flash-warning" style="margin:0">Your previous request was declined.</div>
+        {% elif project.status in ['Completed', 'Launched'] %}
+          <p class="muted small" style="margin:0">Joining is closed for {{ project.status|lower }} projects.</p>
+        {% else %}
+          <h4>Interested in joining?</h4>
+          <button class="btn btn-primary btn-block" id="join-toggle" type="button">Express interest</button>
+          <div id="join-box" style="display:none;margin-top:.8rem">
+            <form method="post" action="{{ url_for('main.project_join', project_id=project.id) }}">
+              <div class="form-row">
+                <label>Message to the team <span class="muted">(optional)</span></label>
+                <textarea name="message" placeholder="How you'd like to contribute…"></textarea>
+              </div>
+              <button class="btn btn-navy btn-block" type="submit">Send request</button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+
+      {# ---- PI / proposer ---- #}
+      <div class="card card-pad mt">
+        <h4>Leadership</h4>
+        {% if project.pi_user %}
+          <a class="flex" href="{{ url_for('main.profile', user_id=project.pi_user.id) }}">
+            {{ avatar(project.pi_user, 'avatar-sm') }}
+            <span><b style="color:var(--navy)">{{ project.pi_user.full_name }}</b><br>
+            <span class="small muted">Principal Investigator</span></span>
+          </a>
+        {% else %}
+          <p class="small muted">No PI assigned yet — this project needs a senior lead.</p>
+        {% endif %}
+        {% if project.proposer %}
+          <a class="flex mt" href="{{ url_for('main.profile', user_id=project.proposer.id) }}">
+            {{ avatar(project.proposer, 'avatar-sm') }}
+            <span><b style="color:var(--navy)">{{ project.proposer.full_name }}</b><br>
+            <span class="small muted">Proposer</span></span>
+          </a>
+        {% endif %}
+      </div>
+
+      {# ---- Links ---- #}
+      {% if project.github_url %}
+      <div class="card card-pad mt">
+        <h4>Links</h4>
+        <div class="link-row">
+          <a class="link-btn" href="{{ project.github_url }}" target="_blank" rel="noopener">⌥ GitHub repository</a>
+        </div>
+      </div>
+      {% endif %}
+
+      {# ---- Collaborators + contributions ---- #}
+      <div class="card card-pad mt">
+        <h4>Collaborators <span class="muted small">({{ project.collaborations|length }})</span></h4>
+        {% if project.collaborations %}
+          {% for c in project.collaborations %}
+          <div class="contrib">
+            {{ avatar(c.user, 'avatar-sm') }}
+            <div class="grow">
+              <a href="{{ url_for('main.profile', user_id=c.user.id) }}"><b style="color:var(--navy)">{{ c.user.full_name }}</b></a>
+              <div class="small muted">{{ c.role }}</div>
+            </div>
+            <div class="num"><b>{{ c.hours_dedicated }}</b><span>hours</span></div>
+            <div class="num"><b>{{ c.days_dedicated }}</b><span>days</span></div>
+          </div>
+          {% if can_manage %}
+          <form class="flex gap-sm small" method="post" action="{{ url_for('main.collaboration_update', collab_id=c.id) }}" style="margin:.2rem 0 .6rem">
+            <input name="role" value="{{ c.role }}" placeholder="Role" style="flex:1">
+            <input name="hours_dedicated" type="number" value="{{ c.hours_dedicated }}" style="width:70px" title="hours">
+            <input name="days_dedicated" type="number" value="{{ c.days_dedicated }}" style="width:70px" title="days">
+            <button class="btn btn-outline btn-sm" type="submit">Save</button>
+          </form>
+          {% endif %}
+          {% endfor %}
+        {% else %}
+          <p class="small muted">No collaborators yet.</p>
+        {% endif %}
+      </div>
+
+      {# ---- Pending requests for managers ---- #}
+      {% if can_manage and pending_requests %}
+      <div class="card card-pad mt">
+        <h4>Join requests <span class="badge-count">{{ pending_requests|length }}</span></h4>
+        {% for r in pending_requests %}
+        <div class="contrib">
+          {{ avatar(r.user, 'avatar-sm') }}
+          <div class="grow">
+            <a href="{{ url_for('main.profile', user_id=r.user.id) }}"><b style="color:var(--navy)">{{ r.user.full_name }}</b></a>
+            {% if r.message %}<div class="small muted">“{{ r.message }}”</div>{% endif %}
+          </div>
+        </div>
+        <div class="flex gap-sm" style="margin:.2rem 0 .8rem">
+          <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='accept') }}">
+            <button class="btn btn-primary btn-sm" type="submit">Accept</button>
+          </form>
+          <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='reject') }}">
+            <button class="btn btn-ghost btn-sm" type="submit">Decline</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

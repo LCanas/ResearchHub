@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, stage_pill, work_status_chip, ws_tag %}
+{% block title %}{{ user.full_name }}{% endblock %}
+
+{% block body %}
+<div class="container main">
+
+  <div class="profile-head">
+    {{ avatar(user, 'avatar-lg') }}
+    <div class="who grow">
+      <div class="flex gap-sm" style="margin-bottom:.3rem">
+        {{ work_status_chip(user.work_status) }}
+        {% if user.db_role == 'PI' %}<span class="chip chip-crimson">Principal Investigator</span>{% endif %}
+      </div>
+      <h1>{{ user.full_name }}</h1>
+      <div class="role muted">
+        {{ user.contract_type or 'Researcher' }}{% if user.seniority %} · {{ user.seniority }}{% endif %}
+        {% if user.department %} · {{ user.department }}{% endif %}
+      </div>
+      {% if user.expertise %}<p style="margin:.6rem 0 0">{{ user.expertise }}</p>{% endif %}
+      {% if user.workstream_list %}
+        <div class="link-row" style="gap:.4rem;margin-top:.6rem">
+          {% for w in user.workstream_list %}{{ ws_tag(w) }}{% endfor %}
+        </div>
+      {% endif %}
+      {% set own = user.id == current_user.id %}
+      <div class="link-row mt">
+        {# LinkedIn, Teams and KCL slots are always shown so the placement is
+           clear. Missing links become a muted placeholder, or an "add" prompt
+           on your own profile. #}
+        {% for lk in [
+            {'url': user.linkedin_url, 'icon': 'in', 'label': 'LinkedIn'},
+            {'url': user.teams_url,    'icon': '▦',  'label': 'Teams'},
+            {'url': user.kcl_url,      'icon': '🎓', 'label': 'KCL website'}] %}
+          {% if lk.url %}
+            <a class="link-btn" href="{{ lk.url }}" target="_blank" rel="noopener"><b>{{ lk.icon }}</b> {{ lk.label }}</a>
+          {% elif own %}
+            <a class="link-btn link-btn-add" href="{{ url_for('main.edit_profile') }}">+ Add {{ lk.label }}</a>
+          {% else %}
+            <span class="link-btn link-btn-empty"><b>{{ lk.icon }}</b> {{ lk.label }} — n/a</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% if user.id == current_user.id %}
+      <a class="btn btn-primary" href="{{ url_for('main.edit_profile') }}">Edit profile</a>
+    {% endif %}
+  </div>
+
+  <div class="two-col mt2">
+    <div>
+      <div class="card card-pad">
+        <h2>About</h2>
+        <p style="white-space:pre-line">{{ user.bio or 'No bio yet.' }}</p>
+        {% if user.keyword_list %}
+        <hr class="divider">
+        <h4>Skills &amp; keywords</h4>
+        <div>{% for k in user.keyword_list %}<span class="chip chip-crimson">{{ k }}</span>{% endfor %}</div>
+        {% endif %}
+      </div>
+
+      {# ---- Collaborations (req 4) ---- #}
+      <div class="card card-pad mt2">
+        <div class="section-title"><h2>Projects &amp; contributions</h2></div>
+        {% if user.collaborations %}
+          {% for c in user.collaborations %}
+          <div class="contrib">
+            <div class="grow">
+              <a href="{{ url_for('main.project_detail', project_id=c.project.id) }}"><b style="color:var(--navy)">{{ c.project.title }}</b></a>
+              <div class="small" style="margin-top:.2rem">{{ stage_pill(c.project.status) }} <span class="muted">· {{ c.role }}</span></div>
+            </div>
+            <div class="num"><b>{{ c.hours_dedicated }}</b><span>hours</span></div>
+            <div class="num"><b>{{ c.days_dedicated }}</b><span>days</span></div>
+          </div>
+          {% endfor %}
+          <div class="flex space-between mt small muted">
+            <span>Total across {{ user.collaborations|length }} project(s)</span>
+            <b style="color:var(--navy)">{{ user.total_hours }} hours</b>
+          </div>
+        {% else %}
+          <p class="muted">Not collaborating on any projects yet.</p>
+        {% endif %}
+      </div>
+
+      {% if user.led_projects %}
+      <div class="card card-pad mt2">
+        <h2>Leading as PI</h2>
+        {% for p in user.led_projects %}
+          <div class="contrib">
+            <div class="grow"><a href="{{ url_for('main.project_detail', project_id=p.id) }}"><b style="color:var(--navy)">{{ p.title }}</b></a></div>
+            {{ stage_pill(p.status) }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="card card-pad">
+        <h4>Details</h4>
+        <ul class="meta-list">
+          <li><span class="k">Contract</span><span>{{ user.contract_type or '—' }}</span></li>
+          <li><span class="k">Seniority</span><span>{{ user.seniority or '—' }}</span></li>
+          <li><span class="k">Department</span><span>{{ user.department or '—' }}</span></li>
+          <li><span class="k">PI / Supervisor</span><span>{{ user.pi or '—' }}</span></li>
+          <li><span class="k">Line manager</span><span>{{ user.line_manager or '—' }}</span></li>
+          <li><span class="k">Availability</span><span>{{ user.hours_available }} hrs/week</span></li>
+          <li><span class="k">Status</span><span>{{ user.work_status }}</span></li>
+        </ul>
+      </div>
+      <div class="card card-pad mt">
+        <h4>Contact</h4>
+        <ul class="meta-list">
+          <li><span class="k">Email</span><span><a href="mailto:{{ user.email }}">{{ user.email }}</a></span></li>
+          {% if user.phone %}<li><span class="k">Phone</span><span>{{ user.phone }}</span></li>{% endif %}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

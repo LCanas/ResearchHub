@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ APP_NAME }}{% endblock %} · {{ APP_NAME }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% from "_macros.html" import avatar %}
+{% if current_user.is_authenticated %}
+<nav class="navbar">
+  <div class="container">
+    <a class="brand" href="{{ url_for('main.index') }}">
+      <span class="brand-mark">CH</span>
+      <span class="brand-text">
+        <b>{{ APP_NAME }}</b>
+        <span>{{ APP_SUBTITLE }}</span>
+      </span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('main.about') }}" class="{{ 'active' if request.endpoint in ['main.about', 'main.panel'] }}">About</a>
+      <a href="{{ url_for('main.projects') }}" class="{{ 'active' if request.endpoint in ['main.projects', 'main.project_detail'] }}">Projects</a>
+      <a href="{{ url_for('main.workstreams') }}" class="{{ 'active' if request.endpoint in ['main.workstreams', 'main.workstream_detail'] }}">Workstreams</a>
+      <a href="{{ url_for('main.directory') }}" class="{{ 'active' if request.endpoint == 'main.directory' }}">People</a>
+      <a href="{{ url_for('main.events') }}" class="{{ 'active' if request.endpoint in ['main.events', 'main.event_detail', 'main.event_new'] }}">Events</a>
+      <a href="{{ url_for('main.news') }}" class="{{ 'active' if request.endpoint in ['main.news', 'main.news_detail', 'main.news_new'] }}">News</a>
+      <a href="{{ url_for('main.impact') }}" class="{{ 'active' if request.endpoint == 'main.impact' }}">Impact</a>
+      <a href="{{ url_for('main.my_requests') }}" class="{{ 'active' if request.endpoint == 'main.my_requests' }}">Requests</a>
+      <a href="{{ url_for('main.project_new') }}" class="{{ 'active' if request.endpoint == 'main.project_new' }}">+ New</a>
+      <div class="nav-user">
+        <a href="{{ url_for('main.profile', user_id=current_user.id) }}" title="My profile">
+          {{ avatar(current_user, 'nav-avatar') }}
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-light">Sign out</a>
+      </div>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+{% block hero %}{% endblock %}
+
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
+
+{% block body %}{% endblock %}
+
+{% if current_user.is_authenticated %}
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <div class="brand" style="margin-bottom:.6rem">
+        <span class="brand-mark">CH</span>
+        <span class="brand-text"><b>{{ APP_NAME }}</b><span>{{ APP_SUBTITLE }}</span></span>
+      </div>
+      <p class="small" style="color:#b9c4da;max-width:320px">A King's College London hub for proposing,
+         staffing and delivering the safe deployment of AI in healthcare research.</p>
+    </div>
+    <div>
+      <h5>Explore</h5>
+      <a href="{{ url_for('main.projects') }}">Projects</a>
+      <a href="{{ url_for('main.workstreams') }}">Workstreams</a>
+      <a href="{{ url_for('main.directory') }}">People</a>
+      <a href="{{ url_for('main.events') }}">Events</a>
+      <a href="{{ url_for('main.news') }}">News</a>
+      <a href="{{ url_for('main.impact') }}">Impact</a>
+      <a href="{{ url_for('main.about') }}">About</a>
+      <a href="{{ url_for('main.panel') }}">Review panel</a>
+    </div>
+    <div>
+      <h5>Get in touch</h5>
+      <a href="mailto:ai-health-hub@kcl.ac.uk">ai-health-hub@kcl.ac.uk</a>
+      <div class="footer-social">
+        <a href="https://www.linkedin.com" target="_blank" rel="noopener" title="LinkedIn">in</a>
+        <a href="https://github.com" target="_blank" rel="noopener" title="GitHub">⌥</a>
+        <a href="https://x.com" target="_blank" rel="noopener" title="X">✕</a>
+      </div>
+    </div>
+  </div>
+  <div class="container footer-base small">
+    © {{ APP_NAME }}, King's College London. Demo application.
+  </div>
+</footer>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

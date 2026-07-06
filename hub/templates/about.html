@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">About the hub</div>
+    <h1>Bridging clinical knowledge and AI expertise</h1>
+    <p style="max-width:760px">An interactive matchmaking platform that helps
+       healthcare researchers — including those with no prior AI experience —
+       develop and deploy AI solutions for their clinical research questions, by
+       connecting them with technical collaborators across King's.</p>
+    <div class="stat-strip">
+      <div class="stat"><b>{{ stats.projects }}</b><span>PROJECTS</span></div>
+      <div class="stat"><b>{{ stats.researchers }}</b><span>RESEARCHERS</span></div>
+      <div class="stat"><b>{{ stats.completed }}</b><span>COMPLETED</span></div>
+      <div class="stat"><b>{{ stats.departments }}</b><span>DEPARTMENTS</span></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main about-page">
+
+  {# ===================== 1.1 Mission ===================== #}
+  <section class="about-section">
+    <div class="section-head">
+      <span class="kicker">Our mission</span>
+      <h2>Turn clinical needs into viable, collaborative AI projects.</h2>
+    </div>
+    <p class="lead">The hub unlocks the potential of healthcare research and
+       clinical data by lowering the barriers to AI innovation. Clinical partners
+       and researchers submit their ideas; a multidisciplinary panel reviews them;
+       and approved projects are published so that AI researchers across the
+       university — from PhD students to academic staff — can collaborate.</p>
+    <div class="aims">
+      <div class="aim">
+        <h4>Lower barriers to entry</h4>
+        <p>Enable clinicians and healthcare researchers with no prior AI
+           experience to pitch ideas and access advanced technical resources.</p>
+      </div>
+      <div class="aim">
+        <h4>Foster cross-disciplinary collaboration</h4>
+        <p>Connect frontline clinical knowledge (FoLSM) with the technical and
+           deployment expertise within BMEIS.</p>
+      </div>
+      <div class="aim">
+        <h4>Accelerate project delivery</h4>
+        <p>Move ideas from a simple submission to active, fully-staffed research
+           collaborations or hackathons.</p>
+      </div>
+      <div class="aim">
+        <h4>Drive educational engagement</h4>
+        <p>Identify skill gaps, host workshops, and help early-career researchers
+           build new skills and networks.</p>
+      </div>
+    </div>
+  </section>
+
+  {# ===================== 1.2 What the hub does ===================== #}
+  <section class="about-section">
+    <div class="section-head">
+      <span class="kicker">How it works</span>
+      <h2>From a clinical idea to a launched project.</h2>
+    </div>
+    <ol class="process">
+      <li>
+        <span class="num">01</span>
+        <div><h4>Idea submission</h4>
+          <p>Clinical partners and researchers submit project ideas through an
+             accessible form covering data, resources, timeline and ethics.</p></div>
+      </li>
+      <li>
+        <span class="num">02</span>
+        <div><h4>Project review</h4>
+          <p>A multidisciplinary panel meets monthly to evaluate submissions on
+             clinical impact, data readiness, resources and AI feasibility.</p></div>
+      </li>
+      <li>
+        <span class="num">03</span>
+        <div><h4>Project publication</h4>
+          <p>Approved projects are published to an open platform, visible to
+             researchers, developers and students looking to collaborate.</p></div>
+      </li>
+      <li>
+        <span class="num">04</span>
+        <div><h4>Match &amp; launch</h4>
+          <p>A PI is matched to coordinate the work, collaborators request to
+             join, and the project is launched — or channelled into a hackathon.</p></div>
+      </li>
+    </ol>
+    <div class="panel-callout">
+      <div>
+        <b>Governance</b>
+        <span class="muted small">The hub is overseen by a monthly multidisciplinary
+           review panel that evaluates every submission before it is published.</span>
+      </div>
+      <a class="btn btn-navy" href="{{ url_for('main.panel') }}">Meet the review panel →</a>
+    </div>
+  </section>
+
+  {# ===================== 1.3 Research workstreams ===================== #}
+  <section class="about-section">
+    <div class="section-head">
+      <span class="kicker">Research themes</span>
+      <h2>Research workstreams</h2>
+      <p class="muted">Every project and researcher belongs to one or more themed
+         workstreams. <a href="{{ url_for('main.workstreams') }}">View all workstreams →</a></p>
+    </div>
+    <div class="ws-rows">
+      {% for w in WORKSTREAMS %}
+      <a class="ws-row {{ w.css }}" href="{{ url_for('main.workstream_detail', slug=w.slug) }}">
+        <span class="dot"></span>
+        <span class="ws-row-body">
+          <b>{{ w.name }}</b>
+          <span class="muted small">{{ w.desc }}</span>
+        </span>
+        <span class="chev">→</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ===================== 1.4 Types of project ===================== #}
+  <section class="about-section">
+    <div class="section-head">
+      <span class="kicker">Ways to contribute</span>
+      <h2>Types of project</h2>
+      <p class="muted">Projects come in three effort bands, so anyone can
+         contribute at the scale that fits.</p>
+    </div>
+    <div class="band-grid">
+      <div class="band">
+        <span class="band-label short">Short-term</span>
+        <h4>Hackathon</h4>
+        <p class="muted small">A focused sprint — days to weeks — to prototype an idea or explore a question at pace.</p>
+      </div>
+      <div class="band">
+        <span class="band-label medium">Medium-term</span>
+        <h4>Proof of Concept</h4>
+        <p class="muted small">A few months to validate technical and clinical feasibility before a larger build.</p>
+      </div>
+      <div class="band">
+        <span class="band-label medium">Medium-term</span>
+        <h4>Product Development</h4>
+        <p class="muted small">Building and hardening a deployable tool for real clinical or research use.</p>
+      </div>
+      <div class="band">
+        <span class="band-label long">Long-term</span>
+        <h4>Grant</h4>
+        <p class="muted small">A funded, long-term research programme with formal milestones and reporting.</p>
+      </div>
+    </div>
+  </section>
+
+  {# ===================== 1.5 Departments ===================== #}
+  <section class="about-section">
+    <div class="section-head">
+      <span class="kicker">Across King's</span>
+      <h2>Departments we work with</h2>
+      <p class="muted">Spanning the Faculty of Life Sciences &amp; Medicine and
+         Biomedical Engineering &amp; Imaging Sciences.</p>
+    </div>
+    <div class="dept-grid">
+      {% for d in DEPARTMENTS if d != 'Other' %}
+      <div class="dept-card">
+        <div class="dept-name">{{ d }}</div>
+        <div class="dept-links">
+          <a href="{{ url_for('main.directory', department=d) }}">View collaborators</a>
+          <a href="{{ DEPARTMENT_KCL_URLS.get(d, 'https://www.kcl.ac.uk') }}" target="_blank" rel="noopener">KCL page ↗</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ===================== CTA ===================== #}
+  <section class="about-section text-center">
+    <h3>Ready to get involved?</h3>
+    <p class="muted">Propose a project, or browse open calls looking for collaborators.</p>
+    <div class="flex gap-sm" style="justify-content:center;margin-top:1rem">
+      <a class="btn btn-primary" href="{{ url_for('main.project_new') }}">Propose a project</a>
+      <a class="btn btn-outline" href="{{ url_for('main.projects', status='Open') }}">See open projects</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

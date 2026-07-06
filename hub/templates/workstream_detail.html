@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, stage_pill %}
+{% block title %}{{ ws.name }}{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow"><a href="{{ url_for('main.workstreams') }}" style="color:#ffb3bf">Workstreams</a> / theme</div>
+    <div class="flex gap-sm" style="align-items:center">
+      <span style="font-size:2.4rem">{{ ws.icon }}</span>
+      <div>
+        <h1 style="margin:0">{{ ws.name }}</h1>
+      </div>
+    </div>
+    <p style="margin-top:.6rem">{{ ws.desc }}</p>
+    <div class="flex gap-sm" style="margin-top:1rem">
+      <a class="btn btn-primary" href="{{ url_for('main.index', workstream=ws.slug) }}">All projects in this theme</a>
+      <a class="btn btn-outline-light" href="{{ url_for('main.directory', workstream=ws.slug) }}">People in this theme</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="two-col">
+    <div>
+      <div class="section-title"><h2>Projects <span class="muted small">({{ projects|length }})</span></h2></div>
+      {% if projects %}
+        <div class="grid" style="grid-template-columns:1fr;gap:1rem">
+          {% for p in projects %}
+          <article class="card card-pad">
+            <div class="flex space-between flex-wrap gap-sm" style="margin-bottom:.4rem">
+              {{ stage_pill(p.status) }}
+              {% if p.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(p.project_type,'') }}">{{ p.project_type }}</span>{% endif %}
+            </div>
+            <h3 style="margin:.2rem 0"><a href="{{ url_for('main.project_detail', project_id=p.id) }}" style="color:var(--navy)">{{ p.title }}</a></h3>
+            <p class="muted small" style="margin:0">{{ p.summary or (p.description|truncate(110)) }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">No projects in this workstream yet.</p>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="section-title"><h2>Researchers <span class="muted small">({{ people|length }})</span></h2></div>
+      {% if people %}
+        {% for u in people %}
+        <a class="contrib" href="{{ url_for('main.profile', user_id=u.id) }}" style="text-decoration:none">
+          {{ avatar(u, 'avatar-sm') }}
+          <div class="grow">
+            <b style="color:var(--navy)">{{ u.full_name }}</b>
+            <div class="small muted">{{ u.contract_type or 'Researcher' }}{% if u.db_role == 'PI' %} · PI{% endif %}</div>
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <p class="muted">No researchers have joined this workstream yet.</p>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

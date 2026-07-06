@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, stage_pill %}
+{% block title %}Requests{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Collaboration requests</div>
+    <h1>Requests</h1>
+    <p>Track the projects you've asked to join, and review who wants to join yours.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="two-col">
+    <div>
+      <div class="card card-pad">
+        <h2>Incoming <span class="muted small">— projects you manage</span></h2>
+        {% if incoming %}
+          {% for r in incoming %}
+          <div class="contrib">
+            {{ avatar(r.user, 'avatar-sm') }}
+            <div class="grow">
+              <a href="{{ url_for('main.profile', user_id=r.user.id) }}"><b style="color:var(--navy)">{{ r.user.full_name }}</b></a>
+              <div class="small muted">wants to join
+                <a href="{{ url_for('main.project_detail', project_id=r.project.id) }}">{{ r.project.title }}</a></div>
+              {% if r.message %}<div class="small" style="margin-top:.2rem">“{{ r.message }}”</div>{% endif %}
+            </div>
+            <div class="flex gap-sm">
+              <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='accept') }}">
+                <button class="btn btn-primary btn-sm" type="submit">Accept</button>
+              </form>
+              <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='reject') }}">
+                <button class="btn btn-ghost btn-sm" type="submit">Decline</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted">No pending requests on your projects.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <aside>
+      <div class="card card-pad">
+        <h2>My requests</h2>
+        {% if outgoing %}
+          {% for r in outgoing %}
+          <div class="contrib">
+            <div class="grow">
+              <a href="{{ url_for('main.project_detail', project_id=r.project.id) }}"><b style="color:var(--navy)">{{ r.project.title }}</b></a>
+              <div class="small muted">{{ r.created_at.strftime('%d %b %Y') }}</div>
+            </div>
+            {% set cls = {'Pending':'stage-waiting','Accepted':'stage-ongoing','Rejected':'stage-completed'} %}
+            <span class="pill {{ cls.get(r.status,'') }}">{{ r.status }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted">You haven't requested to join any projects yet.
+            <a href="{{ url_for('main.projects') }}">Browse projects</a>.</p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

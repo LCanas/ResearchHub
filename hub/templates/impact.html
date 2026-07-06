@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, stage_pill %}
+{% block title %}Impact{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Outcomes &amp; achievements</div>
+    <h1>Research impact</h1>
+    <p>Completed projects and what they delivered — the tools validated, the
+       questions answered and the collaborations that made it happen.</p>
+    <div class="stat-strip">
+      <div class="stat"><b>{{ totals.completed }}</b><span>PROJECTS DELIVERED</span></div>
+      <div class="stat"><b>{{ totals.hours }}</b><span>HOURS CONTRIBUTED</span></div>
+      <div class="stat"><b>{{ totals.collaborators }}</b><span>CONTRIBUTORS</span></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+
+  {% if completed %}
+  <div class="grid" style="grid-template-columns:1fr;gap:1.5rem">
+    {% for p in completed %}
+    <article class="card impact-card">
+      <div class="head">
+        <div class="flex space-between flex-wrap" style="gap:.6rem">
+          <div>
+            <div class="flex gap-sm flex-wrap" style="margin-bottom:.5rem">
+              {{ stage_pill(p.status) }}
+              {% if p.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(p.project_type,'') }}">{{ p.project_type }}</span>{% endif %}
+            </div>
+            <h3><a href="{{ url_for('main.project_detail', project_id=p.id) }}" style="color:#fff">{{ p.title }}</a></h3>
+            <div class="small" style="color:#cdd7ea">
+              {{ p.department }}
+              {% if p.start_date and p.end_date %} · {{ p.start_date.strftime('%b %Y') }} – {{ p.end_date.strftime('%b %Y') }}{% endif %}
+            </div>
+          </div>
+          {% if p.pi_user %}
+          <a class="flex" href="{{ url_for('main.profile', user_id=p.pi_user.id) }}">
+            {{ avatar(p.pi_user, 'avatar-sm') }}
+            <span style="color:#fff"><b>{{ p.pi_user.full_name }}</b><br><span class="small" style="color:#cdd7ea">PI</span></span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="body">
+        <div class="two-col" style="gap:1.5rem">
+          <div>
+            <h4>Key outcomes</h4>
+            {% set lines = (p.actual_outcomes or '').replace('•', '').split('\n') %}
+            <ul class="outcome-list">
+              {% for line in lines if line.strip() %}
+                <li>{{ line.strip() }}</li>
+              {% endfor %}
+              {% if not (p.actual_outcomes and p.actual_outcomes.strip()) %}
+                <li>Outcomes to be published.</li>
+              {% endif %}
+            </ul>
+            {% if p.github_url %}
+            <div class="link-row mt">
+              <a class="link-btn" href="{{ p.github_url }}" target="_blank" rel="noopener"><b>⌥</b> Code &amp; repository</a>
+              <a class="link-btn" href="{{ url_for('main.project_detail', project_id=p.id) }}">Project page →</a>
+            </div>
+            {% endif %}
+          </div>
+          <aside>
+            <h4>Team</h4>
+            {% for c in p.collaborations %}
+            <a class="flex" href="{{ url_for('main.profile', user_id=c.user.id) }}" style="padding:.35rem 0">
+              {{ avatar(c.user, 'avatar-sm') }}
+              <span class="small"><b style="color:var(--navy)">{{ c.user.full_name }}</b><br>
+              <span class="muted">{{ c.role }} · {{ c.hours_dedicated }}h</span></span>
+            </a>
+            {% endfor %}
+          </aside>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty">
+    <div class="big">🏁</div>
+    <h3>No completed projects yet</h3>
+    <p>As projects reach the <b>Completed</b> stage, their outcomes will be showcased here.</p>
+    <a class="btn btn-outline mt" href="{{ url_for('main.projects') }}">Browse active projects</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

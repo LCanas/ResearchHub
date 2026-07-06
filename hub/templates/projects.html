@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, stage_pill, ws_tag %}
+{% block title %}Projects{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">King's College London</div>
+    <h1>Projects</h1>
+    <p>Browse projects across their lifecycle — from open calls for collaborators
+       to completed work and its outcomes.</p>
+    <div class="stat-strip">
+      <div class="stat"><b>{{ stats.projects }}</b><span>PROJECTS</span></div>
+      <div class="stat"><b>{{ stats.open }}</b><span>OPEN TO JOIN</span></div>
+      <div class="stat"><b>{{ stats.ongoing }}</b><span>ONGOING</span></div>
+      <div class="stat"><b>{{ stats.researchers }}</b><span>RESEARCHERS</span></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+
+  <form class="filters" method="get" action="{{ url_for('main.projects') }}">
+    <div class="field grow">
+      <label>Search</label>
+      <input name="q" value="{{ q }}" placeholder="Title, keyword, summary…">
+    </div>
+    <div class="field">
+      <label>Stage</label>
+      <select name="status" onchange="this.form.submit()">
+        <option value="">All stages</option>
+        {% for s in STAGE_NAMES %}
+          <option value="{{ s }}" {{ 'selected' if active_status == s }}>{{ s }} ({{ stage_counts[s] }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Workstream</label>
+      <select name="workstream" onchange="this.form.submit()">
+        <option value="">All workstreams</option>
+        {% for w in WORKSTREAMS %}
+          <option value="{{ w.slug }}" {{ 'selected' if active_workstream == w.slug }}>{{ w.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <select name="type" onchange="this.form.submit()">
+        <option value="">All types</option>
+        {% for t in PROJECT_TYPES %}
+          <option value="{{ t.name }}" {{ 'selected' if active_type == t.name }}>{{ t.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Department</label>
+      <select name="department" onchange="this.form.submit()">
+        <option value="">All departments</option>
+        {% for d in DEPARTMENTS %}
+          <option value="{{ d }}" {{ 'selected' if active_dept == d }}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-navy" type="submit">Filter</button>
+    {% if q or active_status or active_dept or active_type or active_workstream %}
+      <a class="btn btn-ghost" href="{{ url_for('main.projects') }}">Reset</a>
+    {% endif %}
+  </form>
+
+  <div class="section-title">
+    <h2>{{ projects|length }} project{{ '' if projects|length == 1 else 's' }}</h2>
+    <a class="btn btn-primary" href="{{ url_for('main.project_new') }}">+ Propose a project</a>
+  </div>
+
+  {% if projects %}
+  <div class="grid grid-cards">
+    {% for p in projects %}
+    <article class="card project-card">
+      <div class="body">
+        <div class="flex space-between" style="margin-bottom:.6rem">
+          {{ stage_pill(p.status) }}
+          {% if p.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(p.project_type,'') }}">{{ p.project_type }}</span>{% endif %}
+        </div>
+        <h3 class="title"><a href="{{ url_for('main.project_detail', project_id=p.id) }}">{{ p.title }}</a></h3>
+        {% if p.workstream %}<div style="margin-bottom:.5rem">{{ ws_tag(p.workstream) }}</div>{% endif %}
+        <p class="summary">{{ p.summary or (p.description|truncate(120)) or 'No summary yet.' }}</p>
+        <div>
+          {% for k in p.keyword_list[:4] %}<span class="chip">{{ k }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="foot">
+        <div class="avatar-stack">
+          {% for c in p.collaborations[:4] %}
+            {% if c.user.photo %}
+              <img class="av" src="{{ url_for('static', filename='uploads/' ~ c.user.photo) }}" title="{{ c.user.full_name }}">
+            {% else %}
+              <div class="av avatar-fallback" style="display:grid;place-items:center;font-size:.7rem;color:#fff" title="{{ c.user.full_name }}">{{ c.user.initials }}</div>
+            {% endif %}
+          {% endfor %}
+          {% if p.collaborations|length == 0 %}<span class="small muted">No collaborators yet</span>{% endif %}
+          {% if p.collaborations|length > 4 %}<span class="small muted" style="margin-left:.5rem;align-self:center">+{{ p.collaborations|length - 4 }}</span>{% endif %}
+        </div>
+        <span class="small muted">
+          {% if p.pi_user %}PI: {{ p.pi_user.full_name.split()[-1] }}{% else %}PI needed{% endif %}
+        </span>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty">
+    <div class="big">🔍</div>
+    <h3>No projects match your filters</h3>
+    <p>Try clearing the search, or <a href="{{ url_for('main.project_new') }}">propose a new project</a>.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

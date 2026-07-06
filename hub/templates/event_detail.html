@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, ws_tag %}
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow"><a href="{{ url_for('main.events') }}" style="color:#ffb3bf">Events</a> / {{ event.event_type|lower }}</div>
+    <div class="flex gap-sm flex-wrap" style="margin-bottom:.5rem">
+      <span class="chip" style="background:rgba(255,255,255,.14);color:#fff;border-color:transparent">{{ EVENT_TYPE_ICONS.get(event.event_type,'📅') }} {{ event.event_type }}</span>
+      {% if event.is_online %}<span class="chip chip-crimson">Online</span>{% endif %}
+      {% if event.is_past %}<span class="chip" style="background:rgba(255,255,255,.14);color:#fff;border-color:transparent">Past event</span>{% endif %}
+    </div>
+    <h1>{{ event.title }}</h1>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="two-col">
+    <div>
+      <div class="card card-pad">
+        <h2>About this event</h2>
+        {% if event.workstream %}<div style="margin-bottom:.7rem">Workstream: {{ ws_tag(event.workstream) }}</div>{% endif %}
+        <p style="white-space:pre-line">{{ event.description or 'No description provided.' }}</p>
+      </div>
+
+      <div class="card card-pad mt2">
+        <h4>Who's attending <span class="muted small">({{ event.attendee_count }})</span></h4>
+        {% if event.attendances %}
+          {% for a in event.attendances %}
+          <a class="flex" href="{{ url_for('main.profile', user_id=a.user.id) }}" style="padding:.35rem 0">
+            {{ avatar(a.user, 'avatar-sm') }}
+            <span class="small"><b style="color:var(--navy)">{{ a.user.full_name }}</b></span>
+          </a>
+          {% endfor %}
+        {% else %}
+          <p class="small muted">No sign-ups yet — be the first.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <aside>
+      <div class="card card-pad">
+        <ul class="meta-list">
+          <li><span class="k">When</span><span>{{ event.start_at.strftime('%A %d %B %Y') }}<br>{{ event.start_at.strftime('%H:%M') }}{% if event.end_at %} – {{ event.end_at.strftime('%H:%M') }}{% endif %}</span></li>
+          <li><span class="k">Where</span><span>{% if event.is_online %}Online{% else %}{{ event.location or 'To be confirmed' }}{% endif %}</span></li>
+          {% if event.host %}<li><span class="k">Host</span><span><a href="{{ url_for('main.profile', user_id=event.host.id) }}">{{ event.host.full_name }}</a></span></li>{% endif %}
+        </ul>
+
+        {% if event.url %}
+          <a class="btn btn-outline btn-block mt" href="{{ event.url }}" target="_blank" rel="noopener">Event link / joining details</a>
+        {% endif %}
+
+        {% if not event.is_past %}
+          {% if is_registered %}
+            <div class="flash flash-success" style="margin:.8rem 0 0">You're signed up ✓</div>
+            <form method="post" action="{{ url_for('main.event_unregister', event_id=event.id) }}" class="mt">
+              <button class="btn btn-ghost btn-block" type="submit">Cancel sign-up</button>
+            </form>
+          {% else %}
+            <form method="post" action="{{ url_for('main.event_register', event_id=event.id) }}" class="mt">
+              <button class="btn btn-primary btn-block" type="submit">Sign up</button>
+            </form>
+          {% endif %}
+        {% else %}
+          <p class="small muted mt">This event has already taken place.</p>
+        {% endif %}
+      </div>
+
+      {% if can_manage_event %}
+      <div class="card card-pad mt">
+        <h4>Manage</h4>
+        <form method="post" action="{{ url_for('main.event_delete', event_id=event.id) }}"
+              data-confirm="Delete this event?">
+          <button class="btn btn-danger btn-sm" type="submit">Delete event</button>
+        </form>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

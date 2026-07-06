@@ -1,0 +1,47 @@
+{# Reusable UI fragments #}
+
+{% macro avatar(user, size='avatar-md') %}
+  {% if user and user.photo %}
+    <img class="avatar {{ size }}"
+         src="{{ url_for('static', filename='uploads/' ~ user.photo) }}"
+         alt="{{ user.full_name }}">
+  {% else %}
+    <div class="avatar avatar-fallback {{ size }}">{{ user.initials if user else '?' }}</div>
+  {% endif %}
+{% endmacro %}
+
+{% macro stage_pill(status) %}
+  <span class="pill {{ STAGE_CSS.get(status, '') }}">{{ status }}</span>
+{% endmacro %}
+
+{% macro work_status_chip(status) %}
+  {% set cls = 'chip-crimson' if status in ['Active', 'Keen'] else '' %}
+  <span class="chip {{ cls }}">{{ status }}</span>
+{% endmacro %}
+
+{% macro ws_tag(name) %}
+  {% if name %}
+    <a class="ws-tag {{ WORKSTREAM_CSS.get(name, '') }}"
+       href="{{ url_for('main.workstream_detail', slug=WORKSTREAM_SLUG.get(name, '')) }}">{{ name }}</a>
+  {% endif %}
+{% endmacro %}
+
+{% macro event_card(ev, my_ids) %}
+<a class="card event-card" href="{{ url_for('main.event_detail', event_id=ev.id) }}">
+  <div class="event-date {{ 'is-past' if ev.is_past }}">
+    <span class="mon">{{ ev.start_at.strftime('%b') }}</span>
+    <span class="day">{{ ev.start_at.strftime('%d') }}</span>
+  </div>
+  <div class="event-body">
+    <div class="flex gap-sm flex-wrap" style="margin-bottom:.3rem">
+      <span class="chip">{{ EVENT_TYPE_ICONS.get(ev.event_type, '📅') }} {{ ev.event_type }}</span>
+      {% if ev.is_online %}<span class="chip chip-crimson">Online</span>{% endif %}
+      {% if my_ids and ev.id in my_ids %}<span class="pill stage-ongoing">Registered</span>{% endif %}
+    </div>
+    <h3 style="margin:.1rem 0;color:var(--navy)">{{ ev.title }}</h3>
+    <div class="small muted">🕒 {{ ev.start_at.strftime('%a %d %b %Y · %H:%M') }}
+      {% if not ev.is_online %} · 📍 {{ ev.location or 'TBC' }}{% endif %}</div>
+    <div class="small muted">👥 {{ ev.attendee_count }} attending{% if ev.host %} · hosted by {{ ev.host.full_name }}{% endif %}</div>
+  </div>
+</a>
+{% endmacro %}

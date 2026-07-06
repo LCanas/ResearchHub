@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Workstreams{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">How our work is organised</div>
+    <h1>Research workstreams</h1>
+    <p>Every project and researcher sits within one or more themed workstreams —
+       the research areas through which the hub deploys AI in healthcare.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem">
+    {% for w in WORKSTREAMS %}
+    <a class="card ws-card {{ w.css }}" href="{{ url_for('main.workstream_detail', slug=w.slug) }}">
+      <div class="ws-card-head">
+        <span class="ws-glyph">{{ w.icon }}</span>
+        <h3>{{ w.name }}</h3>
+      </div>
+      <div class="ws-card-body">
+        <p class="muted small">{{ w.desc }}</p>
+        <div class="flex gap-sm mt small">
+          <span class="chip">{{ counts[w.name].projects }} project{{ '' if counts[w.name].projects == 1 else 's' }}</span>
+          <span class="chip">{{ counts[w.name].people }} {{ 'person' if counts[w.name].people == 1 else 'people' }}</span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
