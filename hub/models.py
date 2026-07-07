@@ -88,10 +88,6 @@ class User(UserMixin, db.Model):
         return (parts[0][0] + parts[-1][0]).upper()
 
     @property
-    def total_hours(self):
-        return sum(c.hours_dedicated or 0 for c in self.collaborations)
-
-    @property
     def active_project_count(self):
         return sum(
             1 for c in self.collaborations
@@ -160,10 +156,6 @@ class Project(db.Model):
     def collaborators(self):
         return [c.user for c in self.collaborations]
 
-    @property
-    def total_hours(self):
-        return sum(c.hours_dedicated or 0 for c in self.collaborations)
-
     def __repr__(self):
         return f"<Project {self.title}>"
 
@@ -197,8 +189,6 @@ class Collaboration(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
     role = db.Column(db.String(80), default="Collaborator")
-    hours_dedicated = db.Column(db.Integer, default=0)
-    days_dedicated = db.Column(db.Integer, default=0)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", back_populates="collaborations")

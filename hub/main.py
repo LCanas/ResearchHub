@@ -418,18 +418,16 @@ def my_requests():
     return render_template("requests.html", outgoing=outgoing, incoming=incoming)
 
 
-# --- Collaborator management (hours/days) -----------------------------------
+# --- Collaborator management (role) -----------------------------------------
 @main_bp.route("/collaborations/<int:collab_id>/update", methods=["POST"])
 @login_required
 def collaboration_update(collab_id):
     collab = db.session.get(Collaboration, collab_id) or abort(404)
     if not can_manage(collab.project):
         abort(403)
-    collab.hours_dedicated = int(request.form.get("hours_dedicated") or 0)
-    collab.days_dedicated = int(request.form.get("days_dedicated") or 0)
     collab.role = request.form.get("role", collab.role).strip() or collab.role
     db.session.commit()
-    flash("Contribution updated.", "success")
+    flash("Collaborator role updated.", "success")
     return redirect(url_for("main.project_detail", project_id=collab.project_id))
 
 
@@ -741,7 +739,6 @@ def impact():
     # Headline numbers for the impact hero.
     totals = {
         "completed": len(completed),
-        "hours": sum(p.total_hours for p in completed),
         "collaborators": len({c.user_id for p in completed
                               for c in p.collaborations}),
     }

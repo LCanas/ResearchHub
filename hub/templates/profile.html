@@ -69,13 +69,10 @@
               <a href="{{ url_for('main.project_detail', project_id=c.project.id) }}"><b style="color:var(--navy)">{{ c.project.title }}</b></a>
               <div class="small" style="margin-top:.2rem">{{ stage_pill(c.project.status) }} <span class="muted">· {{ c.role }}</span></div>
             </div>
-            <div class="num"><b>{{ c.hours_dedicated }}</b><span>hours</span></div>
-            <div class="num"><b>{{ c.days_dedicated }}</b><span>days</span></div>
           </div>
           {% endfor %}
           <div class="flex space-between mt small muted">
-            <span>Total across {{ user.collaborations|length }} project(s)</span>
-            <b style="color:var(--navy)">{{ user.total_hours }} hours</b>
+            <span>Across {{ user.collaborations|length }} project(s)</span>
           </div>
         {% else %}
           <p class="muted">Not collaborating on any projects yet.</p>

@@ -206,15 +206,12 @@
               <a href="{{ url_for('main.profile', user_id=c.user.id) }}"><b style="color:var(--navy)">{{ c.user.full_name }}</b></a>
               <div class="small muted">{{ c.role }}</div>
             </div>
-            <div class="num"><b>{{ c.hours_dedicated }}</b><span>hours</span></div>
-            <div class="num"><b>{{ c.days_dedicated }}</b><span>days</span></div>
+            {% if c.user.hours_available %}<div class="num"><b>{{ c.user.hours_available }}</b><span>hrs/wk</span></div>{% endif %}
           </div>
           {% if can_manage %}
           <form class="flex gap-sm small" method="post" action="{{ url_for('main.collaboration_update', collab_id=c.id) }}" style="margin:.2rem 0 .6rem">
             <input name="role" value="{{ c.role }}" placeholder="Role" style="flex:1">
-            <input name="hours_dedicated" type="number" value="{{ c.hours_dedicated }}" style="width:70px" title="hours">
-            <input name="days_dedicated" type="number" value="{{ c.days_dedicated }}" style="width:70px" title="days">
-            <button class="btn btn-outline btn-sm" type="submit">Save</button>
+            <button class="btn btn-outline btn-sm" type="submit">Save role</button>
           </form>
           {% endif %}
           {% endfor %}

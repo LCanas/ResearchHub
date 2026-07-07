@@ -11,7 +11,6 @@
        questions answered and the collaborations that made it happen.</p>
     <div class="stat-strip">
       <div class="stat"><b>{{ totals.completed }}</b><span>PROJECTS DELIVERED</span></div>
-      <div class="stat"><b>{{ totals.hours }}</b><span>HOURS CONTRIBUTED</span></div>
       <div class="stat"><b>{{ totals.collaborators }}</b><span>CONTRIBUTORS</span></div>
     </div>
   </div>
@@ -72,7 +71,7 @@
             <a class="flex" href="{{ url_for('main.profile', user_id=c.user.id) }}" style="padding:.35rem 0">
               {{ avatar(c.user, 'avatar-sm') }}
               <span class="small"><b style="color:var(--navy)">{{ c.user.full_name }}</b><br>
-              <span class="muted">{{ c.role }} · {{ c.hours_dedicated }}h</span></span>
+              <span class="muted">{{ c.role }}</span></span>
             </a>
             {% endfor %}
           </aside>
