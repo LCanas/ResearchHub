@@ -179,14 +179,10 @@ def run():
                       end_date=today + timedelta(days=120), status="Planned"),
         ])
         db.session.add_all([
-            Collaboration(user_id=sheldon.id, project_id=p1.id, role="PI",
-                          hours_dedicated=90, days_dedicated=12),
-            Collaboration(user_id=leonard.id, project_id=p1.id, role="Lead researcher",
-                          hours_dedicated=210, days_dedicated=30),
-            Collaboration(user_id=howard.id, project_id=p1.id, role="Engineering",
-                          hours_dedicated=160, days_dedicated=22),
-            Collaboration(user_id=raj.id, project_id=p1.id, role="Modelling & stats",
-                          hours_dedicated=60, days_dedicated=8),
+            Collaboration(user_id=sheldon.id, project_id=p1.id, role="PI"),
+            Collaboration(user_id=leonard.id, project_id=p1.id, role="Lead researcher"),
+            Collaboration(user_id=howard.id, project_id=p1.id, role="Engineering"),
+            Collaboration(user_id=raj.id, project_id=p1.id, role="Modelling & stats"),
         ])
 
         # 2) Open — Federated & Privacy-Preserving ML, proposed by Bernadette
@@ -219,7 +215,7 @@ def run():
                       end_date=today + timedelta(days=120), status="Planned"),
         ])
         db.session.add(Collaboration(user_id=bernadette.id, project_id=p2.id,
-                                     role="Proposer", hours_dedicated=25, days_dedicated=4))
+                                     role="Proposer"))
 
         # 3) Waiting for PI — AI Governance & Safety, proposed by Stuart
         p3 = Project(
@@ -242,7 +238,7 @@ def run():
         db.session.add(p3)
         db.session.flush()
         db.session.add(Collaboration(user_id=stuart.id, project_id=p3.id,
-                                     role="Proposer", hours_dedicated=10, days_dedicated=2))
+                                     role="Proposer"))
 
         # 4) Launched — Clinical NLP, led by Leonard
         p4 = Project(
@@ -273,12 +269,9 @@ def run():
                       end_date=today + timedelta(days=90), status="Planned"),
         ])
         db.session.add_all([
-            Collaboration(user_id=leonard.id, project_id=p4.id, role="PI",
-                          hours_dedicated=20, days_dedicated=3),
-            Collaboration(user_id=raj.id, project_id=p4.id, role="NLP lead",
-                          hours_dedicated=40, days_dedicated=6),
-            Collaboration(user_id=howard.id, project_id=p4.id, role="Engineering",
-                          hours_dedicated=30, days_dedicated=4),
+            Collaboration(user_id=leonard.id, project_id=p4.id, role="PI"),
+            Collaboration(user_id=raj.id, project_id=p4.id, role="NLP lead"),
+            Collaboration(user_id=howard.id, project_id=p4.id, role="Engineering"),
         ])
 
         # 5) Completed — Predictive Modelling & Risk, led by Bernadette
@@ -318,12 +311,9 @@ def run():
                       end_date=today - timedelta(days=40), status="Done"),
         ])
         db.session.add_all([
-            Collaboration(user_id=bernadette.id, project_id=p5.id, role="PI",
-                          hours_dedicated=70, days_dedicated=10),
-            Collaboration(user_id=raj.id, project_id=p5.id, role="Lead analyst",
-                          hours_dedicated=180, days_dedicated=26),
-            Collaboration(user_id=stuart.id, project_id=p5.id, role="Data & annotation",
-                          hours_dedicated=90, days_dedicated=13),
+            Collaboration(user_id=bernadette.id, project_id=p5.id, role="PI"),
+            Collaboration(user_id=raj.id, project_id=p5.id, role="Lead analyst"),
+            Collaboration(user_id=stuart.id, project_id=p5.id, role="Data & annotation"),
         ])
 
         # 6) Open — Human-Centred AI, led by Amy, proposed by Penny
@@ -347,10 +337,8 @@ def run():
         db.session.add(p6)
         db.session.flush()
         db.session.add_all([
-            Collaboration(user_id=amy.id, project_id=p6.id, role="PI",
-                          hours_dedicated=15, days_dedicated=2),
-            Collaboration(user_id=penny.id, project_id=p6.id, role="Proposer / patient engagement",
-                          hours_dedicated=10, days_dedicated=2),
+            Collaboration(user_id=amy.id, project_id=p6.id, role="PI"),
+            Collaboration(user_id=penny.id, project_id=p6.id, role="Proposer / patient engagement"),
         ])
 
         # ---------------- Join requests ----------------
