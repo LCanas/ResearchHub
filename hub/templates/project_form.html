@@ -4,12 +4,17 @@
 {% block body %}
 <div class="container main" style="max-width:900px">
   <div class="section-title">
-    <h1>{{ 'Edit project' if project else 'Propose a project' }}</h1>
+    <h1>{{ 'Edit project' if project and not is_new else 'Propose a project' }}</h1>
     <a class="btn btn-ghost" href="{{ url_for('main.projects') }}">Cancel</a>
   </div>
 
+  {% if is_new %}
+  <div class="flash flash-info">New projects and hackathon challenges stay on hold until the committee
+    approves them. You'll be emailed the decision and can see the status on your project page.</div>
+  {% endif %}
+
   <form method="post" class="card card-pad"
-        action="{{ url_for('main.project_edit', project_id=project.id) if project else url_for('main.project_new') }}">
+        action="{{ url_for('main.project_edit', project_id=project.id) if project and not is_new else url_for('main.project_new') }}">
     <div class="form-grid">
       <div class="form-row full">
         <label>Project title</label>
@@ -48,7 +53,7 @@
         <select name="project_type">
           <option value="">— Select —</option>
           {% for t in PROJECT_TYPES %}
-            <option value="{{ t.name }}" {{ 'selected' if project and project.project_type == t.name }}>{{ t.name }} · {{ t.band }}</option>
+            <option value="{{ t.name }}" {{ 'selected' if (project and project.project_type == t.name) or (not project and preset_type == t.name) }}>{{ t.name }} · {{ t.band }}</option>
           {% endfor %}
         </select>
         <span class="hint">Short-term (Hackathon), medium-term (PoC / Product) or long-term (Grant).</span>
@@ -96,13 +101,21 @@
         <label>Expected outcomes</label>
         <textarea name="expected_outcomes">{{ project.expected_outcomes if project else '' }}</textarea>
       </div>
+      <div class="form-row full">
+        <label>IP, authorship &amp; publication agreement</label>
+        <textarea name="ip_agreement" required style="min-height:130px"
+                  placeholder="Agree this between both parties before work starts. E.g.&#10;• Background IP: each party keeps what it brings (data, code, models).&#10;• New IP: jointly owned / owned by … , subject to KCL IP policy.&#10;• Code licence: e.g. MIT / Apache-2.0 / private until agreed.&#10;• Authorship: CRediT roles; first/last author agreed by …&#10;• Publications &amp; outcomes: need written approval of both parties (30-day review window).">{{ project.ip_agreement if project else '' }}</textarea>
+        <span class="hint">Required. See the <a href="{{ url_for('main.code_of_conduct') }}" target="_blank" rel="noopener">Code of Conduct</a>.
+          Collaborators must accept these terms when they ask to join.</span>
+      </div>
+
       <div class="form-row full" data-when-completed style="display:none">
         <label>Actual outcomes <span class="hint">(shown when the project is Completed)</span></label>
         <textarea name="actual_outcomes">{{ project.actual_outcomes if project else '' }}</textarea>
       </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">{{ 'Save changes' if project else 'Create project' }}</button>
+    <button class="btn btn-primary" type="submit">{{ 'Save changes' if project and not is_new else 'Submit for review' }}</button>
   </form>
 </div>
 {% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Newsletter{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Admin</div>
+    <h1>Monthly newsletter</h1>
+    <ul class="hero-list">
+      <li>Each member gets their own version: open projects matched to their keywords and workstreams,
+          plus upcoming events, recent news and the hackathon.</li>
+      <li>It's sent automatically once a month by the server (see the README), or you can send it now.</li>
+      <li>Nobody receives it twice within 25 days, so sending by hand never double-sends.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="two-col">
+    <div class="card card-pad">
+      <div class="section-title">
+        <h2>Preview</h2>
+        <form method="get" class="flex gap-sm">
+          <select name="preview" onchange="this.form.submit()" style="width:auto">
+            {% for m in members %}
+              <option value="{{ m.id }}" {{ 'selected' if m.id == preview_for.id }}>{{ m.full_name }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+      {% if preview %}
+        <p class="small muted" style="margin-top:0">To: {{ preview_for.email }}<br>
+          Subject: [Collaboration Hub] {{ preview[0] }}</p>
+        <pre class="newsletter-preview">{{ preview[1] }}</pre>
+      {% else %}
+        <p class="muted">Nothing to send to {{ preview_for.full_name }} right now (no open projects,
+          upcoming events or recent news).</p>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="card card-pad">
+        <ul class="meta-list">
+          <li><span class="k">Subscribers</span><span>{{ subscribers|length }}</span></li>
+          <li><span class="k">Last sent</span><span>{{ last_sent.strftime('%d %b %Y') if last_sent else 'Never' }}</span></li>
+        </ul>
+        <form method="post" class="mt"
+              data-confirm="Send this month's newsletter to all {{ subscribers|length }} subscribers now?">
+          <button class="btn btn-primary btn-block" type="submit">Send to all now</button>
+          <label class="flex small mt" style="gap:.4rem">
+            <input type="checkbox" name="force" value="1" style="width:auto">
+            Include people who got one in the last 25 days
+          </label>
+        </form>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

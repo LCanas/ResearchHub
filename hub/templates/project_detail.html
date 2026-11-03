@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import avatar, stage_pill, ws_tag %}
+{% from "_macros.html" import avatar, stage_pill, ws_tag, decline_form %}
 {% block title %}{{ project.title }}{% endblock %}
 
 {% block hero %}
@@ -31,6 +31,42 @@
 
 {% block body %}
 <div class="container main">
+
+  {# ---- Review status: only proposer / PI / committee can see projects on hold ---- #}
+  {% if not project.is_live or (current_user.can_review and project.review_note) %}
+  <div class="card card-pad review-box" style="margin-bottom:1.5rem">
+    <div class="flex space-between flex-wrap gap-sm">
+      <h3 style="margin:0">Review status: <span class="pill {{ REVIEW_STATUS_CSS.get(project.review_status, '') }}">{{ project.review_status }}</span></h3>
+      {% if project.reviewed_by %}<span class="small muted">by {{ project.reviewed_by.full_name }}{% if project.reviewed_at %} · {{ project.reviewed_at.strftime('%d %b %Y') }}{% endif %}</span>{% endif %}
+    </div>
+    {% if project.review_status == 'Pending review' %}
+      <p class="small muted" style="margin:.6rem 0 0">On hold: this project is not visible to other members yet.
+         The committee will check it against the panel criteria and approve it, or ask for changes.</p>
+    {% endif %}
+    {% if project.review_note %}<p style="white-space:pre-line;margin:.6rem 0 0"><b>Committee note:</b> {{ project.review_note }}</p>{% endif %}
+    {% if project.review_status == 'Changes requested' and can_manage %}
+      <p class="small muted" style="margin:.4rem 0 0">Edit the project to address the note; saving sends it back for review.</p>
+    {% endif %}
+
+    {% if current_user.can_review %}
+    <hr class="divider">
+    {% if current_user.id in [project.proposer_id, project.pi_id] and not current_user.is_admin %}
+      <p class="small muted">This is your own project, so another committee member needs to approve it.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('main.project_review', project_id=project.id) }}">
+      <div class="form-row">
+        <label>Note to the proposer <span class="hint">(required unless approving)</span></label>
+        <textarea name="note" placeholder="What needs to change, or why it was declined…">{{ project.review_note or '' }}</textarea>
+      </div>
+      <div class="flex gap-sm flex-wrap">
+        <button class="btn btn-primary btn-sm" name="decision" value="Approved" type="submit">Approve &amp; publish</button>
+        <button class="btn btn-outline btn-sm" name="decision" value="Changes requested" type="submit">Request changes</button>
+        <button class="btn btn-ghost btn-sm" name="decision" value="Declined" type="submit">Decline</button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
 
   {# ---- Lifecycle stepper ---- #}
   <div class="card card-pad" style="margin-bottom:1.5rem">
@@ -135,6 +171,15 @@
           <p style="white-space:pre-line">{{ project.expected_outcomes or 'Not specified yet.' }}</p>
         {% endif %}
       </div>
+
+      {# ---- IP / authorship / publication terms agreed up front ---- #}
+      <div class="card card-pad mt2">
+        <h2>Collaboration agreement</h2>
+        <p class="small muted" style="margin-top:0">Agreed up front under the
+           <a href="{{ url_for('main.code_of_conduct') }}">Code of Conduct</a>. Publications and
+           other outcomes need the approval of both parties.</p>
+        <p style="white-space:pre-line">{{ project.ip_agreement or 'Not recorded yet — the project leads should add this before anyone joins.' }}</p>
+      </div>
     </div>
 
     {# ================= SIDEBAR ================= #}
@@ -147,6 +192,8 @@
           <div class="flash flash-info" style="margin:0">Your request to join is pending review.</div>
         {% elif my_request and my_request.status == 'Rejected' %}
           <div class="flash flash-warning" style="margin:0">Your previous request was declined.</div>
+        {% elif not project.is_live %}
+          <p class="muted small" style="margin:0">Joining opens once this project is approved.</p>
         {% elif project.status in ['Completed', 'Launched'] %}
           <p class="muted small" style="margin:0">Joining is closed for {{ project.status|lower }} projects.</p>
         {% else %}
@@ -158,6 +205,11 @@
                 <label>Message to the team <span class="muted">(optional)</span></label>
                 <textarea name="message" placeholder="How you'd like to contribute…"></textarea>
               </div>
+              <label class="flex small" style="margin-bottom:.8rem;align-items:flex-start;gap:.5rem">
+                <input type="checkbox" name="agree_terms" value="1" required style="width:auto;margin-top:.2rem">
+                <span>I have read this project's collaboration agreement and accept its IP,
+                  authorship and publication terms.</span>
+              </label>
               <button class="btn btn-navy btn-block" type="submit">Send request</button>
             </form>
           </div>
@@ -232,13 +284,11 @@
             {% if r.message %}<div class="small muted">“{{ r.message }}”</div>{% endif %}
           </div>
         </div>
-        <div class="flex gap-sm" style="margin:.2rem 0 .8rem">
+        <div class="flex gap-sm" style="margin:.2rem 0 .8rem;align-items:flex-start;flex-wrap:wrap">
           <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='accept') }}">
             <button class="btn btn-primary btn-sm" type="submit">Accept</button>
           </form>
-          <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='reject') }}">
-            <button class="btn btn-ghost btn-sm" type="submit">Decline</button>
-          </form>
+          {{ decline_form(r) }}
         </div>
         {% endfor %}
       </div>

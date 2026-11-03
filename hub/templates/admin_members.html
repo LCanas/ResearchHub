@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar %}
+{% block title %}Members & roles{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Admin</div>
+    <h1>Members &amp; roles</h1>
+    <div class="role-guide">
+      <div>
+        <h4>Roles</h4>
+        <ul>
+          <li><b>Member</b>: profile, propose projects, join projects, sign up to events.</li>
+          <li><b>Committee</b>: everything a member can do, plus review submissions before they go live and post announcements.</li>
+          <li><b>Admin</b>: everything the committee can do, plus manage roles, reset passwords, and suspend or delete profiles on this page.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Actions</h4>
+        <ul>
+          <li><b>Suspend</b>: blocks sign-in and hides the person from the hub, but keeps their data. Reactivate at any time.</li>
+          <li><b>Delete</b>: removes them permanently.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:1000px">
+  <form class="filters" method="get" action="{{ url_for('main.admin_members') }}">
+    <div class="field grow">
+      <label>Search</label>
+      <input name="q" value="{{ q }}" placeholder="Name or email…">
+    </div>
+    <div class="field"><label>&nbsp;</label><button class="btn btn-navy" type="submit">Search</button></div>
+  </form>
+
+  <div class="card card-pad mt">
+    <div class="section-title"><h2>{{ members|length }} member{{ '' if members|length == 1 else 's' }}</h2></div>
+    {% for u in members %}
+    <div class="list-row flex space-between flex-wrap gap-sm" style="align-items:center">
+      <a class="flex gap-sm" href="{{ url_for('main.profile', user_id=u.id) }}" style="min-width:260px">
+        {{ avatar(u, 'avatar-sm') }}
+        <span><b style="color:var(--navy)">{{ u.full_name }}</b><br>
+          <span class="small muted">{{ u.email }}{% if u.department %} · {{ u.department }}{% endif %}</span></span>
+      </a>
+      <div class="flex gap-sm flex-wrap" style="align-items:center">
+        <form class="flex gap-sm" method="post" action="{{ url_for('main.admin_set_role', user_id=u.id) }}">
+          <input type="hidden" name="q" value="{{ q }}">
+          <select name="role" style="width:auto">
+            {% for r in roles %}<option value="{{ r }}" {{ 'selected' if u.role == r }}>{{ r|capitalize }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-outline btn-sm" type="submit">Save role</button>
+        </form>
+        <form class="inline-form" method="post" action="{{ url_for('main.admin_reset_password', user_id=u.id) }}"
+              data-confirm="Reset {{ u.full_name }}'s password? They'll get a temporary password and must change it at next sign-in.">
+          <input type="hidden" name="q" value="{{ q }}">
+          <button class="btn btn-ghost btn-sm" type="submit">Reset password</button>
+        </form>
+        {% if u.id != current_user.id %}
+        <form class="inline-form" method="post" action="{{ url_for('main.admin_suspend_member', user_id=u.id) }}"
+              {% if not u.is_suspended %}data-confirm="Suspend {{ u.full_name }}? They won't be able to sign in and will be hidden from the hub. Their data is kept and you can reactivate them at any time."{% endif %}>
+          <input type="hidden" name="q" value="{{ q }}">
+          <input type="hidden" name="suspend" value="{{ '0' if u.is_suspended else '1' }}">
+          <button class="btn btn-outline btn-sm" type="submit">{{ 'Reactivate' if u.is_suspended else 'Suspend' }}</button>
+        </form>
+        <form class="inline-form" method="post" action="{{ url_for('main.admin_delete_member', user_id=u.id) }}"
+              data-confirm="Permanently delete {{ u.full_name }}'s profile? Their memberships, join requests and event sign-ups are removed. Projects they proposed or lead stay, without them. This cannot be undone.">
+          <input type="hidden" name="q" value="{{ q }}">
+          <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+        </form>
+        {% endif %}
+        {% if u.is_suspended %}<span class="chip chip-crimson">suspended</span>{% endif %}
+        {% if u.must_change_password %}<span class="chip">password reset pending</span>{% endif %}
+      </div>
+    </div>
+    {% else %}
+      <p class="muted">No members found.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

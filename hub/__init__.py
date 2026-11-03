@@ -2,6 +2,7 @@
 Healthcare Research (King's College London)."""
 import os
 
+import sqlalchemy as sa
 from flask import Flask
 
 from .config import (
@@ -10,7 +11,8 @@ from .config import (
     PROJECT_TYPES, PROJECT_TYPE_NAMES, PROJECT_TYPE_CSS, PROJECT_TYPE_BAND,
     DEPARTMENT_KCL_URLS, PANEL_MEMBERS, REVIEW_CRITERIA,
     WORKSTREAMS, WORKSTREAM_NAMES, WORKSTREAM_SLUG, WORKSTREAM_CSS,
-    EVENT_TYPES, EVENT_TYPE_ICONS,
+    EVENT_TYPES, EVENT_TYPE_ICONS, LAUNCH, HACKATHON, CODE_OF_CONDUCT_VERSION,
+    REVIEW_STATUSES, REVIEW_STATUS_CSS, CONTACT_EMAIL, SOCIAL_LINKS,
 )
 from .extensions import db, login_manager
 
@@ -28,7 +30,8 @@ def create_app(config_class=Config):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User, int(user_id))
+        user = db.session.get(User, int(user_id))
+        return None if user is None or user.is_suspended else user
 
     # Blueprints
     from .auth import auth_bp
@@ -62,11 +65,42 @@ def create_app(config_class=Config):
         WORKSTREAM_CSS=WORKSTREAM_CSS,
         EVENT_TYPES=EVENT_TYPES,
         EVENT_TYPE_ICONS=EVENT_TYPE_ICONS,
+        LAUNCH=LAUNCH,
+        HACKATHON=HACKATHON,
+        CODE_OF_CONDUCT_VERSION=CODE_OF_CONDUCT_VERSION,
+        REVIEW_STATUSES=REVIEW_STATUSES,
+        REVIEW_STATUS_CSS=REVIEW_STATUS_CSS,
+        CONTACT_EMAIL=CONTACT_EMAIL,
+        SOCIAL_LINKS=SOCIAL_LINKS,
         APP_NAME="Collaboration Hub",
         APP_SUBTITLE="AI Deployment in Healthcare Research",
     )
 
     with app.app_context():
         db.create_all()
+        _add_missing_columns()
 
     return app
+
+
+def _add_missing_columns():
+    """db.create_all() never alters existing tables, so add any model columns an
+    older database is missing. Additive changes only — no renames or drops."""
+    engine = db.engine
+    insp = sa.inspect(engine)
+    with engine.begin() as conn:
+        for table in db.metadata.sorted_tables:
+            if not insp.has_table(table.name):
+                continue
+            existing = {c["name"] for c in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in existing:
+                    continue
+                ddl = (f"ALTER TABLE {table.name} ADD COLUMN {col.name} "
+                       f"{col.type.compile(dialect=engine.dialect)}")
+                if col.default is not None and col.default.is_scalar:
+                    literal = sa.literal(col.default.arg, type_=col.type).compile(
+                        dialect=engine.dialect,
+                        compile_kwargs={"literal_binds": True})
+                    ddl += f" DEFAULT {literal}"
+                conn.execute(sa.text(ddl))

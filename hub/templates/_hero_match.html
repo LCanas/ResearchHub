@@ -1,0 +1,42 @@
+{# ---- "match" hero: a clinical question and an AI expertise light up, connect,
+     and form a project. Loops through the pairs in data-pairs (main.js). ---- #}
+{% set left = ["Radiology", "Oncology", "Cardiology", "Mental health", "Primary care"] %}
+{% set right = ["Computer vision", "Language models", "Federated ML", "Deployment", "Human factors"] %}
+{% set ys = [96, 168, 240, 312, 384] %}
+<svg class="hero-match" viewBox="0 0 560 480" role="img"
+     aria-label="Clinical specialties and AI expertise pairing up to form collaborative projects"
+     data-pairs='[[0,0,"Medical Imaging AI"],[1,1,"Clinical NLP"],[2,2,"Federated risk models"],[3,4,"Human-centred AI"],[4,3,"Deployment &amp; MLOps"],[0,3,"Imaging in the clinic"],[1,4,"Explainable AI"],[2,1,"Cardiac notes NLP"]]'>
+  <text x="82" y="44" class="m-head">CLINICAL QUESTIONS</text>
+  <text x="478" y="44" class="m-head">AI EXPERTISE</text>
+
+  {# faint guide lines from every node to the centre #}
+  {% for y in ys %}
+    <path class="m-guide" d="M142,{{ y }} C168,{{ y }} 168,240 195,240"/>
+    <path class="m-guide" d="M418,{{ y }} C392,{{ y }} 392,240 365,240"/>
+  {% endfor %}
+
+  <path class="m-path m-path-l" d=""/>
+  <path class="m-path m-path-r" d=""/>
+
+  {% for label in left %}
+  <g class="m-node m-left" data-x="142" data-y="{{ ys[loop.index0] }}">
+    <rect x="22" y="{{ ys[loop.index0] - 17 }}" width="120" height="34" rx="17"/>
+    <text x="82" y="{{ ys[loop.index0] }}">{{ label }}</text>
+  </g>
+  {% endfor %}
+  {% for label in right %}
+  <g class="m-node m-right" data-x="418" data-y="{{ ys[loop.index0] }}">
+    <rect x="418" y="{{ ys[loop.index0] - 17 }}" width="120" height="34" rx="17"/>
+    <text x="478" y="{{ ys[loop.index0] }}">{{ label }}</text>
+  </g>
+  {% endfor %}
+
+  {# centre: the project that forms #}
+  <circle class="m-pulse" cx="280" cy="240" r="70"/>
+  <g class="m-card">
+    <rect x="195" y="198" width="170" height="84" rx="16"/>
+    <text x="280" y="221" class="m-kicker">NEW PROJECT</text>
+    <text x="280" y="244" class="m-title">Your idea</text>
+    <text x="280" y="266" class="m-sub">clinician + AI expert</text>
+  </g>
+</svg>

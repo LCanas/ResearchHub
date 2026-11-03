@@ -17,7 +17,7 @@
 <div class="container main" style="max-width:820px">
   <div class="section-title">
     <h2>{{ posts|length }} announcement{{ '' if posts|length == 1 else 's' }}</h2>
-    <a class="btn btn-primary" href="{{ url_for('main.news_new') }}">+ New announcement</a>
+    {% if current_user.is_authenticated and current_user.can_review %}<a class="btn btn-primary" href="{{ url_for('main.news_new') }}">+ New announcement</a>{% endif %}
   </div>
 
   {% if posts %}
@@ -34,7 +34,7 @@
       <p class="muted" style="margin:0 0 .6rem">{{ p.body|truncate(220) }}</p>
       <div class="flex space-between">
         <div class="flex gap-sm small muted">
-          {% if p.author %}{{ avatar(p.author, 'avatar-sm') }}<span>{{ p.author.full_name }}</span>{% endif %}
+          {% if p.author %}{{ avatar(p.author, 'avatar-sm') }}<span>{{ p.author.full_name }}</span>{% else %}<span>Collaboration Hub team</span>{% endif %}
         </div>
         <a class="small" href="{{ url_for('main.news_detail', post_id=p.id) }}">Read more →</a>
       </div>
@@ -44,7 +44,7 @@
   <div class="card empty">
     <div class="big">📰</div>
     <h3>No announcements yet</h3>
-    <a class="btn btn-outline mt" href="{{ url_for('main.news_new') }}">Post the first one</a>
+    {% if current_user.is_authenticated and current_user.can_review %}<a class="btn btn-outline mt" href="{{ url_for('main.news_new') }}">Post the first one</a>{% endif %}
   </div>
   {% endif %}
 </div>

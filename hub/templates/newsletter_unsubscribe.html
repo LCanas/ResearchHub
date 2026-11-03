@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Newsletter{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:560px">
+  <div class="card card-pad">
+    {% if done %}
+      <h1>You're unsubscribed</h1>
+      <p>{{ user.full_name.split()[0] }}, you won't receive the monthly newsletter any more.
+         You can turn it back on at any time from your profile.</p>
+    {% else %}
+      <h1>Unsubscribe from the newsletter?</h1>
+      <p>This stops the monthly email to <b>{{ user.email }}</b> with open projects, events and news.
+         You'll still get emails about your own projects and requests.</p>
+      <form method="post">
+        <button class="btn btn-primary" type="submit">Unsubscribe</button>
+        <a class="btn btn-ghost" href="{{ url_for('main.index') }}">Keep receiving it</a>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

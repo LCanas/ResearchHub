@@ -4,11 +4,20 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
+def _database_url():
+    url = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(BASE_DIR, "hub.db"))
+    # Render / Heroku hand out postgres:// URLs; SQLAlchemy wants the driver named.
+    if url.startswith("postgres://"):
+        url = "postgresql+psycopg://" + url[len("postgres://"):]
+    elif url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
+
+
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "change-me-in-production-kcl-hub")
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", "sqlite:///" + os.path.join(BASE_DIR, "hub.db")
-    )
+    # An empty SECRET_KEY (e.g. a blank line in .env) counts as unset.
+    SECRET_KEY = os.environ.get("SECRET_KEY") or "change-me-in-production-kcl-hub"
+    SQLALCHEMY_DATABASE_URI = _database_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Uploaded profile photos land here.
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "hub", "static", "uploads")
@@ -17,8 +26,57 @@ class Config:
 
 
 # ---------------------------------------------------------------------------
+# Launch & hackathon. Exact dates are still to be confirmed — update these
+# labels once they are fixed and they change everywhere on the site.
+# ---------------------------------------------------------------------------
+LAUNCH = {
+    "when": "January 2027",
+    "date_confirmed": False,
+}
+HACKATHON = {
+    "name": "AI in Healthcare Hackathon",
+    "when": "May 2027",
+    "submissions_close": "to be confirmed",
+    # Countdown on the hackathon page. Until the exact start is known it counts
+    # (approximately) to the first of the month; set "start" to e.g.
+    # "2027-05-12T09:00" for a live days/hours/minutes countdown.
+    "month_start": "2027-05-01",
+    "start": "",
+}
+
+# Home-page hero illustration: "network" (original), "match" (clinicians ×
+# AI experts pairing up) or "live" (workstream graph built from real sign-ups).
+# Preview any of them with /?hero=match etc.
+HERO_ART = "network"
+
+CODE_OF_CONDUCT_VERSION = "1.0"
+
+# Always admin, on any machine, once they register / sign in. More admins and
+# committee members can be added from the Members page, manage.py, or the
+# HUB_ADMIN_EMAILS / HUB_COMMITTEE_EMAILS environment variables.
+DEFAULT_ADMIN_EMAILS = ["k1778298@kcl.ac.uk"]
+
+# Contact & social links. Leave a value empty to hide it on the site — fill
+# these in once the mailbox / pages actually exist.
+CONTACT_EMAIL = "k1778298@kcl.ac.uk"  # for now; swap for a shared hub mailbox when there is one
+SOCIAL_LINKS = {
+    "LinkedIn": "",
+    "GitHub": "",           # e.g. the BMEIS GitHub organisation / repo
+    "X": "",
+}
+
+# ---------------------------------------------------------------------------
 # Controlled vocabularies used across forms, filters and templates.
 # ---------------------------------------------------------------------------
+
+# Review of submitted projects before they go live on the hub.
+REVIEW_STATUSES = ["Pending review", "Approved", "Changes requested", "Declined"]
+REVIEW_STATUS_CSS = {
+    "Pending review": "stage-waiting",
+    "Approved": "stage-ongoing",
+    "Changes requested": "stage-launched",
+    "Declined": "stage-completed",
+}
 
 # Project lifecycle stages (requirement 10). Order matters — it drives the
 # timeline widget and status ordering.
@@ -75,32 +133,32 @@ PROJECT_TYPE_BAND = {t["name"]: t["band"] for t in PROJECT_TYPES}
 # organised (mirrors how KCL research hubs structure their work).
 # ---------------------------------------------------------------------------
 WORKSTREAMS = [
-    {"slug": "clinical-nlp", "name": "Clinical NLP & Language Models",
+    {"slug": "clinical-nlp", "short": "Clinical NLP", "name": "Clinical NLP & Language Models",
      "icon": "💬", "css": "ws-1",
      "desc": "Applying large language models and natural-language processing to "
              "clinical text — documentation, coding, summarisation and "
              "information extraction."},
-    {"slug": "medical-imaging", "name": "Medical Imaging AI",
+    {"slug": "medical-imaging", "short": "Imaging", "name": "Medical Imaging AI",
      "icon": "🩻", "css": "ws-2",
      "desc": "Computer vision for radiology, pathology and other imaging — "
              "detection, triage, segmentation and quantification."},
-    {"slug": "predictive-risk", "name": "Predictive Modelling & Risk",
+    {"slug": "predictive-risk", "short": "Risk models", "name": "Predictive Modelling & Risk",
      "icon": "📈", "css": "ws-3",
      "desc": "Risk prediction and early-warning models from structured clinical "
              "data, with a focus on calibration, fairness and clinical utility."},
-    {"slug": "federated-privacy", "name": "Federated & Privacy-Preserving ML",
+    {"slug": "federated-privacy", "short": "Federated ML", "name": "Federated & Privacy-Preserving ML",
      "icon": "🔐", "css": "ws-4",
      "desc": "Training models across sites without moving patient data — "
              "federated learning, privacy, and secure computation."},
-    {"slug": "governance-safety", "name": "AI Governance & Safety",
+    {"slug": "governance-safety", "short": "Governance", "name": "AI Governance & Safety",
      "icon": "⚖️", "css": "ws-5",
      "desc": "Evaluation, equity and fairness auditing, safety and the "
              "governance needed to deploy AI responsibly in healthcare."},
-    {"slug": "deployment-mlops", "name": "Deployment & MLOps",
+    {"slug": "deployment-mlops", "short": "MLOps", "name": "Deployment & MLOps",
      "icon": "🚀", "css": "ws-6",
      "desc": "Integrating models into clinical workflows and building the "
              "infrastructure and monitoring that keep them running safely."},
-    {"slug": "human-centred", "name": "Human-Centred AI",
+    {"slug": "human-centred", "short": "Human-centred", "name": "Human-Centred AI",
      "icon": "🧑‍⚕️", "css": "ws-7",
      "desc": "Explainability, human factors and communicating AI-assisted "
              "decisions to clinicians and patients."},
@@ -186,30 +244,25 @@ DEPARTMENT_KCL_URLS = {
 
 # The multidisciplinary review panel (from the project brief). It meets monthly
 # to evaluate proposals on clinical impact, data readiness, resources and AI
-# feasibility. Names below are illustrative demo members.
+# feasibility. Fill in "name" / "affiliation" once members are confirmed — the
+# page shows "To be announced" until then.
 PANEL_MEMBERS = [
-    {"role": "Panel Chair", "name": "Prof. Sheldon Cooper",
-     "affiliation": "Biomedical Engineering & Imaging Sciences",
+    {"role": "Panel Chair", "name": "", "affiliation": "",
      "desc": "Chairs the monthly panel, sets priorities and has the final say "
              "on whether a proposal enters the pipeline."},
-    {"role": "Clinical Lead", "name": "Dr Bernadette Rostenkowski-Wolowitz",
-     "affiliation": "Cancer & Pharmaceutical Sciences",
+    {"role": "Clinical Lead", "name": "", "affiliation": "",
      "desc": "Ensures each project answers a genuine clinical need and assesses "
              "clinical impact and data readiness."},
-    {"role": "Technical / AI Lead", "name": "Dr Leonard Hofstadter",
-     "affiliation": "Biomedical Engineering & Imaging Sciences",
+    {"role": "Technical / AI Lead", "name": "", "affiliation": "",
      "desc": "Reviews the AI approach and engineering feasibility, and helps "
              "match projects to the right technical collaborators."},
-    {"role": "Governance & IG Lead", "name": "Dr Amy Farrah Fowler",
-     "affiliation": "Neuroscience",
+    {"role": "Governance & IG Lead", "name": "", "affiliation": "",
      "desc": "Owns information governance, ethics and data-protection sign-off "
              "before a project can launch."},
-    {"role": "PI Representative", "name": "Dr Rajesh Koothrappali",
-     "affiliation": "Informatics",
+    {"role": "PI Representative", "name": "", "affiliation": "",
      "desc": "Represents Principal Investigators, helping connect proposals with "
              "senior researchers willing to coordinate them."},
-    {"role": "Panel Coordinator", "name": "Stuart Bloom",
-     "affiliation": "Research Support",
+    {"role": "Panel Coordinator", "name": "", "affiliation": "",
      "desc": "Keeps the pipeline moving — contacts proposers, schedules launch "
              "meetings and tracks the backlog."},
 ]

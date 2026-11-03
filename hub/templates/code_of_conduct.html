@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Code of Conduct{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Governance · version {{ CODE_OF_CONDUCT_VERSION }}</div>
+    <h1>Code of Conduct</h1>
+    <p style="max-width:760px">How we work together on the Collaboration Hub. The core idea is simple:
+       <b>agree the important things before you start</b>, and <b>nothing leaves the project
+       without both parties' approval</b>.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="prose">
+
+    <div class="callout">
+      <b>In short</b>
+      <ol style="margin:.5rem 0 0">
+        <li>Agree IP, authorship, data use and publication terms with your collaborators <em>a priori</em>: before any work begins.</li>
+        <li>Publications, presentations, code releases and any other outcomes need the written approval of <em>both parties</em>.</li>
+        <li>What each party brings (data, code, models, know-how) stays theirs unless you agree otherwise.</li>
+        <li>Respect patient data, information governance and each other.</li>
+      </ol>
+    </div>
+
+    <h2>1. Who this applies to</h2>
+    <p>Everyone with a Collaboration Hub account: proposers, Principal Investigators (PIs),
+       collaborators, hackathon participants, reviewers and panel members.</p>
+    <p>Most projects bring together <b>two parties</b>:</p>
+    <ul>
+      <li><b>The proposing party</b>: the person or group who brings the question, challenge, data or
+          clinical context (usually the proposer and their PI).</li>
+      <li><b>The contributing party</b>: the people who join to deliver the work, for example AI,
+          engineering or methods expertise (the collaborators).</li>
+    </ul>
+    <p>Where a project has more than two groups, "both parties" means <b>all parties</b> named in the
+       project's collaboration agreement.</p>
+
+    <h2>2. Agree before you start (a priori agreement)</h2>
+    <p>Every project and hackathon challenge must include a <b>collaboration agreement</b> before it can
+       be submitted for review. It is shown on the project page, and anyone asking to join must accept
+       it. At a minimum it should cover:</p>
+    <ul>
+      <li><b>Background IP</b>: what each party brings (datasets, code, models, methods) and confirmation
+          that it remains theirs.</li>
+      <li><b>New IP (foreground)</b>: who owns what is created in the project (joint, one party, or as set
+          out by King's policy) and how any commercial interest would be handled.</li>
+      <li><b>Software and model licence</b>: e.g. open source (MIT, Apache-2.0), or private until the
+          parties agree to release.</li>
+      <li><b>Authorship and credit</b>: how authorship is decided (we recommend the
+          <a href="https://credit.niso.org/" target="_blank" rel="noopener">CRediT</a> taxonomy and ICMJE criteria),
+          and who will be first and last author where this can be agreed early.</li>
+      <li><b>Data use</b>: which data may be used, by whom, where it is stored, and what happens to it
+          when the project ends.</li>
+      <li><b>Publication approval</b>: how much time each party has to review an output before it is
+          shared (we suggest <b>30 days</b>).</li>
+    </ul>
+    <p>If roles or scope change significantly (for example, a new partner joins), update the
+       agreement and ask all parties to confirm the change.</p>
+
+    <h2>3. Publications and outcomes need approval from both parties</h2>
+    <ul>
+      <li>No paper, preprint, abstract, poster, talk, blog post, code or model release, dataset, patent
+          filing or press activity based on project work may be shared outside the project team without
+          the <b>written approval of both parties</b>. Email is enough.</li>
+      <li>Send drafts to all parties in good time. Approval should not be unreasonably withheld or
+          delayed. If you object, explain why and suggest changes, for example to protect patentable IP,
+          confidential information or patient privacy.</li>
+      <li>Acknowledge every contributor fairly, as agreed, and acknowledge the Collaboration Hub where
+          appropriate.</li>
+      <li>Outcomes published on the hub's Impact page must also be approved by both parties.</li>
+      <li>These obligations continue after a project ends or a person leaves it.</li>
+    </ul>
+
+    <h2>4. Hackathon challenges and ideas</h2>
+    <ul>
+      <li>Whoever submits a challenge or idea keeps their background IP in it. Presenting an idea at a
+          hackathon or on the hub does not give it away.</li>
+      <li>Each challenge states, in its collaboration agreement, the licence that hackathon code will be
+          released under and how follow-on work would be agreed.</li>
+      <li>Results from hackathon work follow section 3: no external sharing without approval from both
+          parties.</li>
+    </ul>
+
+    <h2>5. Data, confidentiality and governance</h2>
+    <ul>
+      <li><b>Never upload patient-identifiable or confidential data to this platform.</b> The hub is for
+          describing projects, not for storing data.</li>
+      <li>Use data only within its approvals (ethics, information governance, data-sharing agreements)
+          and only for the agreed project.</li>
+      <li>Treat unpublished ideas, results and code shared with you as confidential to the project unless
+          told otherwise.</li>
+    </ul>
+
+    <h2>6. Professional conduct</h2>
+    <ul>
+      <li>Be respectful, inclusive and constructive. Harassment or discrimination of any kind is not
+          tolerated.</li>
+      <li>Keep your profile accurate, including your availability, and only commit time you can give.</li>
+      <li>Follow research-integrity standards: honest reporting, reproducibility and declaring conflicts
+          of interest.</li>
+      <li>Use AI tools responsibly and transparently in your work, including when writing up.</li>
+    </ul>
+
+    <h2>7. Resolving disagreements</h2>
+    <ol>
+      <li>Talk it through with the other party and the project PI.</li>
+      <li>If that doesn't resolve it, contact the review panel coordinator, who can mediate.</li>
+      <li>Matters about IP, contracts or misconduct are referred to the relevant King's College London
+          teams (e.g. Research Contracts, IP &amp; Licensing, Research Integrity).</li>
+    </ol>
+
+    <h2>8. Relationship to King's policies and contracts</h2>
+    <p>This Code of Conduct sets expectations among hub members. It does <b>not</b> replace King's College
+       London policies (including the IP policy and research-integrity policies), funder terms, or formal
+       agreements such as collaboration agreements, data-sharing agreements or NDAs. Where these apply,
+       they take precedence. Projects involving external partners, funding or commercial interest should
+       put a formal agreement in place through King's Research Contracts.</p>
+
+    <p class="small muted mt2">Breaches may lead to removal from projects or from the hub.
+       {% if CONTACT_EMAIL %}Questions: <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>.{% endif %}</p>
+
+    {# ---- Agreement ---- #}
+    <div class="card card-pad mt2">
+      {% if current_user.is_authenticated and current_user.coc_accepted_at %}
+        <div class="flash flash-success" style="margin:0">You agreed to this Code of Conduct on
+          {{ current_user.coc_accepted_at.strftime('%d %B %Y') }}.</div>
+      {% elif current_user.is_authenticated %}
+        <form method="post" action="{{ url_for('main.code_of_conduct_accept') }}">
+          <input type="hidden" name="next" value="{{ next_url }}">
+          <label class="flex" style="align-items:flex-start;gap:.5rem;margin-bottom:1rem">
+            <input type="checkbox" name="agree_coc" value="1" required style="width:auto;margin-top:.25rem">
+            <span>I have read and agree to the Collaboration Hub Code of Conduct, including agreeing IP,
+              authorship and publication terms with my collaborators before work starts, and seeking
+              both parties' approval before sharing any outcome.</span>
+          </label>
+          <button class="btn btn-primary" type="submit">I agree</button>
+        </form>
+      {% else %}
+        <p style="margin:0">You'll be asked to agree to this Code of Conduct when you
+          <a href="{{ url_for('auth.register') }}">create your profile</a>.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

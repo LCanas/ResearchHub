@@ -1,0 +1,175 @@
+      {# ---- Layered concept graph: data sources → topics → concepts → AI → better care. #}
+      {#      Backbone stays present; outer topics emerge & fade (13 .bub groups, same order). #}
+      {#      Flat fills by tier; outcome is a pill badge. Edges are trimmed to bubble rims and curve gently, so nothing draws over a label. #}
+      {#      Transparent background so it blends into the banner. ---- #}
+        <svg class="hero-net" viewBox="0 0 560 480" role="img"
+             aria-label="A network of data sources, topics and concepts converging on a central AI hub that drives better care, over an ECG trace">
+          <style>
+            /* small screens: drop the outer data-source ring, keep topics → concepts → AI → outcome */
+            @media (max-width: 480px) {
+              .hero-net .bub-src, .hero-net .edge.src, .hero-net .flow.src { display: none; }
+              .hero-net .hn-stage { transform: matrix(1.1, 0, 0, 1.1, -55, -40); }
+            }
+            /* hover a data source: its route to AI lights up, everything else dims */
+            .hero-net .bub-src { cursor: pointer; pointer-events: auto; }
+            .hero-net .t { transition: opacity .25s ease, stroke .25s ease; }
+            .hero-net:has(.bub-src:hover) .t { opacity: .16; }
+            .hero-net:has(.s-scans:hover)   .r-scans,
+            .hero-net:has(.s-records:hover) .r-records,
+            .hero-net:has(.s-genomes:hover) .r-genomes,
+            .hero-net:has(.s-labs:hover)    .r-labs { opacity: 1; }
+            .hero-net:has(.s-scans:hover)   .edge.r-scans,
+            .hero-net:has(.s-records:hover) .edge.r-records,
+            .hero-net:has(.s-genomes:hover) .edge.r-genomes,
+            .hero-net:has(.s-labs:hover)    .edge.r-labs { stroke: #ffffff; stroke-opacity: .95; stroke-width: 1.8; }
+            /* set by the script below while the hero is scrolled out of view */
+            .hero-net.is-paused * { animation-play-state: paused !important; }
+            /* visitors who opt out of motion: no moving dots, sweep or pulse */
+            @media (prefers-reduced-motion: reduce) {
+              .hero-net .flow { display: none; }
+              .hero-net .bio-sweep, .hero-net .pulse { animation: none !important; opacity: 0; }
+            }
+          </style>
+          <defs>
+            <radialGradient id="hn-halo">
+              <stop offset=".45" stop-color="#8fb4e8" stop-opacity=".16"/>
+              <stop offset="1" stop-color="#8fb4e8" stop-opacity="0"/></radialGradient>
+            <filter id="hn-shadow" x="-40%" y="-40%" width="180%" height="180%">
+              <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#06142e" flood-opacity=".35"/></filter>
+          </defs>
+
+          <g class="hn-stage">
+          {# soft halo behind the hub (fades out, no hard edge) #}
+          <circle cx="290" cy="240" r="96" fill="url(#hn-halo)"/>
+
+          {# biosignal (ECG): runs behind the hub, QRS spike lands in the gap before "Better care" #}
+          <path class="bio" fill="none" stroke-width="1.7" stroke-linejoin="round"
+                d="M0 240 H352 l6 7 l12 -56 l12 70 l7 -21 H420 q9 -12 18 0 H560"/>
+          <path class="bio-sweep" fill="none" stroke="#ff5a6e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"
+                d="M0 240 H352 l6 7 l12 -56 l12 70 l7 -21 H420 q9 -12 18 0 H560"/>
+
+          {# pulsing vital-sign rings from the AI hub #}
+          <circle class="pulse"  cx="290" cy="240" r="46" fill="none" stroke="#ff5a6e" stroke-width="2"/>
+          <circle class="pulse pulse2" cx="290" cy="240" r="46" fill="none" stroke="#8fb4e8" stroke-width="1.6"/>
+
+          {# ===== data sources (revealed first) ===== #}
+          <g class="bub bub-src s-scans">
+            <circle class="t r-scans" cx="40" cy="150" r="25" fill="rgba(195,205,221,.10)" stroke="#c3cddd" stroke-width="1.4"/>
+            <g class="t r-scans" transform="translate(40 150)" fill="none" stroke="#eaf1fc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle r="9"/><circle r="3.2"/><path d="M-12 6.5 H12"/></g>
+            <text x="40" y="115" class="net-label t xs w r-scans" text-anchor="middle" dominant-baseline="central">Scans</text>
+          </g>
+          <g class="bub bub-src s-records">
+            <circle class="t r-records" cx="518" cy="52" r="27" fill="rgba(195,205,221,.10)" stroke="#c3cddd" stroke-width="1.4"/>
+            <g class="t r-records" transform="translate(518 52)" fill="none" stroke="#eaf1fc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M-6.5 -9 H3 L7.5 -4.5 V9 H-6.5 Z M3 -9 V-4.5 H7.5"/><path d="M-3.5 -1 H4.5 M-3.5 2.5 H4.5 M-3.5 6 H1.5"/></g>
+            <text x="518" y="15" class="net-label t xs w r-records" text-anchor="middle" dominant-baseline="central">Records</text>
+          </g>
+          <g class="bub bub-src s-genomes">
+            <circle class="t r-genomes" cx="32" cy="344" r="28" fill="rgba(195,205,221,.10)" stroke="#c3cddd" stroke-width="1.4"/>
+            <g class="t r-genomes" transform="translate(32 344)" fill="none" stroke="#eaf1fc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M-5 -11 C-5 -4 5 -5.5 5 0 C5 5.5 -5 4 -5 11 M5 -11 C5 -4 -5 -5.5 -5 0 C-5 5.5 5 4 5 11"/><path d="M-4.2 -7.5 H4.2 M-4.2 7.5 H4.2" stroke-width="1.3" stroke-opacity=".8"/></g>
+            <text x="32" y="306" class="net-label t xs w r-genomes" text-anchor="middle" dominant-baseline="central">Genomes</text>
+          </g>
+          <g class="bub bub-src s-labs">
+            <circle class="t r-labs" cx="104" cy="46" r="24" fill="rgba(195,205,221,.10)" stroke="#c3cddd" stroke-width="1.4"/>
+            <g class="t r-labs" transform="translate(104 46)" fill="none" stroke="#eaf1fc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M-3 -10 H3 M-2 -10 V-3 L-8 8 Q-8.6 10 -6.5 10 H6.5 Q8.6 10 8 8 L2 -3 V-10"/><path d="M-5.4 4 H5.4" stroke-opacity=".75"/></g>
+            <text x="104" y="12" class="net-label t xs w r-labs" text-anchor="middle" dominant-baseline="central">Labs</text>
+          </g>
+
+          {# ===== topics ===== #}
+          <g class="bub">
+            <path class="edge src t r-scans" d="M44,178 Q49,208 62,223"/>
+            <circle class="flow src t r-scans" r="2.6" fill="#eaf1fc"><animateMotion dur="2.6s" begin="-0.4s" repeatCount="indefinite" path="M44,178 Q49,208 62,223"/></circle>
+            <circle class="t r-scans" cx="88" cy="252" r="36" fill="#d6e4f7"/>
+            <g class="t r-scans" transform="translate(88 243) scale(.72)" fill="none" stroke="#1d3a66" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M-11 0 Q0 -10 11 0 Q0 10 -11 0 Z"/><circle r="3.4"/></g>
+            <text x="88" y="261" class="net-label t  r-scans" text-anchor="middle" dominant-baseline="central">Imaging</text>
+          </g>
+          <g class="bub">
+            <path class="edge src t r-records" d="M490,62 Q417,86 347,75"/>
+            <circle class="flow src t r-records" r="2.6" fill="#eaf1fc"><animateMotion dur="2.4s" begin="-1.3s" repeatCount="indefinite" path="M490,62 Q417,86 347,75"/></circle>
+            <circle class="t r-records" cx="312" cy="70" r="32" fill="#d6e4f7"/>
+            <g class="t r-records" transform="translate(312 61) scale(.72)" fill="none" stroke="#1d3a66" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M-8 -7 H8 Q10 -7 10 -5 V3 Q10 5 8 5 H-1 L-6 9 V5 H-8 Q-10 5 -10 3 V-5 Q-10 -7 -8 -7 Z"/><path d="M-4.5 -1 h.01 M0 -1 h.01 M4.5 -1 h.01" stroke-width="2.6"/></g>
+            <text x="312" y="79" class="net-label t  r-records" text-anchor="middle" dominant-baseline="central">NLP</text>
+          </g>
+          <g class="bub">
+            <path class="edge src t r-genomes" d="M44,372 Q57,402 78,415"/>
+            <circle class="flow src t r-genomes" r="2.6" fill="#eaf1fc"><animateMotion dur="2.8s" begin="-2.1s" repeatCount="indefinite" path="M44,372 Q57,402 78,415"/></circle>
+            <circle class="t r-genomes" cx="110" cy="436" r="35" fill="#d6e4f7"/>
+            <g class="t r-genomes" transform="translate(110 427) scale(.72)" fill="none" stroke="#1d3a66" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M-6.5 -9.5 Q.5 0 -6.5 9.5 M6.5 -9.5 Q-.5 0 6.5 9.5" stroke-width="4.4"/><path d="M-6.8 -5 H-2.6 M2.6 -5 H6.8 M-6.8 5 H-2.6 M2.6 5 H6.8" stroke="#d6e4f7" stroke-width="1.3"/></g>
+            <text x="110" y="445" class="net-label t sm r-genomes" text-anchor="middle" dominant-baseline="central">Genomics</text>
+          </g>
+          <g class="bub">
+            <circle class="t " cx="374" cy="432" r="30" fill="#c23a55"/>
+            <g class="t " transform="translate(374 423) scale(.72)" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M0 -9.5 L10 7.5 H-10 Z"/><path d="M0 -3 V1.8 M0 4.6 h.01"/></g>
+            <text x="374" y="441" class="net-label t w" text-anchor="middle" dominant-baseline="central">Risk</text>
+          </g>
+
+          {# ===== concepts (edges in + edge to AI + flowing dot) ===== #}
+          <g class="bub">
+            <path class="edge t r-scans" d="M120,230 Q152,209 167,182"/>
+            <path class="edge t r-records" d="M279,82 Q244,94 224,111"/>
+            <path class="edge src t r-labs" d="M127,60 Q161,81 170,100"/>
+            <circle class="flow src t r-labs" r="2.6" fill="#eaf1fc"><animateMotion dur="3s" begin="-0.9s" repeatCount="indefinite" path="M127,60 Q161,81 170,100"/></circle>
+            <path class="edge t r-scans r-records r-labs" d="M228,169 Q248,183 261,201"/>
+            <circle class="flow t r-scans r-records r-labs" r="3" fill="#eaf1fc"><animateMotion dur="2.4s" begin="-1.7s" repeatCount="indefinite" path="M228,169 Q248,183 261,201"/></circle>
+            <circle class="t r-scans r-records r-labs" cx="190" cy="142" r="43" fill="#8fb4e8"/>
+            <text x="190" y="142" class="net-label t sm r-scans r-records r-labs" text-anchor="middle" dominant-baseline="central">Diagnostic</text>
+          </g>
+          <g class="bub">
+            <path class="edge t r-scans" d="M124,267 Q168,285 194,315"/>
+            <path class="edge t r-genomes" d="M135,408 Q158,382 183,370"/>
+            <path class="edge t r-scans r-genomes" d="M254,315 Q266,300 272,285"/>
+            <circle class="flow t r-scans r-genomes" r="3" fill="#eaf1fc"><animateMotion dur="2.7s" begin="-0.2s" repeatCount="indefinite" path="M254,315 Q266,300 272,285"/></circle>
+            <circle class="t r-scans r-genomes" cx="224" cy="350" r="43" fill="#8fb4e8"/>
+            <text x="224" y="350" class="net-label t sm r-scans r-genomes" text-anchor="middle" dominant-baseline="central">Prognostic</text>
+          </g>
+          <g class="bub">
+            <path class="edge src t r-records" d="M489,61 Q460,69 451,86" stroke-opacity=".55" stroke-dasharray="3 4"/>
+            <path class="edge t r-records" d="M393,142 Q348,167 321,202"/>
+            <circle class="flow t r-records" r="3" fill="#eaf1fc"><animateMotion dur="2.9s" begin="-2.3s" repeatCount="indefinite" path="M393,142 Q348,167 321,202"/></circle>
+            <circle class="t r-records" cx="430" cy="122" r="39" fill="#8fb4e8"/>
+            <text x="430" y="122" class="net-label t sm r-records" text-anchor="middle" dominant-baseline="central">Federated</text>
+          </g>
+          <g class="bub">
+            <path class="edge t " d="M403,416 Q435,399 446,379"/>
+            <path class="edge t " d="M433,308 Q389,271 337,255"/>
+            <circle class="flow t " r="3" fill="#eaf1fc"><animateMotion dur="3.1s" begin="-0.6s" repeatCount="indefinite" path="M433,308 Q389,271 337,255"/></circle>
+            <circle class="t " cx="468" cy="338" r="43" fill="#c23a55"/>
+            <text x="468" y="338" class="net-label t sm w" text-anchor="middle" dominant-baseline="central">Governance</text>
+          </g>
+
+          {# ===== outcome (revealed last): AI output rides the heartbeat into "Better care" ===== #}
+          <g class="bub">
+            <circle class="flow" r="3.4" fill="#ffd0d8"><animateMotion dur="2.2s" begin="-1.4s" repeatCount="indefinite" path="M339,240 H352 l6 7 l12 -56 l12 70 l7 -21 H420 q9 -12 18 0 H446"/></circle>
+            <g transform="translate(500 240)">
+              <g>
+                <animateTransform attributeName="transform" type="scale" dur="2.2s" begin="-1.4s" repeatCount="indefinite"
+                                  values="1;1.07;1;1" keyTimes="0;.07;.26;1" calcMode="spline"
+                                  keySplines=".3 0 .4 1;.4 0 .6 1;0 0 1 1"/>
+                <rect x="-57" y="-27" width="114" height="54" rx="27" fill="none" stroke="#ff5a6e" stroke-opacity=".35" stroke-width="1.2"/>
+                <rect x="-51" y="-21" width="102" height="42" rx="21" fill="#c8102e" filter="url(#hn-shadow)"/>
+                {# heart glyph #}
+                <path fill="#fff" d="M-32 7.5 l-6.2 -6 a3.8 3.8 0 0 1 6.2 -4.6 a3.8 3.8 0 0 1 6.2 4.6 z"/>
+                <text x="12" y="0" class="net-label sm w" text-anchor="middle" dominant-baseline="central">Better care</text>
+              </g>
+            </g>
+         </g>
+
+          {# ===== central AI hub (always visible, on top) ===== #}
+          <circle cx="290" cy="240" r="46" fill="#f4f7fc" filter="url(#hn-shadow)"/>
+                    <circle cx="290" cy="240" r="45" fill="none" stroke="rgba(200,16,46,.7)" stroke-width="2.2"/>
+          <text x="290" y="240" class="net-ai" text-anchor="middle" dominant-baseline="central">AI</text>
+          </g>
+
+          {# pause all motion while the hero is off-screen (saves battery on phones) #}
+          <script>
+            (function (svg) {
+              if (!svg) return;
+              if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { svg.pauseAnimations(); return; }
+              if (!('IntersectionObserver' in window)) return;
+              new IntersectionObserver(function (entries) {
+                var visible = entries[0].isIntersecting;
+                svg.classList.toggle('is-paused', !visible);
+                visible ? svg.unpauseAnimations() : svg.pauseAnimations();
+              }).observe(svg);
+            })(document.currentScript && document.currentScript.closest('svg'));
+          </script>
+        </svg>

@@ -1,13 +1,18 @@
 """Initialise the database on boot.
 
-Creates the tables and, **only if the database is empty**, seeds the demo data.
-Safe to run on every startup — it never wipes existing data.
+Creates the tables and, **only if the database is empty**, adds the starter
+launch & hackathon announcements (no fake people — researchers create their own
+profiles). Safe to run on every startup — it never wipes existing data.
 
-This is used in the production startup command so a freshly-deployed app comes
-up already populated with the demo content and login:
+This is used in the production startup command:
 
     python init_db.py && gunicorn --bind=0.0.0.0 --timeout 600 --workers 1 wsgi:app
+
+Set SEED_DEMO=1 to fill an empty database with the old Big Bang Theory demo
+data instead (handy for demos; never use it on the live hub).
 """
+import os
+
 from hub import create_app
 from hub.extensions import db
 
@@ -20,11 +25,17 @@ def main():
         already_populated = User.query.count() > 0
 
     if already_populated:
-        print("Database already populated — skipping seed.")
-    else:
-        print("Empty database — seeding demo data…")
+        print("Database already has users — skipping demo seed.")
+    elif os.environ.get("SEED_DEMO", "0") == "1":
+        print("Empty database — SEED_DEMO=1, seeding demo data…")
         from seed import run
         run()
+
+    with app.app_context():
+        from launch_content import seed_launch_content
+        added = seed_launch_content()
+        if added:
+            print(f"Added {added} launch announcements.")
 
 
 if __name__ == "__main__":

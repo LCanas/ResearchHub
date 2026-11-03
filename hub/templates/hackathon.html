@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ws_tag %}
+{% block title %}Hackathon {{ HACKATHON.when }}{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">⚡ {{ HACKATHON.when }} · dates to be confirmed</div>
+    <h1>{{ HACKATHON.name }}</h1>
+    <p style="max-width:760px">Bring a real clinical or research problem, and leave with a working prototype
+       and a team to take it further. Challenge submissions are <b>open now</b>.</p>
+    <div class="flex gap-sm" style="margin-top:1.2rem;flex-wrap:wrap">
+      <a class="btn btn-primary" href="{{ url_for('main.project_new', type='Hackathon') }}">Submit a challenge</a>
+      <a class="btn btn-outline-light" href="{{ url_for('main.code_of_conduct') }}">Code of Conduct</a>
+    </div>
+
+    {% if days_left is not none and days_left >= 0 %}
+    <div class="countdown" data-target="{{ countdown_target }}" data-exact="{{ 1 if countdown_exact else 0 }}">
+      {% if countdown_exact %}
+        <div class="cd-box"><b data-cd="d">{{ days_left }}</b><span>days</span></div>
+        <div class="cd-box"><b data-cd="h">–</b><span>hours</span></div>
+        <div class="cd-box"><b data-cd="m">–</b><span>minutes</span></div>
+        <div class="cd-box"><b data-cd="s">–</b><span>seconds</span></div>
+        <p class="cd-note">until the hackathon begins</p>
+      {% else %}
+        <div class="cd-box"><b>~{{ days_left }}</b><span>days</span></div>
+        <p class="cd-note">to go until {{ HACKATHON.when }}. Exact dates to be announced;
+           the countdown goes live once they're confirmed.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="two-col">
+    <div class="prose">
+      <h2 style="margin-top:0">What makes a good challenge?</h2>
+      <ul>
+        <li><b>A real need.</b> A problem a clinician, patient group or research team actually has.</li>
+        <li><b>Data that can be used.</b> Open, synthetic or already-approved data that teams can work with
+            during the hackathon. Never upload patient data to the hub.</li>
+        <li><b>The right size.</b> Something a small team can make visible progress on in a few days.</li>
+        <li><b>A challenge owner.</b> Someone who can answer questions on the day and judge what "useful" looks like.</li>
+      </ul>
+
+      <h2>How submission works</h2>
+      <ol>
+        <li>Create your profile and agree to the Code of Conduct.</li>
+        <li><a href="{{ url_for('main.project_new', type='Hackathon') }}">Propose a project</a> with the type
+            <b>Hackathon</b>, including the collaboration agreement (IP, code licence, authorship and
+            publication approval).</li>
+        <li>Your challenge stays on hold while the committee checks it against the panel criteria: clinical impact, data readiness, resources and
+            AI feasibility. They may ask you for changes, and you'll be emailed their decision.</li>
+        <li>Once approved, your challenge is published below and participants can ask to join.</li>
+      </ol>
+
+      <h2>Approved challenges <span class="muted small">({{ challenges|length }})</span></h2>
+      {% if challenges %}
+        {% for p in challenges %}
+        <article class="card card-pad" style="margin-bottom:.8rem">
+          <h3 style="margin:0 0 .3rem">
+            {% if current_user.is_authenticated %}
+              <a href="{{ url_for('main.project_detail', project_id=p.id) }}" style="color:var(--navy)">{{ p.title }}</a>
+            {% else %}{{ p.title }}{% endif %}
+          </h3>
+          {% if p.workstream %}<div style="margin-bottom:.4rem">{{ ws_tag(p.workstream) }}</div>{% endif %}
+          <p class="muted small" style="margin:0">{{ p.summary or (p.description|truncate(160)) }}</p>
+        </article>
+        {% endfor %}
+        {% if not current_user.is_authenticated %}
+          <p class="small muted"><a href="{{ url_for('auth.login', next=request.path) }}">Sign in</a> to see the full challenge details and join a team.</p>
+        {% endif %}
+      {% else %}
+        <div class="card empty">
+          <div class="big">💡</div>
+          <h3>No challenges published yet</h3>
+          <p class="muted">Be the first. Submitted challenges appear here once they've been reviewed.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="card card-pad">
+        <h4>Timeline</h4>
+        <ul class="timeline">
+          <li><b>Now</b><span class="small muted">Challenge submissions open</span></li>
+          <li><b>{{ LAUNCH.when }}</b><span class="small muted">Hub launch, with first challenges showcased</span></li>
+          <li><b>Submissions close</b><span class="small muted">Date {{ HACKATHON.submissions_close }}</span></li>
+          <li><b>Before the event</b><span class="small muted">Reviews complete, teams form around approved challenges</span></li>
+          <li><b>{{ HACKATHON.when }}</b><span class="small muted">Hackathon. Exact dates and venue to be announced</span></li>
+          <li><b>After</b><span class="small muted">Promising prototypes can continue as Proof of Concept projects</span></li>
+        </ul>
+      </div>
+      <div class="card card-pad mt">
+        <h4>Who can take part?</h4>
+        <p class="small muted" style="margin:0">Clinicians, researchers, students, engineers and data scientists
+           at King's. You don't need to be an AI expert: clinical insight is just as valuable.</p>
+      </div>
+      <div class="card card-pad mt">
+        <h4>Your ideas stay yours</h4>
+        <p class="small muted" style="margin:0">Submitting a challenge doesn't give away your IP. Each challenge
+           records its IP and publication terms up front, and outcomes need approval from both parties. See the
+           <a href="{{ url_for('main.code_of_conduct') }}">Code of Conduct</a>.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

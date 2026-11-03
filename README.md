@@ -69,14 +69,93 @@ The project uses the **`researchHub`** conda environment.
 conda activate researchHub
 pip install -r requirements.txt
 
-# 2. Create and populate the database with demo data
-python seed.py
+# 2. Create the database with the launch announcements (no demo people)
+python init_db.py
+#    …or, for a demo with the fictional researchers below:  python seed.py
 
 # 3. Start the app
 python run.py
 ```
 
 Then open <http://127.0.0.1:5000>.
+
+### Roles, review and public pages
+
+- **Researchers create their own profiles** and must agree to the Code of Conduct
+  (`/code-of-conduct`) when they register.
+- **Roles:** *member* (default), *committee* (reviews submissions, posts
+  announcements) and *admin* (also manages roles on the **Members** page).
+  Every new project or hackathon challenge is **on hold** until the committee
+  approves it; committee members can't approve their own.
+  - Bootstrap the first admin with `HUB_ADMIN_EMAILS=you@kcl.ac.uk` (applied when
+    that person registers or signs in), or from the server:
+    `python manage.py role you@kcl.ac.uk admin` (with Docker:
+    `docker exec -it <container> python manage.py role …`).
+    `python manage.py list` shows who has which role.
+  - Admins can also **reset passwords** (a temporary password the person must
+    change at next sign-in), **suspend** (block sign-in, keep data) and
+    **delete profiles**, on the Members page or with `python manage.py
+    reset-password | suspend | unsuspend | delete EMAIL`.
+- **Forgot password:** the sign-in page emails a one-time reset link that
+  expires after an hour. This needs email (SMTP) configured to reach people.
+- **Monthly newsletter:** each member gets open projects matched to their
+  profile keywords and workstreams, plus upcoming events, recent news and the
+  hackathon. Members opt out on their profile or via the link in the email.
+  Admins can preview and send it from **Newsletter** in the account menu. To send
+  it automatically on the 1st of each month at 09:00, add a cron job on the
+  server (`crontab -e`):
+
+  ```
+  0 9 1 * * cd /path/to/ResearchNetwork && docker compose exec -T web python manage.py newsletter >> /var/log/hub-newsletter.log 2>&1
+  ```
+  `python manage.py newsletter --dry-run` prints them without sending. Nobody
+  is sent two within 25 days, so a repeated run never double-sends.
+- **Email notifications:** proposer and PI when someone asks to join; the
+  committee when something is submitted; the proposer when it's reviewed.
+  Configure SMTP with `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`,
+  `MAIL_PASSWORD`, `MAIL_FROM` and `SITE_URL` (see `hub/mail.py`). Without
+  `MAIL_SERVER` the emails are printed to the log instead of sent.
+- **Public pages** (no sign-in): home, about, review panel, workstreams, news,
+  events, impact, hackathon and Code of Conduct. Projects, people and profiles
+  need an account.
+- Launch and hackathon dates live in `LAUNCH` / `HACKATHON` in `hub/config.py`.
+
+## Deploying with Docker + PostgreSQL (the VM)
+
+`docker-compose.yml` runs two containers: **web** (the hub, gunicorn) and **db**
+(PostgreSQL 16). Data is kept in Docker volumes (`pgdata` for the database,
+`uploads` for profile photos), so it survives rebuilds and restarts.
+
+```bash
+# 1. Settings: copy the template and fill in SECRET_KEY, POSTGRES_PASSWORD, SITE_URL
+cp .env.example .env
+python3 -c "import secrets; print(secrets.token_urlsafe(48))"   # run twice, one per secret
+
+# 2. Build and start (the database tables are created on first boot)
+docker compose up -d --build
+docker compose logs -f web          # watch it start; Ctrl+C to stop watching
+
+# 3. Admin commands run inside the web container
+docker compose exec web python manage.py list --all
+```
+
+**Updating to a new version of the code:** `git pull && docker compose up -d --build`.
+The data is untouched; new database columns are added automatically on boot.
+
+**Moving an existing SQLite `hub.db` into Postgres** (once, on an empty hub):
+```bash
+docker compose cp hub.db web:/tmp/hub.db
+docker compose exec web python migrate_sqlite_to_postgres.py /tmp/hub.db
+```
+
+**Backups:** dump the database to a file, e.g. nightly via cron:
+```bash
+docker compose exec -T db pg_dump -U hub hub > backup_$(date +%F).sql
+# restore into an empty database:
+docker compose exec -T db psql -U hub hub < backup_2027-01-15.sql
+```
+Keep copies off the VM. `docker compose down` stops the hub but keeps the
+data; **`docker compose down -v` deletes the volumes, and with them all data.**
 
 ## Deploying online (Azure)
 
@@ -86,7 +165,7 @@ be shared with a presenter on a public `https://…azurewebsites.net` URL. The a
 is production-ready — `wsgi.py` (gunicorn entry), `init_db.py` (auto-seeds an
 empty database), a `Dockerfile`, and env-based `SECRET_KEY` / `DATABASE_URL`.
 
-### Demo accounts
+### Demo accounts (only with `python seed.py` or `SEED_DEMO=1`)
 
 The demo researchers are cast from *The Big Bang Theory*, mapped to roles that
 fit each character's canonical status. All share the password **`password123`**.

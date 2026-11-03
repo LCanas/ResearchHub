@@ -71,9 +71,22 @@
             <input type="password" name="confirm" required>
           </div>
         </div>
+        <label class="flex small" style="margin-bottom:1rem;align-items:flex-start;gap:.5rem">
+          <input type="checkbox" name="agree_coc" value="1" required style="width:auto;margin-top:.2rem">
+          <span>I have read and agree to the
+            <a href="{{ url_for('main.code_of_conduct') }}" target="_blank" rel="noopener">Code of Conduct</a>,
+            including agreeing IP, authorship and publication terms with my collaborators before a project starts.</span>
+        </label>
+        <label class="flex small" style="margin-bottom:1rem;align-items:flex-start;gap:.5rem">
+          <input type="checkbox" name="newsletter_opt_in" value="1" style="width:auto;margin-top:.2rem"
+                 {{ 'checked' if form.get('newsletter_opt_in') }}>
+          <span>Yes, send me the <b>monthly newsletter</b>: open projects matched to my interests,
+            events and news. You can unsubscribe at any time.</span>
+        </label>
         <button class="btn btn-primary btn-block" type="submit">Create account</button>
       </form>
-      <p class="text-center small mt">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+      <p class="text-center small mt">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a>
+         · <a href="{{ url_for('main.index') }}">Back to the hub</a></p>
     </div>
   </div>
 </div>

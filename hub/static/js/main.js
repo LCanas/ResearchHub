@@ -34,13 +34,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Auto-dismiss flash messages after a few seconds.
-  setTimeout(function () {
-    document.querySelectorAll(".flash").forEach(function (f) {
-      f.style.transition = "opacity .5s"; f.style.opacity = "0";
-      setTimeout(function () { f.remove(); }, 500);
+  // Flash toasts: dismiss on click, or after a while. Only the floating
+  // toasts — inline .flash notices on pages (e.g. "You're signed up") stay.
+  var dismiss = function (f) {
+    f.style.transition = "opacity .4s"; f.style.opacity = "0";
+    setTimeout(function () { f.remove(); }, 400);
+  };
+  document.querySelectorAll(".toasts .flash").forEach(function (f) {
+    var btn = f.querySelector(".toast-close");
+    if (btn) { btn.addEventListener("click", function () { dismiss(f); }); }
+    // Errors and warnings stay until closed; confirmations fade after 8s.
+    if (!/flash-(danger|warning)/.test(f.className)) {
+      setTimeout(function () { dismiss(f); }, 8000);
+    }
+  });
+
+  // Close the account menu when clicking elsewhere.
+  var menu = document.querySelector(".user-menu");
+  if (menu) {
+    document.addEventListener("click", function (e) {
+      if (menu.open && !menu.contains(e.target)) { menu.open = false; }
     });
-  }, 6000);
+  }
 
   // Count-up animation for stat numbers that carry a data-count target.
   var reduce = window.matchMedia &&
@@ -77,5 +92,84 @@ document.addEventListener("DOMContentLoaded", function () {
       }, nodes.length * STAGGER + HOLD);
     }
     build();
+  }
+
+  // Hero "match": light a clinical question and an AI expertise, draw the two
+  // links into the centre, and name the project they form. Loops through pairs.
+  var match = document.querySelector(".hero-match");
+  if (match) {
+    var pairs = JSON.parse(match.getAttribute("data-pairs"));
+    var lefts = match.querySelectorAll(".m-left");
+    var rights = match.querySelectorAll(".m-right");
+    var pathL = match.querySelector(".m-path-l");
+    var pathR = match.querySelector(".m-path-r");
+    var card = match.querySelector(".m-card");
+    var title = match.querySelector(".m-title");
+    var pulse = match.querySelector(".m-pulse");
+
+    var curve = function (x1, y1, x2, y2) {
+      var mx = (x1 + x2) / 2;
+      return "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2;
+    };
+    var draw = function (path, node, endX) {
+      var x = +node.getAttribute("data-x"), y = +node.getAttribute("data-y");
+      path.setAttribute("d", curve(x, y, endX, 240));
+      var len = path.getTotalLength();
+      path.style.transition = "none";
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      path.style.opacity = 1;
+      path.getBoundingClientRect();            // flush so the transition runs
+      path.style.transition = "stroke-dashoffset .8s ease, opacity .4s ease";
+      path.style.strokeDashoffset = 0;
+    };
+    var show = function (p) {
+      lefts[p[0]].classList.add("lit");
+      rights[p[1]].classList.add("lit");
+      title.textContent = p[2];
+    };
+
+    if (reduce) {
+      show(pairs[0]);
+    } else {
+      match.classList.add("anim");
+      var i = 0;
+      var step = function () {
+        var p = pairs[i++ % pairs.length];
+        match.querySelectorAll(".lit").forEach(function (n) { n.classList.remove("lit"); });
+        pathL.style.opacity = 0; pathR.style.opacity = 0;
+        card.classList.add("dim");
+        setTimeout(function () { lefts[p[0]].classList.add("lit"); }, 350);
+        setTimeout(function () { rights[p[1]].classList.add("lit"); }, 700);
+        setTimeout(function () {
+          draw(pathL, lefts[p[0]], 195);
+          draw(pathR, rights[p[1]], 365);
+        }, 900);
+        setTimeout(function () {
+          title.textContent = p[2];
+          card.classList.remove("dim");
+          pulse.classList.remove("go"); pulse.getBoundingClientRect(); pulse.classList.add("go");
+        }, 1750);
+        setTimeout(step, 4300);
+      };
+      step();
+    }
+  }
+
+  // Hackathon countdown (only ticks once the exact start time is configured).
+  var cd = document.querySelector(".countdown[data-exact='1']");
+  if (cd) {
+    var target = new Date(cd.getAttribute("data-target")).getTime();
+    var cells = {};
+    cd.querySelectorAll("[data-cd]").forEach(function (b) { cells[b.getAttribute("data-cd")] = b; });
+    var tick = function () {
+      var s = Math.max(0, Math.floor((target - Date.now()) / 1000));
+      cells.d.textContent = Math.floor(s / 86400);
+      cells.h.textContent = String(Math.floor(s % 86400 / 3600)).padStart(2, "0");
+      cells.m.textContent = String(Math.floor(s % 3600 / 60)).padStart(2, "0");
+      cells.s.textContent = String(s % 60).padStart(2, "0");
+    };
+    tick();
+    setInterval(tick, 1000);
   }
 });

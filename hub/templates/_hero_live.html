@@ -1,0 +1,48 @@
+{# ---- "live" hero: the hub's real community. One node per workstream, sized by
+     how many researchers chose it; a dot orbits per person (crimson = joined this
+     week); links show people who span two workstreams. Built by build_hub_graph(). ---- #}
+{% set g = hub_graph %}
+{% set palette = ['#8fb4e8', '#db5068', '#a9c9f2', '#f2a3b1', '#c3cddd', '#7fa6dd', '#e7778c'] %}
+<svg class="hero-live" viewBox="0 0 560 480" role="img"
+     aria-label="The hub community: {{ g.people }} researchers across {{ g.nodes|length }} workstreams">
+  {% for n in g.nodes %}
+    <line class="lv-spoke" x1="{{ g.cx }}" y1="{{ g.cy }}" x2="{{ n.x }}" y2="{{ n.y }}"/>
+  {% endfor %}
+  {% for l in g.links %}
+    <line class="lv-link" x1="{{ l.a.x }}" y1="{{ l.a.y }}" x2="{{ l.b.x }}" y2="{{ l.b.y }}"
+          stroke-width="{{ l.w }}"/>
+  {% endfor %}
+
+  {% for n in g.nodes %}
+  {% set colour = palette[loop.index0 % palette|length] %}
+  <a href="{{ url_for('main.workstream_detail', slug=n.ws.slug) }}">
+    <title>{{ n.ws.name }}: {{ n.count }} researcher{{ '' if n.count == 1 else 's' }}</title>
+    <g class="lv-node {{ 'is-empty' if not n.count }}" style="animation-delay: {{ loop.index0 * 0.45 }}s">
+      <circle cx="{{ n.x }}" cy="{{ n.y }}" r="{{ n.r }}"
+              fill="{{ colour if n.count else 'none' }}" stroke="{{ colour }}"/>
+      <text x="{{ n.x }}" y="{{ n.y }}" class="lv-count">{{ n.count if n.count else '' }}</text>
+    </g>
+  </a>
+  <text x="{{ n.x }}" y="{{ n.label_y }}" class="lv-label">{{ n.ws.short }}</text>
+    {% for d in n.dots %}
+    <g class="lv-orbit" style="transform-origin: {{ n.x }}px {{ n.y }}px; animation-duration: {{ d.dur }}s">
+      <circle cx="{{ d.x }}" cy="{{ d.y }}" r="{{ 3.6 if d.new else 2.6 }}" class="{{ 'lv-dot-new' if d.new else 'lv-dot' }}"/>
+    </g>
+    {% endfor %}
+  {% endfor %}
+
+  {# centre: the community total #}
+  <circle class="m-pulse lv-pulse" cx="{{ g.cx }}" cy="{{ g.cy }}" r="52"/>
+  <circle cx="{{ g.cx }}" cy="{{ g.cy }}" r="52" fill="#f4f7fc"/>
+  <circle cx="{{ g.cx }}" cy="{{ g.cy }}" r="52" fill="none" stroke="rgba(200,16,46,.65)" stroke-width="2"/>
+  {% if g.people %}
+    <text x="{{ g.cx }}" y="{{ g.cy - 8 }}" class="lv-total">{{ g.people }}</text>
+    <text x="{{ g.cx }}" y="{{ g.cy + 15 }}" class="lv-total-sub">researchers</text>
+    {% if g.new_this_week %}
+      <text x="{{ g.cx }}" y="{{ g.cy + 31 }}" class="lv-new">+{{ g.new_this_week }} this week</text>
+    {% endif %}
+  {% else %}
+    <text x="{{ g.cx }}" y="{{ g.cy - 7 }}" class="lv-total-sub">Be the first</text>
+    <text x="{{ g.cx }}" y="{{ g.cy + 11 }}" class="lv-total-sub">to join</text>
+  {% endif %}
+</svg>

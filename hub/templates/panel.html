@@ -46,15 +46,15 @@
     </div>
     <div class="panel-grid">
       {% for m in PANEL_MEMBERS %}
-      {% set parts = m.name.replace('Prof.', '').replace('Dr', '').split() %}
+      {% set parts = (m.name or m.role).replace('Prof.', '').replace('Dr', '').replace('/', ' ').split() %}
       {% set initials = (parts[0][0] ~ parts[-1][0])|upper if parts|length > 1 else parts[0][:2]|upper %}
       <div class="panel-card">
         <div class="panel-top">
           <div class="avatar avatar-md avatar-fallback">{{ initials }}</div>
           <div>
-            <b class="panel-name">{{ m.name }}</b>
-            <span class="panel-role">{{ m.role }}</span>
-            <span class="small muted">{{ m.affiliation }}</span>
+            <b class="panel-name">{{ m.name or m.role }}</b>
+            <span class="panel-role">{{ m.role if m.name else 'To be announced' }}</span>
+            {% if m.affiliation %}<span class="small muted">{{ m.affiliation }}</span>{% endif %}
           </div>
         </div>
         <p class="muted small">{{ m.desc }}</p>

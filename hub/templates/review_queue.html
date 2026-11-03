@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ws_tag %}
+{% block title %}Review queue{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Committee</div>
+    <h1>Review queue</h1>
+    <p>Submitted projects and hackathon challenges on hold. Check each one against the
+       panel criteria, then approve it, request changes or decline it. The proposer is emailed the decision.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:960px">
+  <div class="section-title"><h2>Waiting for review <span class="muted small">({{ pending|length }})</span></h2></div>
+  {% if pending %}
+    {% for p in pending %}
+    <article class="card card-pad" style="margin-bottom:1rem">
+      <div class="flex space-between flex-wrap gap-sm">
+        <div class="flex gap-sm flex-wrap">
+          <span class="pill {{ REVIEW_STATUS_CSS.get(p.review_status, '') }}">{{ p.review_status }}</span>
+          {% if p.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(p.project_type,'') }}">{{ p.project_type }}</span>{% endif %}
+          {% if p.workstream %}{{ ws_tag(p.workstream) }}{% endif %}
+        </div>
+        <span class="small muted">Submitted {{ p.created_at.strftime('%d %b %Y') }}{% if p.proposer %} by {{ p.proposer.full_name }}{% endif %}</span>
+      </div>
+      <h3 style="margin:.6rem 0 .3rem"><a href="{{ url_for('main.project_detail', project_id=p.id) }}" style="color:var(--navy)">{{ p.title }}</a></h3>
+      <p class="muted small" style="margin:0">{{ p.summary or (p.description|truncate(180)) }}</p>
+      {% if not p.ip_agreement %}<p class="small" style="color:var(--crimson);margin:.4rem 0 0">No collaboration agreement recorded.</p>{% endif %}
+      <a class="btn btn-outline btn-sm mt" href="{{ url_for('main.project_detail', project_id=p.id) }}">Open &amp; review →</a>
+    </article>
+    {% endfor %}
+  {% else %}
+    <div class="card empty">
+      <div class="big">✅</div>
+      <h3>All caught up</h3>
+      <p class="muted">No submissions are waiting for review.</p>
+    </div>
+  {% endif %}
+
+  {% if recent %}
+  <div class="section-title mt2"><h2>Recently reviewed</h2></div>
+  <div class="card card-pad">
+    {% for p in recent %}
+    <div class="list-row flex space-between flex-wrap gap-sm">
+      <a href="{{ url_for('main.project_detail', project_id=p.id) }}"><b style="color:var(--navy)">{{ p.title }}</b></a>
+      <span class="small muted"><span class="pill {{ REVIEW_STATUS_CSS.get(p.review_status, '') }}">{{ p.review_status }}</span>
+        {{ p.reviewed_at.strftime('%d %b %Y') }}{% if p.reviewed_by %} · {{ p.reviewed_by.full_name }}{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

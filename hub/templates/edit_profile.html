@@ -114,6 +114,14 @@
         <label>KCL website</label>
         <input name="kcl_url" value="{{ user.kcl_url }}" placeholder="https://kcl.ac.uk/people/…">
       </div>
+
+      <div class="form-row full">
+        <label class="flex" style="gap:.5rem;align-items:flex-start;font-weight:400">
+          <input type="checkbox" name="newsletter_opt_in" value="1" {{ 'checked' if user.newsletter_opt_in }} style="width:auto;margin-top:.2rem">
+          <span><b>Monthly newsletter</b>: email me once a month with open projects matched to my
+            keywords and workstreams, upcoming events and news.</span>
+        </label>
+      </div>
     </div>
 
     <button class="btn btn-primary" type="submit">Save profile</button>

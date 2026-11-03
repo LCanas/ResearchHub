@@ -28,7 +28,9 @@
 
       <div class="card card-pad mt2">
         <h4>Who's attending <span class="muted small">({{ event.attendee_count }})</span></h4>
-        {% if event.attendances %}
+        {% if not current_user.is_authenticated %}
+          <p class="small muted"><a href="{{ url_for('auth.login', next=request.path) }}">Sign in</a> to see who's attending.</p>
+        {% elif event.attendances %}
           {% for a in event.attendances %}
           <a class="flex" href="{{ url_for('main.profile', user_id=a.user.id) }}" style="padding:.35rem 0">
             {{ avatar(a.user, 'avatar-sm') }}
@@ -53,7 +55,9 @@
           <a class="btn btn-outline btn-block mt" href="{{ event.url }}" target="_blank" rel="noopener">Event link / joining details</a>
         {% endif %}
 
-        {% if not event.is_past %}
+        {% if not event.is_past and not current_user.is_authenticated %}
+          <a class="btn btn-primary btn-block mt" href="{{ url_for('auth.login', next=request.path) }}">Sign in to sign up</a>
+        {% elif not event.is_past %}
           {% if is_registered %}
             <div class="flash flash-success" style="margin:.8rem 0 0">You're signed up ✓</div>
             <form method="post" action="{{ url_for('main.event_unregister', event_id=event.id) }}" class="mt">

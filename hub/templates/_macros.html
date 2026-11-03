@@ -45,3 +45,16 @@
   </div>
 </a>
 {% endmacro %}
+
+{# Declining a join request always needs a personal message — it goes in the email. #}
+{% macro decline_form(r) %}
+<details class="decline-box">
+  <summary class="btn btn-ghost btn-sm">Decline</summary>
+  <form method="post" action="{{ url_for('main.request_action', request_id=r.id, action='reject') }}">
+    <label class="small">Message to {{ r.user.full_name.split()[0] }} <span class="hint">(required, sent by email)</span></label>
+    <textarea name="note" required minlength="10"
+              placeholder="Thank them and briefly explain why, e.g. the team is full or a different skill set is needed…"></textarea>
+    <button class="btn btn-navy btn-sm" type="submit">Send decline</button>
+  </form>
+</details>
+{% endmacro %}

@@ -456,6 +456,10 @@ def run():
             EventAttendance(user_id=raj.id, event_id=e4.id),
         ])
 
+        # Demo projects are already live and demo users have agreed the Code.
+        db.session.flush()
+        Project.query.update({"review_status": "Approved"})
+        User.query.update({"coc_accepted_at": datetime.utcnow()})
         db.session.commit()
 
         print("Seed complete.")

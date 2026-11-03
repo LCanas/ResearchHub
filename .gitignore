@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# App
+*.db
+hub/static/uploads/*
+!hub/static/uploads/.gitkeep
+
+# Sharing / demo tooling
+cloudflared.exe
+demo_qr.png
+demo_url.txt
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Documents, archives and media (kept locally, not in the repo)
+*.tar.gz
+*.tgz
+ubuntu@aicollabhub
+*.docx
+*.doc
+*.pdf
+*.md
+!README.md
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.pptx
+*.ppt
+*.key
+*.odp
+
+# Docs and Logs
+Collaboration_Hub_for_AI_deployment_in_Healthcare_Research.docx
+demo_specifications
+demo_url.txt
+# Secrets for docker compose
+.env

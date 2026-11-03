@@ -14,6 +14,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from .extensions import db
 
+USER_ROLES = ("member", "committee", "admin")
+
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
@@ -47,6 +49,12 @@ class User(UserMixin, db.Model):
 
     photo = db.Column(db.String(255), default="")              # uploaded filename
     is_admin = db.Column(db.Boolean, default=False)
+    is_reviewer = db.Column(db.Boolean, default=False)         # committee: approves projects to go live
+    coc_accepted_at = db.Column(db.DateTime)                   # Code of Conduct agreement
+    must_change_password = db.Column(db.Boolean, default=False)  # after an admin reset
+    is_suspended = db.Column(db.Boolean, default=False)        # blocked from signing in, data kept
+    newsletter_opt_in = db.Column(db.Boolean, default=False)   # monthly digest, opt-in at sign-up
+    newsletter_last_sent = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -73,6 +81,25 @@ class User(UserMixin, db.Model):
     @property
     def keyword_list(self):
         return [k.strip() for k in (self.keywords or "").split(",") if k.strip()]
+
+    # Roles: "member" (default) < "committee" (reviews submissions, posts
+    # announcements) < "admin" (also manages roles). Stored as two flags;
+    # is_reviewer is the committee flag.
+    @property
+    def role(self):
+        if self.is_admin:
+            return "admin"
+        return "committee" if self.is_reviewer else "member"
+
+    def set_role(self, role):
+        if role not in USER_ROLES:
+            raise ValueError(f"Unknown role {role!r}; use one of {USER_ROLES}")
+        self.is_admin = role == "admin"
+        self.is_reviewer = role in ("committee", "admin")
+
+    @property
+    def can_review(self):
+        return bool(self.is_admin or self.is_reviewer)
 
     @property
     def workstream_list(self):
@@ -111,6 +138,8 @@ class Project(db.Model):
 
     expected_outcomes = db.Column(db.Text, default="")
     actual_outcomes = db.Column(db.Text, default="")           # shown when Completed
+    # IP, authorship and publication terms agreed up front (Code of Conduct).
+    ip_agreement = db.Column(db.Text, default="")
     github_url = db.Column(db.String(255), default="")
     department = db.Column(db.String(120), default="")
     keywords = db.Column(db.String(255), default="")
@@ -122,7 +151,14 @@ class Project(db.Model):
     proposer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Submissions are hidden until a reviewer approves them to go live.
+    review_status = db.Column(db.String(40), default="Pending review", index=True)
+    review_note = db.Column(db.Text, default="")
+    reviewed_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    reviewed_at = db.Column(db.DateTime)
+
     # Relationships
+    reviewed_by = db.relationship("User", foreign_keys=[reviewed_by_id])
     pi_user = db.relationship(
         "User", foreign_keys=[pi_id], back_populates="led_projects"
     )
@@ -151,6 +187,10 @@ class Project(db.Model):
     @property
     def is_open(self):
         return self.status == "Open"
+
+    @property
+    def is_live(self):
+        return self.review_status == "Approved"
 
     @property
     def collaborators(self):
@@ -281,6 +321,7 @@ class JoinRequest(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
     message = db.Column(db.Text, default="")
     status = db.Column(db.String(40), default="Pending")       # Pending/Accepted/Rejected
+    response_note = db.Column(db.Text, default="")             # manager's message when declining
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", back_populates="join_requests")

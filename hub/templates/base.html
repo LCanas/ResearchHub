@@ -8,7 +8,6 @@
 </head>
 <body>
 {% from "_macros.html" import avatar %}
-{% if current_user.is_authenticated %}
 <nav class="navbar">
   <div class="container">
     <a class="brand" href="{{ url_for('main.index') }}">
@@ -22,40 +21,72 @@
       <a href="{{ url_for('main.about') }}" class="{{ 'active' if request.endpoint in ['main.about', 'main.panel'] }}">About</a>
       <a href="{{ url_for('main.projects') }}" class="{{ 'active' if request.endpoint in ['main.projects', 'main.project_detail'] }}">Projects</a>
       <a href="{{ url_for('main.workstreams') }}" class="{{ 'active' if request.endpoint in ['main.workstreams', 'main.workstream_detail'] }}">Workstreams</a>
+      {% if current_user.is_authenticated %}
       <a href="{{ url_for('main.directory') }}" class="{{ 'active' if request.endpoint == 'main.directory' }}">People</a>
+      {% endif %}
+      <a href="{{ url_for('main.hackathon') }}" class="{{ 'active' if request.endpoint == 'main.hackathon' }}">Hackathon</a>
       <a href="{{ url_for('main.events') }}" class="{{ 'active' if request.endpoint in ['main.events', 'main.event_detail', 'main.event_new'] }}">Events</a>
       <a href="{{ url_for('main.news') }}" class="{{ 'active' if request.endpoint in ['main.news', 'main.news_detail', 'main.news_new'] }}">News</a>
       <a href="{{ url_for('main.impact') }}" class="{{ 'active' if request.endpoint == 'main.impact' }}">Impact</a>
-      <a href="{{ url_for('main.my_requests') }}" class="{{ 'active' if request.endpoint == 'main.my_requests' }}">Requests</a>
-      <a href="{{ url_for('main.project_new') }}" class="{{ 'active' if request.endpoint == 'main.project_new' }}">+ New</a>
-      <div class="nav-user">
-        <a href="{{ url_for('main.profile', user_id=current_user.id) }}" title="My profile">
-          {{ avatar(current_user, 'nav-avatar') }}
-        </a>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-light">Sign out</a>
-      </div>
     </div>
+
+    {# Account area sits outside the scrolling links so it's always visible. #}
+    {% if current_user.is_authenticated %}
+    <div class="nav-user">
+      <a href="{{ url_for('main.project_new') }}" class="btn btn-sm btn-primary nav-new">+ New</a>
+      <details class="user-menu">
+        <summary title="Account menu">
+          {{ avatar(current_user, 'nav-avatar') }}
+          {% if review_queue_count %}<span class="badge-count menu-badge">{{ review_queue_count }}</span>{% endif %}
+          <span class="caret">▾</span>
+        </summary>
+        <div class="user-menu-panel">
+          <div class="user-menu-head">
+            <b>{{ current_user.full_name }}</b>
+            <span>{{ current_user.email }} · {{ current_user.role|capitalize }}</span>
+          </div>
+          <a href="{{ url_for('main.profile', user_id=current_user.id) }}">My profile</a>
+          <a href="{{ url_for('main.edit_profile') }}">Edit profile</a>
+          <a href="{{ url_for('main.change_password') }}">Change password</a>
+          <a href="{{ url_for('main.my_requests') }}">Join requests</a>
+          {% if current_user.can_review %}
+          <a href="{{ url_for('main.review_queue') }}">Committee review{% if review_queue_count %} <span class="badge-count">{{ review_queue_count }}</span>{% endif %}</a>
+          {% endif %}
+          {% if current_user.is_admin %}
+          <a href="{{ url_for('main.admin_members') }}">Members &amp; roles</a>
+          <a href="{{ url_for('main.admin_newsletter') }}">Newsletter</a>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}" class="user-menu-signout">Sign out</a>
+        </div>
+      </details>
+    </div>
+    {% else %}
+    <div class="nav-user">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-light">Sign in</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-sm btn-primary">Create profile</a>
+    </div>
+    {% endif %}
   </div>
 </nav>
-{% endif %}
 
 {% block hero %}{% endblock %}
 
-<div class="container">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flashes">
-        {% for category, message in messages %}
-          <div class="flash flash-{{ category }}">{{ message }}</div>
-        {% endfor %}
+{# Flash messages float under the navbar so they're seen even below a tall hero. #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="toasts" role="status" aria-live="polite">
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        <span>{{ message }}</span>
+        <button type="button" class="toast-close" aria-label="Dismiss">×</button>
       </div>
-    {% endif %}
-  {% endwith %}
-</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
 
 {% block body %}{% endblock %}
 
-{% if current_user.is_authenticated %}
 <footer class="site-footer">
   <div class="container footer-grid">
     <div>
@@ -70,28 +101,35 @@
       <h5>Explore</h5>
       <a href="{{ url_for('main.projects') }}">Projects</a>
       <a href="{{ url_for('main.workstreams') }}">Workstreams</a>
-      <a href="{{ url_for('main.directory') }}">People</a>
+      {% if current_user.is_authenticated %}<a href="{{ url_for('main.directory') }}">People</a>{% endif %}
+      <a href="{{ url_for('main.hackathon') }}">Hackathon {{ HACKATHON.when.split()[-1] }}</a>
       <a href="{{ url_for('main.events') }}">Events</a>
       <a href="{{ url_for('main.news') }}">News</a>
       <a href="{{ url_for('main.impact') }}">Impact</a>
       <a href="{{ url_for('main.about') }}">About</a>
       <a href="{{ url_for('main.panel') }}">Review panel</a>
+      <a href="{{ url_for('main.code_of_conduct') }}">Code of Conduct</a>
     </div>
     <div>
       <h5>Get in touch</h5>
-      <a href="mailto:ai-health-hub@kcl.ac.uk">ai-health-hub@kcl.ac.uk</a>
+      {% if CONTACT_EMAIL %}
+      <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
+      {% else %}
+      <span class="small" style="color:#b9c4da">Contact details coming soon.</span>
+      {% endif %}
+      {% set social_icons = {'LinkedIn': 'in', 'GitHub': '⌥', 'X': '✕'} %}
       <div class="footer-social">
-        <a href="https://www.linkedin.com" target="_blank" rel="noopener" title="LinkedIn">in</a>
-        <a href="https://github.com" target="_blank" rel="noopener" title="GitHub">⌥</a>
-        <a href="https://x.com" target="_blank" rel="noopener" title="X">✕</a>
+        {% for name, url in SOCIAL_LINKS.items() if url %}
+        <a href="{{ url }}" target="_blank" rel="noopener" title="{{ name }}">{{ social_icons.get(name, name[0]) }}</a>
+        {% endfor %}
       </div>
     </div>
   </div>
   <div class="container footer-base small">
-    © {{ APP_NAME }}, King's College London. Demo application.
+    © {{ APP_NAME }}, King's College London.
+    · <a href="{{ url_for('main.code_of_conduct') }}" style="color:inherit">Code of Conduct</a>
   </div>
 </footer>
-{% endif %}
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

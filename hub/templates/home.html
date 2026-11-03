@@ -13,112 +13,66 @@
            knowledge and AI expertise — helping healthcare researchers turn ideas into
            collaborative, deployable AI projects.</p>
         <div class="flex gap-sm" style="margin-top:1.4rem;flex-wrap:wrap">
+          {% if current_user.is_authenticated %}
           <a class="btn btn-primary" href="{{ url_for('main.projects') }}">Browse projects</a>
           <a class="btn btn-outline-light" href="{{ url_for('main.project_new') }}">Propose a project</a>
+          {% else %}
+          <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Create your profile</a>
+          <a class="btn btn-outline-light" href="{{ url_for('main.hackathon') }}">Hackathon {{ HACKATHON.when }}</a>
+          {% endif %}
           <a class="btn btn-outline-light" href="{{ url_for('main.about') }}">About the hub</a>
         </div>
       </div>
 
-      {# ---- Layered concept graph: outer topics → mid concepts → AI. #}
-      {#      Backbone stays present; outer topics emerge & fade. #}
-      {#      Transparent background so it blends into the banner. ---- #}
+      {# ---- Hero art: "network" (original), "match" or "live" — see HERO_ART in config ---- #}
       <div class="home-hero-art">
-        <svg class="hero-net" viewBox="0 0 560 480" role="img"
-             aria-label="A network of data sources, topics and concepts converging on a central AI hub that drives better care, over an ECG trace">
-          {# biosignal (ECG) behind the AI hub #}
-          <path class="bio" fill="none" stroke-width="1.7"
-                d="M0 248 H225 l10 -7 l10 7 H300 l9 11 l12 -58 l12 58 H420 l14 -11 l14 11 H560"/>
-          <path class="bio-sweep" fill="none" stroke="#ff5a6e" stroke-width="2.8" stroke-linecap="round"
-                d="M0 248 H225 l10 -7 l10 7 H300 l9 11 l12 -58 l12 58 H420 l14 -11 l14 11 H560"/>
-
-          {# pulsing vital-sign rings from the AI hub #}
-          <circle class="pulse"  cx="290" cy="240" r="46" fill="none" stroke="#ff5a6e" stroke-width="2"/>
-          <circle class="pulse pulse2" cx="290" cy="240" r="46" fill="none" stroke="#8fb4e8" stroke-width="1.6"/>
-
-          {# ===== data sources (revealed first) ===== #}
-          <g class="bub"><circle cx="58" cy="132" r="24" fill="#c3cddd"/><text x="58" y="132" class="net-label xs">Scans</text></g>
-          <g class="bub"><circle cx="470" cy="58" r="24" fill="#c3cddd"/><text x="470" y="58" class="net-label xs">Records</text></g>
-          <g class="bub"><circle cx="42" cy="338" r="22" fill="#c3cddd"/><text x="42" y="338" class="net-label xs">Genomes</text></g>
-          <g class="bub"><circle cx="260" cy="452" r="24" fill="#c3cddd"/><text x="260" y="452" class="net-label xs">Labs</text></g>
-
-          {# ===== topics ===== #}
-          <g class="bub">
-            <line class="edge" x1="58" y1="132" x2="72" y2="255"/>
-            <circle class="flow" r="2.8" fill="#eaf1fc"><animateMotion dur="2.6s" repeatCount="indefinite" path="M58,132 L72,255"/></circle>
-            <circle cx="72" cy="255" r="36" fill="#c3cddd"/><text x="72" y="255" class="net-label">Imaging</text>
-          </g>
-          <g class="bub">
-            <line class="edge" x1="470" y1="58" x2="300" y2="62"/>
-            <circle class="flow" r="2.8" fill="#eaf1fc"><animateMotion dur="2.4s" repeatCount="indefinite" path="M470,58 L300,62"/></circle>
-            <circle cx="300" cy="62" r="32" fill="#8fb4e8"/><text x="300" y="62" class="net-label">NLP</text>
-          </g>
-          <g class="bub">
-            <line class="edge" x1="42" y1="338" x2="100" y2="405"/>
-            <circle class="flow" r="2.8" fill="#eaf1fc"><animateMotion dur="2.8s" repeatCount="indefinite" path="M42,338 L100,405"/></circle>
-            <circle cx="100" cy="405" r="34" fill="#8fb4e8"/><text x="100" y="405" class="net-label sm">Genomics</text>
-          </g>
-          <g class="bub">
-            <circle cx="420" cy="415" r="30" fill="#db5068"/><text x="420" y="415" class="net-label w">Risk</text>
-          </g>
-
-          {# ===== concepts (edges in + edge to AI + flowing dot) ===== #}
-          <g class="bub">
-            <line class="edge" x1="72" y1="255" x2="175" y2="150"/>
-            <line class="edge" x1="300" y1="62" x2="175" y2="150"/>
-            <line class="edge" x1="260" y1="452" x2="175" y2="150"/>
-            <line class="edge" x1="175" y1="150" x2="290" y2="240"/>
-            <circle class="flow" r="2.6" fill="#eaf1fc"><animateMotion dur="3s" repeatCount="indefinite" path="M260,452 L175,150"/></circle>
-            <circle class="flow" r="3" fill="#eaf1fc"><animateMotion dur="2.4s" repeatCount="indefinite" path="M175,150 L290,240"/></circle>
-            <circle cx="175" cy="150" r="42" fill="#8fb4e8"/><text x="175" y="150" class="net-label sm">Diagnostic</text>
-          </g>
-          <g class="bub">
-            <line class="edge" x1="72" y1="255" x2="205" y2="360"/>
-            <line class="edge" x1="100" y1="405" x2="205" y2="360"/>
-            <line class="edge" x1="205" y1="360" x2="290" y2="240"/>
-            <circle class="flow" r="3" fill="#eaf1fc"><animateMotion dur="2.7s" repeatCount="indefinite" path="M205,360 L290,240"/></circle>
-            <circle cx="205" cy="360" r="40" fill="#8fb4e8"/><text x="205" y="360" class="net-label sm">Prognostic</text>
-          </g>
-          <g class="bub">
-            <line class="edge" x1="405" y1="140" x2="290" y2="240"/>
-            <circle class="flow" r="3" fill="#eaf1fc"><animateMotion dur="2.9s" repeatCount="indefinite" path="M405,140 L290,240"/></circle>
-            <circle cx="405" cy="140" r="36" fill="#c3cddd"/><text x="405" y="140" class="net-label sm">Federated</text>
-          </g>
-          <g class="bub">
-            <line class="edge" x1="420" y1="415" x2="458" y2="305"/>
-            <line class="edge" x1="458" y1="305" x2="290" y2="240"/>
-            <circle class="flow" r="3" fill="#eaf1fc"><animateMotion dur="3.1s" repeatCount="indefinite" path="M458,305 L290,240"/></circle>
-            <circle cx="458" cy="305" r="38" fill="#db5068"/><text x="458" y="305" class="net-label sm w">Governance</text>
-          </g>
-
-          {# ===== outcome (revealed last) ===== #}
-          <g class="bub">
-            <line class="edge" x1="290" y1="240" x2="478" y2="215"/>
-            <circle class="flow" r="3.4" fill="#ffd0d8"><animateMotion dur="2.2s" repeatCount="indefinite" path="M290,240 L478,215"/></circle>
-            <circle cx="478" cy="215" r="44" fill="#a9c9f2"/>
-            <circle cx="478" cy="215" r="44" fill="none" stroke="rgba(200,16,46,.55)" stroke-width="1.8"/>
-            <text text-anchor="middle" class="net-label sm"><tspan x="478" y="210">Better</tspan><tspan x="478" y="226">care</tspan></text>
-          </g>
-
-          {# ===== central AI hub (always visible, on top) ===== #}
-          <circle cx="290" cy="240" r="46" fill="#f4f7fc"/>
-          <circle cx="290" cy="240" r="46" fill="none" stroke="rgba(200,16,46,.65)" stroke-width="2"/>
-          <text x="290" y="240" class="net-ai">AI</text>
-        </svg>
+        {% include "_hero_" ~ hero_art ~ ".html" %}
       </div>
     </div>
 
+    {% if stats.projects %}
     <div class="stat-strip">
       <div class="stat"><b data-count="{{ stats.projects }}">{{ stats.projects }}</b><span>PROJECTS</span></div>
       <div class="stat"><b data-count="{{ stats.open }}">{{ stats.open }}</b><span>OPEN TO JOIN</span></div>
       <div class="stat"><b data-count="{{ stats.completed }}">{{ stats.completed }}</b><span>COMPLETED</span></div>
       <div class="stat"><b data-count="{{ stats.researchers }}">{{ stats.researchers }}</b><span>RESEARCHERS</span></div>
     </div>
+    {% endif %}
   </div>
 </section>
 {% endblock %}
 
 {% block body %}
 <div class="container main">
+
+  {# ---- Launch & hackathon call-outs ---- #}
+  <div class="launch-grid">
+    <div class="launch-card">
+      <span class="kicker">Official launch</span>
+      <h3>The hub launches in {{ LAUNCH.when }}</h3>
+      <p>Launch day {{ 'is confirmed — see Events' if LAUNCH.date_confirmed else 'is to be announced' }}.
+         Create your profile now so collaborators can find you from day one.</p>
+      {% if current_user.is_authenticated %}
+        <a class="btn btn-outline btn-sm" href="{{ url_for('main.edit_profile') }}">Complete your profile</a>
+      {% else %}
+        <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">Create your profile</a>
+      {% endif %}
+    </div>
+    <div class="launch-card launch-card-accent">
+      <span class="kicker">⚡ {{ HACKATHON.when }}</span>
+      <h3>{{ HACKATHON.name }}: challenges wanted</h3>
+      <p>Have a clinical or research problem AI could help with? Submit it as a
+         hackathon challenge. Approved challenges are published here for teams to pick up.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('main.hackathon') }}">Submit a challenge</a>
+    </div>
+    <div class="launch-card">
+      <span class="kicker">Before you collaborate</span>
+      <h3>Agree IP &amp; publications up front</h3>
+      <p>Our Code of Conduct asks every team to agree IP, authorship and publication
+         approval between both parties <em>before</em> work starts.</p>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('main.code_of_conduct') }}">Read the Code of Conduct</a>
+    </div>
+  </div>
 
   {# ---- Quick navigation tiles ---- #}
   <div class="quick-grid">
@@ -132,11 +86,19 @@
       <p>The research themes that organise our projects and people.</p>
       <span class="go">Explore →</span>
     </a>
+    {% if current_user.is_authenticated %}
     <a class="quick-tile" href="{{ url_for('main.directory') }}">
       <h3>People</h3>
       <p>Find collaborators and PIs by expertise and availability.</p>
       <span class="go">Explore →</span>
     </a>
+    {% else %}
+    <a class="quick-tile" href="{{ url_for('main.panel') }}">
+      <h3>Review panel</h3>
+      <p>How proposals are assessed and approved before they go live.</p>
+      <span class="go">Explore →</span>
+    </a>
+    {% endif %}
     <a class="quick-tile" href="{{ url_for('main.events') }}">
       <h3>Events</h3>
       <p>Seminars, training, data clubs and workshops.</p>
@@ -152,7 +114,7 @@
         {% for p in latest_news %}
         <div class="list-row">
           <a href="{{ url_for('main.news_detail', post_id=p.id) }}"><b style="color:var(--navy)">{% if p.pinned %}<span class="pin">Pinned</span> {% endif %}{{ p.title }}</b></a>
-          <div class="small muted">{{ p.created_at.strftime('%d %b %Y') }}{% if p.author %} · {{ p.author.full_name }}{% endif %}</div>
+          <div class="small muted">{{ p.created_at.strftime('%d %b %Y') }} · {{ p.author.full_name if p.author else 'Collaboration Hub team' }}</div>
         </div>
         {% endfor %}
       {% else %}<p class="muted">No announcements yet.</p>{% endif %}
@@ -201,6 +163,18 @@
       </div>
     </article>
     {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty mt2">
+    <div class="big">🌱</div>
+    <h3>The first projects are on their way</h3>
+    <p class="muted" style="max-width:560px;margin:0 auto">Projects appear here once the review
+       panel approves them. Got an idea? Propose a project or submit a challenge for the
+       {{ HACKATHON.when }} hackathon.</p>
+    <div class="flex gap-sm mt" style="justify-content:center;flex-wrap:wrap">
+      <a class="btn btn-primary" href="{{ url_for('main.project_new') }}">Propose a project</a>
+      <a class="btn btn-outline" href="{{ url_for('main.project_new', type='Hackathon') }}">Submit a hackathon challenge</a>
+    </div>
   </div>
   {% endif %}
 </div>

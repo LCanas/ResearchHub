@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import avatar, stage_pill %}
+{% from "_macros.html" import avatar, stage_pill, decline_form %}
 {% block title %}Requests{% endblock %}
 
 {% block hero %}
@@ -28,13 +28,11 @@
                 <a href="{{ url_for('main.project_detail', project_id=r.project.id) }}">{{ r.project.title }}</a></div>
               {% if r.message %}<div class="small" style="margin-top:.2rem">“{{ r.message }}”</div>{% endif %}
             </div>
-            <div class="flex gap-sm">
+            <div class="flex gap-sm" style="align-items:flex-start">
               <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='accept') }}">
                 <button class="btn btn-primary btn-sm" type="submit">Accept</button>
               </form>
-              <form class="inline-form" method="post" action="{{ url_for('main.request_action', request_id=r.id, action='reject') }}">
-                <button class="btn btn-ghost btn-sm" type="submit">Decline</button>
-              </form>
+              {{ decline_form(r) }}
             </div>
           </div>
           {% endfor %}
@@ -55,8 +53,11 @@
               <div class="small muted">{{ r.created_at.strftime('%d %b %Y') }}</div>
             </div>
             {% set cls = {'Pending':'stage-waiting','Accepted':'stage-ongoing','Rejected':'stage-completed'} %}
-            <span class="pill {{ cls.get(r.status,'') }}">{{ r.status }}</span>
+            <span class="pill {{ cls.get(r.status,'') }}">{{ 'Declined' if r.status == 'Rejected' else r.status }}</span>
           </div>
+          {% if r.status == 'Rejected' and r.response_note %}
+            <p class="small muted" style="margin:-.3rem 0 .6rem;white-space:pre-line">“{{ r.response_note }}”</p>
+          {% endif %}
           {% endfor %}
         {% else %}
           <p class="muted">You haven't requested to join any projects yet.

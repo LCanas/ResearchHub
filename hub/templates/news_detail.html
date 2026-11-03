@@ -26,7 +26,7 @@
 
     <div style="white-space:pre-line;font-size:1.02rem;color:var(--grey-800)">{{ post.body }}</div>
 
-    {% if current_user.is_admin or (post.author and post.author_id == current_user.id) %}
+    {% if current_user.is_authenticated and (current_user.is_admin or (post.author and post.author_id == current_user.id)) %}
     <hr class="divider">
     <form method="post" action="{{ url_for('main.news_delete', post_id=post.id) }}"
           data-confirm="Delete this announcement?">

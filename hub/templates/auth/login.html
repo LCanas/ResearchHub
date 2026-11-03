@@ -36,12 +36,16 @@
           <label>Password</label>
           <input type="password" name="password" required>
         </div>
-        <label class="flex small" style="margin-bottom:1rem">
-          <input type="checkbox" name="remember" style="width:auto"> Remember me
-        </label>
+        <div class="flex space-between small" style="margin-bottom:1rem">
+          <label class="flex">
+            <input type="checkbox" name="remember" style="width:auto"> Remember me
+          </label>
+          <a href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
+        </div>
         <button class="btn btn-primary btn-block" type="submit">Sign in</button>
       </form>
-      <p class="text-center small mt">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+      <p class="text-center small mt">New here? <a href="{{ url_for('auth.register') }}">Create your profile</a>
+         · <a href="{{ url_for('main.index') }}">Back to the hub</a></p>
     </div>
   </div>
 </div>
