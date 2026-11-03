@@ -32,7 +32,12 @@
       </div>
       <h3 style="margin:.5rem 0 .3rem"><a href="{{ url_for('main.news_detail', post_id=p.id) }}" style="color:var(--navy)">{{ p.title }}</a></h3>
       <p class="muted" style="margin:0 0 .6rem">{{ p.body|truncate(220) }}</p>
-      {% if p.link_url %}<a class="btn btn-primary btn-sm" style="margin-bottom:.6rem" href="{{ p.link_url }}">{{ p.link_label or 'Find out more' }} →</a>{% endif %}
+      {% if p.link_url or p.link2_url %}
+      <div class="flex gap-sm flex-wrap" style="margin-bottom:.6rem">
+        {% if p.link_url %}<a class="btn btn-primary btn-sm" href="{{ p.link_url }}">{{ p.link_label or 'Find out more' }} →</a>{% endif %}
+        {% if p.link2_url %}<a class="btn btn-outline btn-sm" href="{{ p.link2_url }}">{{ p.link2_label or 'Find out more' }} →</a>{% endif %}
+      </div>
+      {% endif %}
       <div class="flex space-between">
         <div class="flex gap-sm small muted">
           {% if p.author %}{{ avatar(p.author, 'avatar-sm') }}<span>{{ p.author.full_name }}</span>{% else %}<span>Collaboration Hub team</span>{% endif %}

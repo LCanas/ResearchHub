@@ -253,6 +253,8 @@ class NewsPost(db.Model):
     # Optional "Go to page" button: a path on the hub ("/hackathon") or a full URL.
     link_url = db.Column(db.String(255), default="")
     link_label = db.Column(db.String(80), default="")
+    link2_url = db.Column(db.String(255), default="")      # optional second button
+    link2_label = db.Column(db.String(80), default="")
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

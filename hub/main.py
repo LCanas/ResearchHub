@@ -283,6 +283,7 @@ def index():
     ).limit(4).all()
     upcoming_events = Event.query.filter(Event.start_at >= datetime.utcnow()) \
         .order_by(Event.start_at).limit(4).all()
+    upcoming_key_dates = key_dates()
     # A few open projects to feature as calls for collaborators.
     featured = live_projects().filter_by(status="Open") \
         .order_by(Project.created_at.desc()).limit(3).all()
@@ -303,6 +304,7 @@ def index():
     return render_template(
         "home.html", stats=stats, latest_news=latest_news,
         upcoming_events=upcoming_events, featured=featured,
+        upcoming_key_dates=upcoming_key_dates,
         hero_art=hero_art, hub_graph=hub_graph,
     )
 
@@ -915,7 +917,8 @@ def news_new():
             flash("An announcement needs a title.", "danger")
             return render_template("news_form.html", post=None)
         link_url, link_label = _news_link_from_form(request.form)
-        if link_url is None:
+        link2_url, link2_label = _news_link_from_form(request.form, "link2")
+        if link_url is None or link2_url is None:
             flash("The link must be a page on the hub (starting with /) or a full "
                   "web address (https://…).", "danger")
             return render_template("news_form.html", post=None)
@@ -925,6 +928,7 @@ def news_new():
             workstream=request.form.get("workstream", "").strip(),
             pinned=bool(request.form.get("pinned")),
             link_url=link_url, link_label=link_label,
+            link2_url=link2_url, link2_label=link2_label,
             author_id=current_user.id,
         )
         db.session.add(post)
@@ -934,20 +938,21 @@ def news_new():
     return render_template("news_form.html", post=None)
 
 
-def _news_link_from_form(form):
-    """(url, label) for a news post's "Go to page" button; (None, "") if the
-    custom link isn't acceptable."""
-    page = form.get("link_page", "")
-    pages = dict((endpoint, label) for label, endpoint in NEWS_LINK_PAGES)
+def _news_link_from_form(form, prefix="link"):
+    """(url, label) for a news post's button; (None, "") if the custom link isn't
+    acceptable. ``prefix`` is "link" for the first button, "link2" for the second."""
+    page = form.get(f"{prefix}_page", "")
+    label = form.get(f"{prefix}_label", "").strip()
+    pages = dict((endpoint, lbl) for lbl, endpoint in NEWS_LINK_PAGES)
     if page in pages:
-        return url_for(page), form.get("link_label", "").strip() or pages[page]
-    custom = form.get("link_custom", "").strip()
+        return url_for(page), (label or pages[page])[:80]
+    custom = form.get(f"{prefix}_custom", "").strip()
     if not custom:
         return "", ""
     if not (custom.startswith("/") or custom.startswith(("https://", "http://"))) \
             or custom.startswith("//"):
         return None, ""
-    return custom[:255], (form.get("link_label", "").strip() or "Find out more")[:80]
+    return custom[:255], (label or "Find out more")[:80]
 
 
 @main_bp.route("/news/<int:post_id>")
@@ -984,7 +989,8 @@ def events():
         my_ids = {a.event_id for a in EventAttendance.query
                   .filter_by(user_id=current_user.id).all()}
     return render_template("events.html", upcoming=upcoming, past=past,
-                           my_ids=my_ids, feeds=EVENT_FEEDS, **_calendar_links())
+                           my_ids=my_ids, feeds=EVENT_FEEDS, key_dates=key_dates(),
+                           **_calendar_links())
 
 
 @main_bp.route("/events/new", methods=["GET", "POST"])
@@ -1673,3 +1679,41 @@ def learn():
         .order_by(Event.start_at).limit(3).all()
     return render_template("learn.html", portal=PORTAL, resources=PORTAL_RESOURCES,
                            upcoming=upcoming)
+
+
+# ---------------------------------------------------------------------------
+# Key dates: launch day and the hackathon, shown with the upcoming events.
+# ---------------------------------------------------------------------------
+def key_dates(today=None):
+    """The launch and hackathon as upcoming items. They come from LAUNCH /
+    HACKATHON in config, not the events table, because their exact dates may
+    not be fixed yet: with only a month known they show "date TBA". Each one
+    disappears once it has passed (its day, or the end of its month)."""
+    today = today or date.today()
+    items = []
+    for title, kind, cfg, exact_key, endpoint, blurb in (
+        ("Collaboration Hub launch day", "Launch", LAUNCH, "date", "main.launch",
+         "A full day of talks, demos and networking. Register to hear first."),
+        (HACKATHON["name"], "Hackathon", HACKATHON, "start", "main.hackathon",
+         "Challenge submissions are open now."),
+    ):
+        exact = _day(cfg.get(exact_key))
+        month = _day(cfg.get("month_start"))
+        if exact:
+            last_day = _day(cfg.get("end")) or exact
+            if last_day < today:
+                continue
+        else:
+            after = _after_month(cfg.get("month_start"))
+            if after and after <= today:
+                continue
+        shown = exact or month
+        items.append({
+            "title": title, "kind": kind, "url": url_for(endpoint), "blurb": blurb,
+            "mon": shown.strftime("%b") if shown else "",
+            "day": str(exact.day) if exact else "TBA",
+            "when": f"{exact.day} {exact.strftime('%B %Y')}" if exact
+                    else f"{cfg['when']} · date TBA",
+            "sort": shown or date.max,
+        })
+    return sorted(items, key=lambda k: k["sort"])

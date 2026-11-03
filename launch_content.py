@@ -34,6 +34,7 @@ Launch day will be a full day with external speakers and plenty of time for netw
 
 Questions, or ideas for the launch? Please {contact}.""",
             link_url="/launch/register", link_label="Register for launch day",
+            link2_url="/launch", link2_label="About the day",
         ),
         dict(
             title=f"Hackathon {hack}: challenge submissions are open",
@@ -90,10 +91,15 @@ def backfill_links():
     only fills empty links, so it's safe to run on every boot."""
     by_title = {a["title"]: a for a in announcements()}
     changed = 0
-    for post in NewsPost.query.filter((NewsPost.link_url == "") | (NewsPost.link_url.is_(None))):
+    for post in NewsPost.query.all():
         a = by_title.get(post.title)
-        if a and a.get("link_url"):
+        if not a:
+            continue
+        if a.get("link_url") and not post.link_url:
             post.link_url, post.link_label = a["link_url"], a["link_label"]
+            changed += 1
+        if a.get("link2_url") and not post.link2_url:
+            post.link2_url, post.link2_label = a["link2_url"], a["link2_label"]
             changed += 1
     db.session.commit()
     return changed

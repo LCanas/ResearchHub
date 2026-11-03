@@ -88,3 +88,21 @@
   {% endif %}
 </svg>
 {% endmacro %}
+
+{# Launch day / hackathon on the events lists (see key_dates() in main.py). #}
+{% macro key_date_card(k) %}
+<a class="card event-card key-date" href="{{ k.url }}">
+  <div class="event-date">
+    <span class="mon">{{ k.mon }}</span>
+    <span class="day{{ ' tba' if k.day == 'TBA' }}">{{ k.day }}</span>
+  </div>
+  <div class="event-body">
+    <div class="flex gap-sm flex-wrap" style="margin-bottom:.3rem">
+      <span class="chip chip-crimson">{{ k.kind }}</span>
+    </div>
+    <h3 style="margin:.1rem 0;color:var(--navy)">{{ k.title }}</h3>
+    <div class="small muted">🕒 {{ k.when }}</div>
+    <div class="small muted">{{ k.blurb }}</div>
+  </div>
+</a>
+{% endmacro %}

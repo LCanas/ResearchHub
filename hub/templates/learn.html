@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Learn{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Learn · with the {{ portal.name }}</div>
+    <h1>Learn about AI</h1>
+    <p>{{ portal.tagline }} Guides, literature and practical tools, curated by colleagues across FoLSM.</p>
+    <div class="flex gap-sm" style="margin-top:1.2rem;flex-wrap:wrap">
+      <a class="btn btn-primary" href="{{ portal.url }}" target="_blank" rel="noopener">Visit the {{ portal.name }} ↗</a>
+      <a class="btn btn-outline-light" href="{{ url_for('main.events') }}">Training &amp; events</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="learn-list">
+    {% for r in resources %}
+    <section class="learn-section">
+      <div class="hl-ico">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#0a1f44" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          {% if r.key == 'education' %}
+            <path d="M24 13c-4-3-10-4-16-3v24c6-1 12 0 16 3 4-3 10-4 16-3V10c-6-1-12 0-16 3z"/><path d="M24 13v24"/>
+          {% elif r.key == 'reviews' %}
+            <path d="M12 6h16l8 8v28H12z"/><path d="M28 6v8h8"/><circle cx="23" cy="26" r="5"/><path d="M27 30l5 5"/>
+          {% else %}
+            <path d="M8 10h32v24H22l-8 6v-6H8z"/><path d="M15 19l4 3-4 3"/><path d="M23 25h8"/>
+          {% endif %}
+        </svg>
+      </div>
+      <div class="learn-body">
+        <h2><a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.title }}</a></h2>
+        <p class="muted">{{ r.desc }}</p>
+        {% if r['items'] %}
+        <ul class="learn-topics">
+          {% for label, url in r['items'] %}
+          <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <a class="learn-more" href="{{ r.url }}" target="_blank" rel="noopener">Open on the {{ portal.name }} ↗</a>
+      </div>
+    </section>
+    {% endfor %}
+  </div>
+
+  <div class="card card-pad learn-events">
+    <div>
+      <h3 style="margin:0 0 .3rem">Training and events</h3>
+      <p class="small muted" style="margin:0">Workshops and seminars from the {{ portal.name }} appear on the hub's
+        Events page automatically, alongside the hub's own events.</p>
+      {% if upcoming %}
+      <ul class="small" style="margin:.6rem 0 0;padding-left:1.1rem">
+        {% for ev in upcoming %}<li><a href="{{ url_for('main.event_detail', event_id=ev.id) }}">{{ ev.title }}</a>
+          <span class="muted">: {{ ev.start_at.strftime('%d %b %Y') }}</span></li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('main.events') }}">All events</a>
+  </div>
+</div>
+{% endblock %}
