@@ -98,6 +98,12 @@ Then open <http://127.0.0.1:5000>.
     reset-password | suspend | unsuspend | delete EMAIL`.
 - **Forgot password:** the sign-in page emails a one-time reset link that
   expires after an hour. This needs email (SMTP) configured to reach people.
+- **Events from the FoLSM AI Portal:** events published at
+  https://folsmaiportal.sites.er.kcl.ac.uk/events/ are imported automatically
+  (on start-up, then at most hourly while people browse, or now with
+  `python manage.py sync-events`). They're marked "FoLSM AI Portal" and link
+  there for registration; changes and deletions on the portal carry over. More
+  calendars can be added to `EVENT_FEEDS` in `hub/config.py`.
 - **Monthly newsletter:** each member gets open projects matched to their
   profile keywords and workstreams, plus upcoming events, recent news and the
   hackathon. Members opt out on their profile or via the link in the email.

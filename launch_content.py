@@ -74,7 +74,7 @@ Profiles are only visible to signed-in members of the hub.""",
 • host a data club introducing a dataset that others could use
 • run a training session, e.g. LLMs for clinical text, federated learning, model evaluation, or information governance for AI projects
 
-To offer a session, send a title and a couple of lines about it: {contact}.""",
+To offer a session, fill in the Call for speakers form on the hub (link in the site footer). It only takes a few minutes, and you don't need an account.""",
         ),
     ]
 

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Call for speakers{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Call for speakers · Launch day {{ LAUNCH.when }}</div>
+    <h1>Share your work on AI in healthcare</h1>
+    <p>We're looking for talks, lightning talks, demos, posters and panellists for the launch day
+       and the events that follow: from King's and from the NHS, industry and other universities.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  {% if sent %}
+  <div class="card card-pad" style="max-width:720px">
+    <h2 style="margin-top:0">Thank you, your proposal is in 🎉</h2>
+    <p>We've emailed you a confirmation. The organising committee reviews proposals as they arrive
+       and will get back to you by email.</p>
+    <div class="flex gap-sm flex-wrap">
+      <a class="btn btn-primary" href="{{ url_for('main.launch') }}">See the launch programme</a>
+      <a class="btn btn-ghost" href="{{ url_for('main.call_for_speakers') }}">Submit another proposal</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="cfs-layout">
+    <form method="post" action="{{ url_for('main.call_for_speakers') }}" class="card card-pad">
+      {# Spam trap: hidden from people, filled in by bots. #}
+      <div class="hp-field" aria-hidden="true">
+        <label>Website <input name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <h3 class="form-section-title">About you</h3>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Full name</label>
+          <input name="name" required value="{{ form.get('name') or (current_user.full_name if current_user.is_authenticated else '') }}">
+        </div>
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" name="email" required value="{{ form.get('email') or (current_user.email if current_user.is_authenticated else '') }}">
+        </div>
+        <div class="form-row">
+          <label>Job title <span class="hint">(optional)</span></label>
+          <input name="job_title" value="{{ form.get('job_title', '') }}" placeholder="e.g. Consultant Radiologist">
+        </div>
+        <div class="form-row">
+          <label>Organisation</label>
+          <input name="affiliation" value="{{ form.get('affiliation', '') }}" placeholder="e.g. King's College London, Guy's and St Thomas'">
+        </div>
+        <div class="form-row full">
+          <label>Short bio <span class="hint">(2–3 sentences, used in the programme)</span></label>
+          <textarea name="bio" style="min-height:80px">{{ form.get('bio', '') }}</textarea>
+        </div>
+        <div class="form-row full">
+          <label>Links <span class="hint">(optional: LinkedIn, lab page, papers)</span></label>
+          <input name="links" value="{{ form.get('links', '') }}">
+        </div>
+      </div>
+
+      <h3 class="form-section-title">Your session</h3>
+      <div class="form-grid">
+        <div class="form-row full">
+          <label>Title</label>
+          <input name="talk_title" required value="{{ form.get('talk_title', '') }}">
+        </div>
+        <div class="form-row">
+          <label>Format</label>
+          <select name="session_type">
+            <option value="">— Select —</option>
+            {% for t in SPEAKER_SESSION_TYPES %}<option value="{{ t }}" {{ 'selected' if form.get('session_type') == t }}>{{ t }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Closest research theme <span class="hint">(optional)</span></label>
+          <select name="workstream">
+            <option value="">— None / several —</option>
+            {% for w in WORKSTREAMS %}<option value="{{ w.name }}" {{ 'selected' if form.get('workstream') == w.name }}>{{ w.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-row full">
+          <label>What will you talk about?</label>
+          <textarea name="abstract" required minlength="50" style="min-height:150px"
+                    placeholder="A short abstract: the problem, what you did or learned, and why it matters for deploying AI in healthcare.">{{ form.get('abstract', '') }}</textarea>
+        </div>
+        <div class="form-row full">
+          <label>When?</label>
+          <div class="choice-row">
+            <label><input type="radio" name="for_launch" value="launch" {{ 'checked' if form.get('for_launch') != 'later' }}> Launch day ({{ LAUNCH.when }})</label>
+            <label><input type="radio" name="for_launch" value="later" {{ 'checked' if form.get('for_launch') == 'later' }}> A later seminar or event</label>
+          </div>
+        </div>
+      </div>
+
+      <label class="flex small mt" style="align-items:flex-start;gap:.5rem">
+        <input type="checkbox" name="consent" value="1" required style="width:auto;margin-top:.2rem" {{ 'checked' if form.get('consent') }}>
+        <span>I agree that the organising committee may store these details to review my proposal and
+          contact me about it. If accepted, my name, title, organisation, bio and session details may be
+          published in the programme.</span>
+      </label>
+      <button class="btn btn-primary mt" type="submit">Submit proposal</button>
+    </form>
+
+    <aside>
+      <div class="card card-pad">
+        <h4 style="margin-top:0">What we're looking for</h4>
+        <ul class="small" style="padding-left:1.1rem;margin:0;color:var(--grey-700)">
+          <li>AI that has reached, or is close to, real clinical use</li>
+          <li>Honest lessons: what didn't work, and why</li>
+          <li>Data, governance, evaluation and fairness in practice</li>
+          <li>Demos of tools people at King's could use</li>
+          <li>Clinical problems looking for AI collaborators</li>
+        </ul>
+      </div>
+      <div class="card card-pad mt">
+        <h4 style="margin-top:0">What happens next</h4>
+        <p class="small muted" style="margin:0">You'll get an email confirming we've received your proposal.
+          The organising committee reviews proposals as they arrive and will contact you about the outcome.
+          You don't need a hub account to apply.</p>
+      </div>
+    </aside>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

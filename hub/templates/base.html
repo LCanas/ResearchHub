@@ -51,6 +51,7 @@
           <a href="{{ url_for('main.my_requests') }}">Join requests</a>
           {% if current_user.can_review %}
           <a href="{{ url_for('main.review_queue') }}">Committee review{% if review_queue_count %} <span class="badge-count">{{ review_queue_count }}</span>{% endif %}</a>
+          <a href="{{ url_for('main.speaker_proposals') }}">Speaker proposals{% if new_speaker_count %} <span class="badge-count">{{ new_speaker_count }}</span>{% endif %}</a>
           {% endif %}
           {% if current_user.is_admin %}
           <a href="{{ url_for('main.admin_members') }}">Members &amp; roles</a>
@@ -102,6 +103,8 @@
       <a href="{{ url_for('main.projects') }}">Projects</a>
       <a href="{{ url_for('main.workstreams') }}">Workstreams</a>
       {% if current_user.is_authenticated %}<a href="{{ url_for('main.directory') }}">People</a>{% endif %}
+      <a href="{{ url_for('main.launch') }}">Launch day</a>
+      <a href="{{ url_for('main.call_for_speakers') }}">Call for speakers</a>
       <a href="{{ url_for('main.hackathon') }}">Hackathon {{ HACKATHON.when.split()[-1] }}</a>
       <a href="{{ url_for('main.events') }}">Events</a>
       <a href="{{ url_for('main.news') }}">News</a>

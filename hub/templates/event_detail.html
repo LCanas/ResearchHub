@@ -10,6 +10,7 @@
       <span class="chip" style="background:rgba(255,255,255,.14);color:#fff;border-color:transparent">{{ EVENT_TYPE_ICONS.get(event.event_type,'📅') }} {{ event.event_type }}</span>
       {% if event.is_online %}<span class="chip chip-crimson">Online</span>{% endif %}
       {% if event.is_past %}<span class="chip" style="background:rgba(255,255,255,.14);color:#fff;border-color:transparent">Past event</span>{% endif %}
+      {% if event.is_external %}<span class="chip" style="background:rgba(255,255,255,.14);color:#fff;border-color:transparent">From the {{ event.source_name }}</span>{% endif %}
     </div>
     <h1>{{ event.title }}</h1>
   </div>
@@ -26,6 +27,7 @@
         <p style="white-space:pre-line">{{ event.description or 'No description provided.' }}</p>
       </div>
 
+      {% if not event.is_external %}
       <div class="card card-pad mt2">
         <h4>Who's attending <span class="muted small">({{ event.attendee_count }})</span></h4>
         {% if not current_user.is_authenticated %}
@@ -41,6 +43,7 @@
           <p class="small muted">No sign-ups yet — be the first.</p>
         {% endif %}
       </div>
+      {% endif %}
     </div>
 
     <aside>
@@ -51,11 +54,17 @@
           {% if event.host %}<li><span class="k">Host</span><span><a href="{{ url_for('main.profile', user_id=event.host.id) }}">{{ event.host.full_name }}</a></span></li>{% endif %}
         </ul>
 
-        {% if event.url %}
+        {% if event.is_external %}
+          <a class="btn btn-primary btn-block mt" href="{{ event.url }}" target="_blank" rel="noopener">
+            {{ 'View' if event.is_past else 'Details & registration' }} on the {{ event.source_name }} ↗</a>
+          <p class="small muted mt" style="margin-bottom:0">This event is organised through the
+            {{ event.source_name }} and kept in sync with it automatically.</p>
+        {% elif event.url %}
           <a class="btn btn-outline btn-block mt" href="{{ event.url }}" target="_blank" rel="noopener">Event link / joining details</a>
         {% endif %}
 
-        {% if not event.is_past and not current_user.is_authenticated %}
+        {% if event.is_external %}
+        {% elif not event.is_past and not current_user.is_authenticated %}
           <a class="btn btn-primary btn-block mt" href="{{ url_for('auth.login', next=request.path) }}">Sign in to sign up</a>
         {% elif not event.is_past %}
           {% if is_registered %}
@@ -73,7 +82,7 @@
         {% endif %}
       </div>
 
-      {% if can_manage_event %}
+      {% if can_manage_event and not event.is_external %}
       <div class="card card-pad mt">
         <h4>Manage</h4>
         <form method="post" action="{{ url_for('main.event_delete', event_id=event.id) }}"

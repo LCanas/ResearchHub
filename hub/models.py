@@ -275,11 +275,24 @@ class Event(db.Model):
     workstream = db.Column(db.String(80), default="")
     host_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Events imported from an external calendar (see hub/event_sync.py).
+    external_source = db.Column(db.String(40), default="", index=True)
+    external_id = db.Column(db.String(80), default="")
 
     host = db.relationship("User")
     attendances = db.relationship(
         "EventAttendance", back_populates="event", cascade="all, delete-orphan"
     )
+
+    @property
+    def is_external(self):
+        return bool(self.external_source)
+
+    @property
+    def source_name(self):
+        from .config import EVENT_FEEDS
+        return next((f["name"] for f in EVENT_FEEDS if f["key"] == self.external_source),
+                    self.external_source)
 
     @property
     def is_past(self):
@@ -328,3 +341,31 @@ class JoinRequest(db.Model):
 
     user = db.relationship("User", back_populates="join_requests")
     project = db.relationship("Project", back_populates="join_requests")
+
+
+class SpeakerProposal(db.Model):
+    """A response to the call for speakers (launch day and other events).
+    Public form: the person may not have a hub account."""
+    __tablename__ = "speaker_proposals"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    job_title = db.Column(db.String(160), default="")
+    affiliation = db.Column(db.String(200), default="")
+    session_type = db.Column(db.String(60), default="")
+    talk_title = db.Column(db.String(200), nullable=False)
+    abstract = db.Column(db.Text, default="")
+    bio = db.Column(db.Text, default="")
+    links = db.Column(db.String(400), default="")
+    workstream = db.Column(db.String(80), default="")
+    for_launch = db.Column(db.Boolean, default=True)     # launch day, or later events
+    status = db.Column(db.String(30), default="New", index=True)
+    committee_notes = db.Column(db.Text, default="")    # internal, never shown to the speaker
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User")
+
+    def __repr__(self):
+        return f"<SpeakerProposal {self.talk_title}>"

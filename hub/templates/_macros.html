@@ -36,12 +36,17 @@
     <div class="flex gap-sm flex-wrap" style="margin-bottom:.3rem">
       <span class="chip">{{ EVENT_TYPE_ICONS.get(ev.event_type, '📅') }} {{ ev.event_type }}</span>
       {% if ev.is_online %}<span class="chip chip-crimson">Online</span>{% endif %}
+      {% if ev.is_external %}<span class="chip">{{ ev.source_name }}</span>{% endif %}
       {% if my_ids and ev.id in my_ids %}<span class="pill stage-ongoing">Registered</span>{% endif %}
     </div>
     <h3 style="margin:.1rem 0;color:var(--navy)">{{ ev.title }}</h3>
     <div class="small muted">🕒 {{ ev.start_at.strftime('%a %d %b %Y · %H:%M') }}
       {% if not ev.is_online %} · 📍 {{ ev.location or 'TBC' }}{% endif %}</div>
+    {% if ev.is_external %}
+    <div class="small muted">Register on the {{ ev.source_name }} ↗</div>
+    {% else %}
     <div class="small muted">👥 {{ ev.attendee_count }} attending{% if ev.host %} · hosted by {{ ev.host.full_name }}{% endif %}</div>
+    {% endif %}
   </div>
 </a>
 {% endmacro %}

@@ -29,25 +29,78 @@ class Config:
 # Launch & hackathon. Exact dates are still to be confirmed — update these
 # labels once they are fixed and they change everywhere on the site.
 # ---------------------------------------------------------------------------
+# Dates are YYYY-MM-DD; leave "" while unknown. On the hackathon page's timeline
+# a step turns red once its date has passed (or, with only a month known, once
+# that month is over); steps without a date stay grey.
 LAUNCH = {
     "when": "January 2027",
     "date_confirmed": False,
+    "month_start": "2027-01-01",
+    "date": "",                       # exact launch day, once fixed
+    "venue": "",                      # e.g. "Guy's Campus, London"; "" shows "to be announced"
 }
+
+# The Launch Day page (/launch). The programme is provisional; edit freely.
+LAUNCH_PROGRAMME = [
+    ("09:30", "Registration & coffee", "Pick up your badge and meet the hub team."),
+    ("10:00", "Welcome: why a Collaboration Hub?",
+     "The vision for AI deployment across the Faculty, and how the hub works."),
+    ("10:20", "Keynote: AI at the bedside",
+     "An external speaker on taking AI from research into routine clinical care."),
+    ("11:00", "Panel: from prototype to patient",
+     "Clinicians, engineers and governance experts on what it really takes to deploy AI safely."),
+    ("12:00", "Lightning talks",
+     "Five-minute pitches from researchers and the first hub projects."),
+    ("12:45", "Lunch & networking", "Time to meet people outside your own school."),
+    ("13:45", "Meet the workstreams",
+     "Demo tables for each research theme: see tools, data and open problems up close."),
+    ("14:45", "Keynote: industry & NHS perspectives",
+     "An external speaker on partnerships, procurement and scaling AI in the health service."),
+    ("15:30", "Matchmaking session",
+     "Structured speed-networking pairing clinical questions with AI expertise."),
+    ("16:30", "Hackathon briefing & challenge pitches",
+     "The first challenges for the May hackathon, pitched by their owners."),
+    ("17:00", "Drinks reception & showcase", "Posters, demos and conversations to close the day."),
+]
+
+# Confirmed speakers, shown on the launch page. Add them as they confirm:
+#   {"name": "...", "role": "...", "affiliation": "...", "talk": "..."}
+LAUNCH_SPEAKERS = []
+
+# Session formats offered on the call-for-speakers form.
+SPEAKER_SESSION_TYPES = ["Keynote", "Talk (15–20 min)", "Lightning talk (5 min)",
+                         "Panel discussion", "Demo", "Poster", "Workshop / training"]
+SPEAKER_PROPOSAL_STATUSES = ["New", "Shortlisted", "Accepted", "Declined"]
+
 HACKATHON = {
     "name": "AI in Healthcare Hackathon",
     "when": "May 2027",
+    "submissions_open": "2026-11-02",
     "submissions_close": "to be confirmed",
+    "submissions_close_date": "",     # e.g. "2027-03-31"
     # Countdown on the hackathon page. Until the exact start is known it counts
     # (approximately) to the first of the month; set "start" to e.g.
     # "2027-05-12T09:00" for a live days/hours/minutes countdown.
     "month_start": "2027-05-01",
     "start": "",
+    "end": "",                        # last day of the hackathon, e.g. "2027-05-14"
 }
 
 # Home-page hero illustration: "network" (original), "match" (clinicians ×
 # AI experts pairing up) or "live" (workstream graph built from real sign-ups).
 # Preview any of them with /?hero=match etc.
 HERO_ART = "network"
+
+# External event calendars imported into the Events page and kept in sync.
+# Each must be a WordPress site running "The Events Calendar" plugin (it
+# publishes events at /wp-json/tribe/events/v1/events).
+EVENT_FEEDS = [
+    {"key": "folsm-ai-portal", "name": "FoLSM AI Portal",
+     "url": "https://folsmaiportal.sites.er.kcl.ac.uk",
+     "events_page": "https://folsmaiportal.sites.er.kcl.ac.uk/events/"},
+]
+EVENT_SYNC_MINUTES = 60      # refresh at most this often while people browse
+EVENT_SYNC_PAST_DAYS = 180   # also import recent past events
 
 CODE_OF_CONDUCT_VERSION = "1.0"
 

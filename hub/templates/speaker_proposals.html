@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Speaker proposals{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Committee</div>
+    <h1>Speaker proposals</h1>
+    <p>Responses to the <a href="{{ url_for('main.call_for_speakers') }}" style="color:#ffb3bf">call for speakers</a>.
+       Visible to committee members and admins only. Notes are internal and never shown to the speaker.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:1000px">
+  <div class="flex gap-sm flex-wrap" style="margin-bottom:1rem">
+    <a class="btn btn-sm {{ 'btn-navy' if not active_status else 'btn-ghost' }}" href="{{ url_for('main.speaker_proposals') }}">All ({{ counts.values()|sum }})</a>
+    {% for s in SPEAKER_PROPOSAL_STATUSES %}
+      <a class="btn btn-sm {{ 'btn-navy' if active_status == s else 'btn-ghost' }}" href="{{ url_for('main.speaker_proposals', status=s) }}">{{ s }} ({{ counts[s] }})</a>
+    {% endfor %}
+  </div>
+
+  {% for p in proposals %}
+  <article class="card card-pad" id="p{{ p.id }}" style="margin-bottom:1rem">
+    <div class="flex space-between flex-wrap gap-sm">
+      <div class="flex gap-sm flex-wrap">
+        {% set css = {'New':'stage-waiting','Shortlisted':'stage-launched','Accepted':'stage-ongoing','Declined':'stage-completed'} %}
+        <span class="pill {{ css.get(p.status, '') }}">{{ p.status }}</span>
+        {% if p.session_type %}<span class="chip">{{ p.session_type }}</span>{% endif %}
+        <span class="chip">{{ 'Launch day' if p.for_launch else 'Later event' }}</span>
+        {% if p.workstream %}<span class="chip">{{ p.workstream }}</span>{% endif %}
+      </div>
+      <span class="small muted">{{ p.created_at.strftime('%d %b %Y') }}</span>
+    </div>
+    <h3 style="margin:.6rem 0 .2rem">{{ p.talk_title }}</h3>
+    <p class="small" style="margin:0 0 .6rem">
+      <b>{{ p.name }}</b>{% if p.job_title %}, {{ p.job_title }}{% endif %}{% if p.affiliation %} · {{ p.affiliation }}{% endif %}
+      · <a href="mailto:{{ p.email }}">{{ p.email }}</a>
+      {% if p.user %}· <a href="{{ url_for('main.profile', user_id=p.user.id) }}">hub profile</a>{% endif %}
+    </p>
+    <details>
+      <summary class="small" style="cursor:pointer;color:var(--crimson)">Abstract, bio &amp; links</summary>
+      <p style="white-space:pre-line">{{ p.abstract }}</p>
+      {% if p.bio %}<p class="small muted" style="white-space:pre-line"><b>Bio:</b> {{ p.bio }}</p>{% endif %}
+      {% if p.links %}<p class="small"><b>Links:</b> {{ p.links }}</p>{% endif %}
+    </details>
+    <form method="post" action="{{ url_for('main.speaker_proposals', status=active_status) }}" class="mt">
+      <input type="hidden" name="id" value="{{ p.id }}">
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Status</label>
+          <select name="status">{% for s in SPEAKER_PROPOSAL_STATUSES %}<option {{ 'selected' if p.status == s }}>{{ s }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-row">
+          <label>Committee notes <span class="hint">(internal)</span></label>
+          <input name="committee_notes" value="{{ p.committee_notes or '' }}">
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" type="submit">Save</button>
+    </form>
+  </article>
+  {% else %}
+  <div class="card empty">
+    <div class="big">🎤</div>
+    <h3>No proposals {{ 'with this status' if active_status else 'yet' }}</h3>
+    <p class="muted">Share the call for speakers: {{ url_for('main.call_for_speakers', _external=True) }}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

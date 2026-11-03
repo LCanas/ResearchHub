@@ -48,15 +48,14 @@
   {# ---- Launch & hackathon call-outs ---- #}
   <div class="launch-grid">
     <div class="launch-card">
-      <span class="kicker">Official launch</span>
-      <h3>The hub launches in {{ LAUNCH.when }}</h3>
-      <p>Launch day {{ 'is confirmed — see Events' if LAUNCH.date_confirmed else 'is to be announced' }}.
-         Create your profile now so collaborators can find you from day one.</p>
-      {% if current_user.is_authenticated %}
-        <a class="btn btn-outline btn-sm" href="{{ url_for('main.edit_profile') }}">Complete your profile</a>
-      {% else %}
-        <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">Create your profile</a>
-      {% endif %}
+      <span class="kicker">Launch day · {{ LAUNCH.when }}</span>
+      <h3>A full day of AI in healthcare</h3>
+      <p>Keynotes from external speakers, a deployment panel, demos, matchmaking and a
+         drinks reception. Exact date {{ 'confirmed' if LAUNCH.date_confirmed else 'to be announced' }}.</p>
+      <div class="flex gap-sm flex-wrap">
+        <a class="btn btn-primary btn-sm" href="{{ url_for('main.launch') }}">See the programme</a>
+        <a class="btn btn-outline btn-sm" href="{{ url_for('main.call_for_speakers') }}">Propose a talk</a>
+      </div>
     </div>
     <div class="launch-card launch-card-accent">
       <span class="kicker">⚡ {{ HACKATHON.when }}</span>

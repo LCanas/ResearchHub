@@ -19,13 +19,16 @@ from .newsletter import (build as build_newsletter, send_all as send_newsletters
                          recipients as newsletter_recipients,
                          user_from_unsubscribe_token)
 from .recommend import matching_projects
+from .event_sync import sync_if_stale
 from .models import (
     User, Project, Milestone, Collaboration, JoinRequest,
-    NewsPost, Event, EventAttendance, USER_ROLES,
+    NewsPost, Event, EventAttendance, USER_ROLES, SpeakerProposal,
 )
 from .config import (
     STAGE_NAMES, PROJECT_TYPE_NAMES, WORKSTREAM_NAMES, WORKSTREAM_BY_SLUG,
-    EVENT_TYPES, REVIEW_STATUSES, WORKSTREAMS, HERO_ART, HACKATHON,
+    EVENT_TYPES, REVIEW_STATUSES, WORKSTREAMS, HERO_ART, HACKATHON, LAUNCH,
+    EVENT_FEEDS, LAUNCH_PROGRAMME, LAUNCH_SPEAKERS, SPEAKER_SESSION_TYPES,
+    SPEAKER_PROPOSAL_STATUSES, CONTACT_EMAIL,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -37,6 +40,7 @@ PUBLIC_ENDPOINTS = {
     "main.workstreams", "main.workstream_detail", "main.news",
     "main.news_detail", "main.events", "main.event_detail",
     "main.code_of_conduct", "main.hackathon", "main.newsletter_unsubscribe",
+    "main.launch", "main.call_for_speakers",
 }
 
 # Endpoints a signed-in user can still reach before agreeing to the Code of
@@ -66,10 +70,11 @@ def require_code_of_conduct():
 
 @main_bp.app_context_processor
 def inject_review_count():
-    count = 0
+    count = speakers = 0
     if current_user.is_authenticated and current_user.can_review:
         count = Project.query.filter_by(review_status="Pending review").count()
-    return {"review_queue_count": count}
+        speakers = SpeakerProposal.query.filter_by(status="New").count()
+    return {"review_queue_count": count, "new_speaker_count": speakers}
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +262,7 @@ def save_photo(file_storage):
 # ---------------------------------------------------------------------------
 @main_bp.route("/")
 def index():
+    sync_if_stale(current_app._get_current_object())
     stats = {
         "projects": live_projects().count(),
         "open": live_projects().filter_by(status="Open").count(),
@@ -937,6 +943,7 @@ def news_delete(post_id):
 # ---------------------------------------------------------------------------
 @main_bp.route("/events")
 def events():
+    sync_if_stale(current_app._get_current_object())
     now = datetime.utcnow()
     upcoming = Event.query.filter(Event.start_at >= now) \
         .order_by(Event.start_at).all()
@@ -947,7 +954,7 @@ def events():
         my_ids = {a.event_id for a in EventAttendance.query
                   .filter_by(user_id=current_user.id).all()}
     return render_template("events.html", upcoming=upcoming, past=past,
-                           my_ids=my_ids)
+                           my_ids=my_ids, feeds=EVENT_FEEDS)
 
 
 @main_bp.route("/events/new", methods=["GET", "POST"])
@@ -995,6 +1002,8 @@ def event_detail(event_id):
 @login_required
 def event_register(event_id):
     ev = db.session.get(Event, event_id) or abort(404)
+    if ev.is_external:          # registration happens on the source site
+        return redirect(ev.url or url_for("main.event_detail", event_id=ev.id))
     exists = EventAttendance.query.filter_by(
         user_id=current_user.id, event_id=ev.id).first()
     if not exists:
@@ -1020,6 +1029,10 @@ def event_unregister(event_id):
 @login_required
 def event_delete(event_id):
     ev = db.session.get(Event, event_id) or abort(404)
+    if ev.is_external:
+        flash(f"This event comes from the {ev.source_name}; change or remove it there.",
+              "warning")
+        return redirect(url_for("main.event_detail", event_id=ev.id))
     if not (current_user.is_admin or ev.host_id == current_user.id):
         abort(403)
     db.session.delete(ev)
@@ -1099,7 +1112,57 @@ def hackathon():
         days_left = None
     return render_template("hackathon.html", challenges=challenges,
                            countdown_target=target, countdown_exact=exact,
-                           days_left=days_left)
+                           days_left=days_left, timeline=hackathon_timeline())
+
+
+def _day(value):
+    try:
+        return date.fromisoformat(value[:10]) if value else None
+    except ValueError:
+        return None
+
+
+def _after_month(month_start):
+    """The first day after the month that starts on ``month_start``."""
+    d = _day(month_start)
+    if not d:
+        return None
+    return date(d.year + d.month // 12, d.month % 12 + 1, 1)
+
+
+def hackathon_timeline(today=None):
+    """Steps for the hackathon page, each marked done once its date has passed.
+    Exact dates count from that day; a month alone counts once it is over;
+    steps without a date stay pending."""
+    today = today or date.today()
+    fmt = lambda d: f"{d.day} {d.strftime('%b %Y')}"
+    opened = _day(HACKATHON.get("submissions_open"))
+    launch = _day(LAUNCH.get("date"))
+    closes = _day(HACKATHON.get("submissions_close_date"))
+    start = _day(HACKATHON.get("start"))
+    end = _day(HACKATHON.get("end"))
+    steps = [
+        (fmt(opened) if opened else "Now", "Challenge submissions open", opened),
+        (fmt(launch) if launch else LAUNCH["when"],
+         "Hub launch, with first challenges showcased",
+         launch or _after_month(LAUNCH.get("month_start"))),
+        ("Submissions close", fmt(closes) if closes
+         else f"Date {HACKATHON['submissions_close']}", closes),
+        ("Before the event", "Reviews complete, teams form around approved challenges",
+         start or _day(HACKATHON.get("month_start"))),
+        (fmt(start) if start else HACKATHON["when"],
+         "Hackathon" + ("" if start else ". Exact dates and venue to be announced"),
+         start or _after_month(HACKATHON.get("month_start"))),
+        ("After", "Promising prototypes can continue as Proof of Concept projects",
+         end + timedelta(days=1) if end else None),
+    ]
+    timeline, next_marked = [], False
+    for title, text, when in steps:
+        done = bool(when and when <= today)
+        is_next = not done and not next_marked
+        next_marked = next_marked or is_next
+        timeline.append({"title": title, "text": text, "done": done, "next": is_next})
+    return timeline
 
 
 # ---------------------------------------------------------------------------
@@ -1266,3 +1329,104 @@ def admin_newsletter():
                            preview_for=preview_for, preview=preview,
                            last_sent=last_sent,
                            members=active_users().order_by(User.full_name).all())
+
+
+# ---------------------------------------------------------------------------
+# Launch day & call for speakers
+# ---------------------------------------------------------------------------
+@main_bp.route("/launch")
+def launch():
+    upcoming = Event.query.filter(Event.start_at >= datetime.utcnow()) \
+        .order_by(Event.start_at).limit(3).all()
+    return render_template("launch.html", programme=LAUNCH_PROGRAMME,
+                           speakers=LAUNCH_SPEAKERS, upcoming=upcoming)
+
+
+@main_bp.route("/call-for-speakers", methods=["GET", "POST"])
+def call_for_speakers():
+    """Public form: external speakers don't need a hub account."""
+    form = request.form
+    if request.method == "POST":
+        # Bots fill in every field, including this hidden one; people don't.
+        if form.get("website"):
+            return redirect(url_for("main.call_for_speakers", sent=1))
+        name = form.get("name", "").strip()
+        email = form.get("email", "").strip().lower()
+        title = form.get("talk_title", "").strip()
+        errors = []
+        if not name:
+            errors.append("Please enter your name.")
+        if "@" not in email or "." not in email.split("@")[-1]:
+            errors.append("Please enter a valid email address.")
+        if not title:
+            errors.append("Please give your session a title.")
+        if len(form.get("abstract", "").strip()) < 50:
+            errors.append("Please describe your session in a few sentences (at least 50 characters).")
+        if not form.get("consent"):
+            errors.append("Please confirm we may store your details to review your proposal.")
+        if errors:
+            for e in errors:
+                flash(e, "danger")
+            return render_template("call_for_speakers.html", form=form)
+
+        p = SpeakerProposal(
+            name=name[:120], email=email[:120], talk_title=title[:200],
+            job_title=form.get("job_title", "").strip()[:160],
+            affiliation=form.get("affiliation", "").strip()[:200],
+            session_type=form.get("session_type", "") if form.get("session_type") in SPEAKER_SESSION_TYPES else "",
+            abstract=form.get("abstract", "").strip(),
+            bio=form.get("bio", "").strip(),
+            links=form.get("links", "").strip()[:400],
+            workstream=form.get("workstream", "") if form.get("workstream") in WORKSTREAM_NAMES else "",
+            for_launch=form.get("for_launch") != "later",
+            user_id=current_user.id if current_user.is_authenticated else None,
+        )
+        db.session.add(p)
+        db.session.commit()
+
+        event = "the launch day" if p.for_launch else "a future hub event"
+        send_mail(
+            [p.email], "Thank you for your speaker proposal",
+            f"Hello {p.name},\n\nThank you for offering to speak at {event}. We've received "
+            f"your proposal:\n\n  {p.talk_title}\n  {p.session_type or 'Format not specified'}\n\n"
+            f"The organising committee reviews proposals as they arrive and will get back "
+            f"to you by email. If you have any questions, just reply to this message.\n",
+        )
+        send_mail(
+            committee_emails() + ([CONTACT_EMAIL] if CONTACT_EMAIL else []),
+            f"New speaker proposal: {p.talk_title}",
+            f"{p.name}{' (' + p.affiliation + ')' if p.affiliation else ''} has proposed a "
+            f"{(p.session_type or 'session').lower()} for {event}:\n\n  {p.talk_title}\n\n"
+            f"{p.abstract}\n\nReview it here: {absolute_url('main.speaker_proposals')}\n",
+        )
+        return redirect(url_for("main.call_for_speakers", sent=1))
+
+    return render_template("call_for_speakers.html", form={},
+                           sent=request.args.get("sent") == "1")
+
+
+@main_bp.route("/committee/speakers", methods=["GET", "POST"])
+@login_required
+def speaker_proposals():
+    if not current_user.can_review:
+        abort(403)
+    if request.method == "POST":
+        p = db.session.get(SpeakerProposal, request.form.get("id", type=int) or 0) or abort(404)
+        status = request.form.get("status", p.status)
+        if status in SPEAKER_PROPOSAL_STATUSES:
+            p.status = status
+        p.committee_notes = request.form.get("committee_notes", "").strip()
+        db.session.commit()
+        flash(f"Updated \u201c{p.talk_title}\u201d.", "success")
+        return redirect(url_for("main.speaker_proposals", status=request.args.get("status", ""))
+                        + f"#p{p.id}")
+
+    status = request.args.get("status", "")
+    query = SpeakerProposal.query
+    if status in SPEAKER_PROPOSAL_STATUSES:
+        query = query.filter_by(status=status)
+    proposals = query.order_by(SpeakerProposal.created_at.desc()).all()
+    counts = {s: SpeakerProposal.query.filter_by(status=s).count()
+              for s in SPEAKER_PROPOSAL_STATUSES}
+    return render_template("speaker_proposals.html", proposals=proposals,
+                           counts=counts, active_status=status)

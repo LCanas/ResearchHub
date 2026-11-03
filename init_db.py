@@ -56,6 +56,9 @@ def main():
             move_departments_to_schools([User, Project])
 
     with app.app_context():
+        from hub.event_sync import sync_all
+        for name, result in sync_all().items():
+            print(f"Events from {name}: {result}")
         from launch_content import seed_launch_content
         added = seed_launch_content()
         if added:

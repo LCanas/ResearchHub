@@ -86,12 +86,11 @@
       <div class="card card-pad">
         <h4>Timeline</h4>
         <ul class="timeline">
-          <li><b>Now</b><span class="small muted">Challenge submissions open</span></li>
-          <li><b>{{ LAUNCH.when }}</b><span class="small muted">Hub launch, with first challenges showcased</span></li>
-          <li><b>Submissions close</b><span class="small muted">Date {{ HACKATHON.submissions_close }}</span></li>
-          <li><b>Before the event</b><span class="small muted">Reviews complete, teams form around approved challenges</span></li>
-          <li><b>{{ HACKATHON.when }}</b><span class="small muted">Hackathon. Exact dates and venue to be announced</span></li>
-          <li><b>After</b><span class="small muted">Promising prototypes can continue as Proof of Concept projects</span></li>
+          {% for step in timeline %}
+          <li class="{{ 'done' if step.done }}{{ 'next' if step.next }}">
+            <b>{{ step.title }}</b><span class="small muted">{{ step.text }}</span>
+          </li>
+          {% endfor %}
         </ul>
       </div>
       <div class="card card-pad mt">

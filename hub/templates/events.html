@@ -15,6 +15,16 @@
 
 {% block body %}
 <div class="container main">
+  {% for f in feeds %}
+  <div class="card card-pad feed-banner">
+    <div>
+      <b>Including events from the {{ f.name }}</b>
+      <div class="small muted">Their seminars and training sessions appear here automatically, marked
+        "{{ f.name }}". Registration for those happens on their site.</div>
+    </div>
+    <a class="btn btn-outline btn-sm" href="{{ f.events_page }}" target="_blank" rel="noopener">{{ f.name }} events ↗</a>
+  </div>
+  {% endfor %}
   <div class="section-title">
     <h2>Upcoming <span class="muted small">({{ upcoming|length }})</span></h2>
     {% if current_user.is_authenticated %}<a class="btn btn-primary" href="{{ url_for('main.event_new') }}">+ New event</a>{% endif %}

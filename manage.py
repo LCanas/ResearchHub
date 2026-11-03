@@ -11,6 +11,7 @@
     python manage.py unsuspend them@kcl.ac.uk
     python manage.py newsletter --dry-run          # print this month's newsletters
     python manage.py newsletter                    # send them (monthly, via cron)
+    python manage.py sync-events                   # import events from the FoLSM AI Portal now
 
 On the VM with Docker:
     docker exec -it <container> python manage.py role you@kcl.ac.uk admin
@@ -88,6 +89,12 @@ def cmd_newsletter(args):
         print("Note: SITE_URL is not set, so links point to http://127.0.0.1:5000.")
 
 
+def cmd_sync_events(args):
+    from hub.event_sync import sync_all
+    for name, result in sync_all().items():
+        print(f"{name}: {result}")
+
+
 def cmd_role(args):
     user = User.query.filter_by(email=args.email.strip().lower()).first()
     if not user:
@@ -125,7 +132,8 @@ def main():
                         help="send even to people who got one in the last 25 days")
     args = parser.parse_args()
 
-    commands = {"newsletter": cmd_newsletter, "list": cmd_list, "role": cmd_role,
+    sub.add_parser("sync-events", help="import events from the external calendars now")
+    commands = {"sync-events": cmd_sync_events, "newsletter": cmd_newsletter, "list": cmd_list, "role": cmd_role,
                 "reset-password": cmd_reset_password, "delete": cmd_delete,
                 "suspend": cmd_suspend, "unsuspend": cmd_suspend}
     import os
