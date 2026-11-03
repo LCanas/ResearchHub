@@ -81,7 +81,7 @@ def send_mail(recipients, subject, body, wait=False):
     sender = os.environ.get("MAIL_FROM") or os.environ.get("MAIL_USERNAME") \
         or "no-reply@localhost"
     msg = EmailMessage()
-    msg["Subject"] = f"[Collaboration Hub] {subject}"
+    msg["Subject"] = f"[FoLSM AI Collaboration Hub] {subject}"
     msg["From"] = sender
     msg["To"] = ", ".join(to)
     # Replies go to the hub contact, even when sent from a no-reply address.

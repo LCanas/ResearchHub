@@ -1,5 +1,5 @@
-"""Application factory for the Collaboration Hub for AI Deployment in
-Healthcare Research (King's College London)."""
+"""Application factory for the FoLSM AI Collaboration Hub (AI Deployment in
+Healthcare Research), King's College London."""
 import os
 import re
 
@@ -81,7 +81,7 @@ def create_app(config_class=Config):
         ATTENDEE_TYPES=ATTENDEE_TYPES,
         HACKATHON_ROLES=HACKATHON_ROLES,
         NEWS_LINK_PAGES=NEWS_LINK_PAGES,
-        APP_NAME="Collaboration Hub",
+        APP_NAME="FoLSM AI Collaboration Hub",
         APP_SUBTITLE="AI Deployment in Healthcare Research",
     )
 

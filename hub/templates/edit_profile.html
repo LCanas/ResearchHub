@@ -108,16 +108,24 @@
         <input name="phone" value="{{ user.phone }}">
       </div>
       <div class="form-row">
-        <label>LinkedIn URL</label>
+        <label>LinkedIn</label>
         <input name="linkedin_url" value="{{ user.linkedin_url }}" placeholder="https://linkedin.com/in/…">
       </div>
       <div class="form-row">
-        <label>Microsoft Teams link</label>
-        <input name="teams_url" value="{{ user.teams_url }}" placeholder="https://teams.microsoft.com/l/…">
+        <label>KCL profile page</label>
+        <input name="kcl_url" value="{{ user.kcl_url }}" placeholder="https://kcl.ac.uk/people/…">
       </div>
       <div class="form-row">
-        <label>KCL website</label>
-        <input name="kcl_url" value="{{ user.kcl_url }}" placeholder="https://kcl.ac.uk/people/…">
+        <label>Personal website</label>
+        <input name="website_url" value="{{ user.website_url or '' }}" placeholder="https://…">
+      </div>
+      <div class="form-row">
+        <label>GitHub</label>
+        <input name="github_url" value="{{ user.github_url or '' }}" placeholder="https://github.com/…">
+      </div>
+      <div class="form-row">
+        <label>Google Scholar</label>
+        <input name="scholar_url" value="{{ user.scholar_url or '' }}" placeholder="https://scholar.google.com/citations?user=…">
       </div>
 
       <div class="form-row full">

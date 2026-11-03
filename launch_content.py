@@ -1,6 +1,6 @@
 """Starter content for the live hub: launch and hackathon announcements.
 
-No fake people: posts are authored by "Collaboration Hub team" (no author).
+No fake people: posts are authored by "FoLSM AI Collaboration Hub team" (no author).
 Dates come from LAUNCH / HACKATHON in hub/config.py, so update them there.
 
 Run on its own (inside an app context) or via init_db.py:
@@ -19,9 +19,9 @@ def announcements():
                else "get in touch with the hub team (contact details coming soon)")
     return [
         dict(
-            title=f"The Collaboration Hub launches in {launch}",
+            title=f"The FoLSM AI Collaboration Hub launches in {launch}",
             pinned=True,
-            body=f"""We're delighted to announce that the Collaboration Hub for AI Deployment in Healthcare Research will officially launch in {launch}. The exact launch day is still to be confirmed, and we'll share the date, venue and programme here and by email as soon as they're fixed.
+            body=f"""We're delighted to announce that the FoLSM AI Collaboration Hub will officially launch in {launch}. The exact launch day is still to be confirmed, and we'll share the date, venue and programme here and by email as soon as they're fixed.
 
 The hub is a matchmaking platform for King's researchers. It brings together people with clinical questions and people with AI expertise, and helps them turn ideas into collaborative, deployable projects.
 
@@ -90,8 +90,13 @@ def backfill_links():
     (they were created before posts could link to pages). Matches on title and
     only fills empty links, so it's safe to run on every boot."""
     by_title = {a["title"]: a for a in announcements()}
+    # Posts created before the hub was renamed carry the old name.
+    old_titles = {t.replace("FoLSM AI Collaboration Hub", "Collaboration Hub"): t for t in by_title}
     changed = 0
     for post in NewsPost.query.all():
+        if post.title in old_titles:
+            post.title = old_titles[post.title]
+            changed += 1
         a = by_title.get(post.title)
         if not a:
             continue

@@ -1,4 +1,4 @@
-"""Command-line admin for the Collaboration Hub: run it where the app runs
+"""Command-line admin for the FoLSM AI Collaboration Hub: run it where the app runs
 (your laptop, or on the VM / inside the container) so it uses the same database.
 
     python manage.py list                          # everyone with a role

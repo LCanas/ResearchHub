@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}My submissions{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Your account</div>
+    <h1>My submissions</h1>
+    <p>The projects you've proposed or lead, and your talk proposals, with where each one stands.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:1000px">
+  {% set review_css = REVIEW_STATUS_CSS %}
+  {% set talk_css = {'New':'stage-waiting','Shortlisted':'stage-launched','Accepted':'stage-ongoing','Declined':'stage-completed'} %}
+
+  {# ---- Projects ---- #}
+  <div class="section-title">
+    <h2>Projects <span class="muted small">({{ projects|length }})</span></h2>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('main.project_new') }}">+ Propose a project</a>
+  </div>
+  {% if projects %}
+    {% for p in projects %}
+    <article class="card card-pad" style="margin-bottom:.8rem">
+      <div class="flex space-between flex-wrap gap-sm">
+        <div class="flex gap-sm flex-wrap">
+          <span class="pill {{ review_css.get(p.review_status, '') }}">{{ p.review_status }}</span>
+          {% if p.is_live %}<span class="pill {{ STAGE_CSS.get(p.status, '') }}">{{ p.status }}</span>{% endif %}
+          {% if p.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(p.project_type,'') }}">{{ p.project_type }}</span>{% endif %}
+          <span class="chip">{{ 'Proposer' if p.proposer_id == current_user.id else 'PI' }}</span>
+        </div>
+        <span class="small muted">Submitted {{ p.created_at.strftime('%d %b %Y') }}</span>
+      </div>
+      <h3 style="margin:.5rem 0 .2rem"><a href="{{ url_for('main.project_detail', project_id=p.id) }}" style="color:var(--navy)">{{ p.title }}</a></h3>
+      {% if p.review_status == 'Pending review' %}
+        <p class="small muted" style="margin:0">On hold until the committee reviews it. You'll be emailed the decision.</p>
+      {% elif p.review_status == 'Changes requested' %}
+        <p class="small" style="margin:0"><b>Changes requested.</b> Edit the project to address the note; saving sends it back for review.</p>
+      {% endif %}
+      {% if p.review_note %}<p class="small" style="margin:.4rem 0 0;white-space:pre-line"><b>Committee note:</b> {{ p.review_note }}</p>{% endif %}
+      {% set pending = p.join_requests|selectattr('status', 'equalto', 'Pending')|list %}
+      {% if pending %}<p class="small" style="margin:.4rem 0 0"><a href="{{ url_for('main.my_requests') }}">{{ pending|length }} join request{{ '' if pending|length == 1 else 's' }} waiting for you →</a></p>{% endif %}
+    </article>
+    {% endfor %}
+  {% else %}
+    <div class="card empty"><div class="big">📝</div><h3>No projects yet</h3>
+      <p class="muted">Projects you propose, or are named PI on, appear here.</p></div>
+  {% endif %}
+
+  {# ---- Talk proposals ---- #}
+  <div class="section-title mt2">
+    <h2>Talk proposals <span class="muted small">({{ talks|length }})</span></h2>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('main.call_for_speakers') }}">+ Propose a talk</a>
+  </div>
+  {% if talks %}
+    {% for t in talks %}
+    <article class="card card-pad" style="margin-bottom:.8rem">
+      <div class="flex space-between flex-wrap gap-sm">
+        <div class="flex gap-sm flex-wrap">
+          <span class="pill {{ talk_css.get(t.status, '') }}">{{ 'Under review' if t.status == 'New' else t.status }}</span>
+          {% if t.session_type %}<span class="chip">{{ t.session_type }}</span>{% endif %}
+          <span class="chip">{{ 'Launch day' if t.for_launch else 'Later event' }}</span>
+        </div>
+        <span class="small muted">Submitted {{ t.created_at.strftime('%d %b %Y') }}</span>
+      </div>
+      <h3 style="margin:.5rem 0 .2rem">{{ t.talk_title }}</h3>
+      {% if t.status == 'New' %}
+        <p class="small muted" style="margin:0">The organising committee will review it and email you the outcome.</p>
+      {% endif %}
+      {% if t.speaker_message %}<p class="small" style="margin:.4rem 0 0;white-space:pre-line"><b>Message from the committee:</b> {{ t.speaker_message }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  {% else %}
+    <div class="card empty"><div class="big">🎤</div><h3>No talk proposals yet</h3>
+      <p class="muted">Proposals you send with the email {{ current_user.email }} appear here.</p></div>
+  {% endif %}
+
+  <p class="small muted mt2">Looking for projects you've asked to join? See <a href="{{ url_for('main.my_requests') }}">Join requests</a>.</p>
+</div>
+{% endblock %}

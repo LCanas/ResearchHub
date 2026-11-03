@@ -7,7 +7,7 @@
   <div class="container">
     <div class="hero-eyebrow">Announcements</div>
     <h1>News &amp; updates</h1>
-    <p>What's happening across the Collaboration Hub: launches, milestones,
+    <p>What's happening across the FoLSM AI Collaboration Hub: launches, milestones,
        opportunities and highlights.</p>
   </div>
 </section>
@@ -40,7 +40,7 @@
       {% endif %}
       <div class="flex space-between">
         <div class="flex gap-sm small muted">
-          {% if p.author %}{{ avatar(p.author, 'avatar-sm') }}<span>{{ p.author.full_name }}</span>{% else %}<span>Collaboration Hub team</span>{% endif %}
+          {% if p.author %}{{ avatar(p.author, 'avatar-sm') }}<span>{{ p.author.full_name }}</span>{% else %}<span>FoLSM AI Collaboration Hub team</span>{% endif %}
         </div>
         <a class="small" href="{{ url_for('main.news_detail', post_id=p.id) }}">Read more →</a>
       </div>

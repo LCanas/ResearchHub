@@ -136,6 +136,21 @@ def project_leads(project):
     return [u for u in (project.proposer, project.pi_user) if u]
 
 
+def clean_url(value):
+    """A web address someone typed, made safe to use as a link: only http(s)
+    addresses are kept (no "javascript:" etc.), and a bare "github.com/x"
+    gets https:// added. Returns "" if it isn't a usable address."""
+    value = (value or "").strip()[:255]
+    if not value:
+        return ""
+    if "://" not in value:
+        value = "https://" + value.lstrip("/")
+    scheme, _, rest = value.partition("://")
+    if scheme.lower() not in ("http", "https") or not rest or " " in rest or "." not in rest.split("/")[0]:
+        return ""
+    return value
+
+
 def can_manage(project):
     """A project can be managed by its proposer, its PI, or an admin."""
     if not current_user.is_authenticated:
@@ -400,7 +415,7 @@ def project_new():
             expected_outcomes=request.form.get("expected_outcomes", "").strip(),
             actual_outcomes=request.form.get("actual_outcomes", "").strip(),
             ip_agreement=request.form.get("ip_agreement", "").strip(),
-            github_url=request.form.get("github_url", "").strip(),
+            github_url=clean_url(request.form.get("github_url", "")),
             school=request.form.get("school", "").strip(),
             keywords=request.form.get("keywords", "").strip(),
             start_date=_parse_date(request.form.get("start_date"), date.today()),
@@ -453,7 +468,7 @@ def project_new():
             send_mail(
                 [project.pi_user.email], f"You've been named as PI: {project.title}",
                 f"Hello {project.pi_user.full_name},\n\n{current_user.full_name} has "
-                f"submitted “{project.title}” to the Collaboration Hub and "
+                f"submitted “{project.title}” to the FoLSM AI Collaboration Hub and "
                 f"named you as Principal Investigator. It is on hold until the "
                 f"committee reviews it.\n\nIf this isn't right, please let them know.\n\n"
                 f"{link}\n",
@@ -488,7 +503,7 @@ def project_edit(project_id):
         project.expected_outcomes = request.form.get("expected_outcomes", "").strip()
         project.actual_outcomes = request.form.get("actual_outcomes", "").strip()
         project.ip_agreement = request.form.get("ip_agreement", "").strip()
-        project.github_url = request.form.get("github_url", "").strip()
+        project.github_url = clean_url(request.form.get("github_url", ""))
         project.school = request.form.get("school", "").strip()
         project.keywords = request.form.get("keywords", "").strip()
         project.start_date = _parse_date(request.form.get("start_date"),
@@ -845,9 +860,8 @@ def edit_profile():
         user.department = request.form.get("department", "").strip()
         user.pi = request.form.get("pi", "").strip()
         user.line_manager = request.form.get("line_manager", "").strip()
-        user.linkedin_url = request.form.get("linkedin_url", "").strip()
-        user.teams_url = request.form.get("teams_url", "").strip()
-        user.kcl_url = request.form.get("kcl_url", "").strip()
+        for field in ("linkedin_url", "kcl_url", "website_url", "github_url", "scholar_url"):
+            setattr(user, field, clean_url(request.form.get(field, "")))
         user.work_status = request.form.get("work_status", "Active")
         user.db_role = request.form.get("db_role", "Collaborator")
         user.phone = request.form.get("phone", "").strip()
@@ -1508,6 +1522,22 @@ def call_for_speakers():
                            sent=request.args.get("sent") == "1")
 
 
+def _email_speaker_decision(p):
+    outcome = {
+        "Shortlisted": "has been shortlisted",
+        "Accepted": "has been accepted",
+        "Declined": "hasn't been selected this time",
+    }[p.status]
+    event = "the launch day" if p.for_launch else "a future hub event"
+    send_mail(
+        [p.email], f"Your speaker proposal: {p.status.lower()}",
+        f"Hello {p.name},\n\nYour proposal \u201c{p.talk_title}\u201d for {event} {outcome}."
+        + (f"\n\nA message from the organising committee:\n\n{p.speaker_message}" if p.speaker_message else "")
+        + f"\n\nYou can see the status of your proposals here: {absolute_url('main.my_submissions')}"
+        f"\nIf you have any questions, just reply to this email.\n",
+    )
+
+
 @main_bp.route("/committee/speakers", methods=["GET", "POST"])
 @login_required
 def speaker_proposals():
@@ -1515,14 +1545,28 @@ def speaker_proposals():
         abort(403)
     if request.method == "POST":
         p = db.session.get(SpeakerProposal, request.form.get("id", type=int) or 0) or abort(404)
+        back = url_for("main.speaker_proposals", status=request.args.get("status", "")) + f"#p{p.id}"
         status = request.form.get("status", p.status)
-        if status in SPEAKER_PROPOSAL_STATUSES:
-            p.status = status
+        if status not in SPEAKER_PROPOSAL_STATUSES:
+            status = p.status
+        message = request.form.get("speaker_message", "").strip()
+        changed = status != p.status
+        # A decision is emailed to the speaker; shortlisting or declining always
+        # needs a personal message from the committee.
+        if changed and status in ("Shortlisted", "Accepted", "Declined") and len(message) < 10:
+            flash(f"Please write a message to {p.name} explaining the decision. "
+                  f"It's sent to them by email.", "danger")
+            return redirect(back)
         p.committee_notes = request.form.get("committee_notes", "").strip()
+        if changed:
+            p.status = status
+            if status != "New":
+                p.speaker_message, p.decided_at = message, datetime.utcnow()
+                _email_speaker_decision(p)
         db.session.commit()
-        flash(f"Updated \u201c{p.talk_title}\u201d.", "success")
-        return redirect(url_for("main.speaker_proposals", status=request.args.get("status", ""))
-                        + f"#p{p.id}")
+        flash(f"Updated \u201c{p.talk_title}\u201d" + (" and emailed the speaker." if changed and status != "New" else "."),
+              "success")
+        return redirect(back)
 
     status = request.args.get("status", "")
     query = SpeakerProposal.query
@@ -1540,13 +1584,13 @@ def speaker_proposals():
 # (members sign up on the event page). Organisers manage them all from
 # /registrations.
 # ---------------------------------------------------------------------------
-APP_NAME_TEXT = "Collaboration Hub"
+APP_NAME_TEXT = "FoLSM AI Collaboration Hub"
 
 
 def special_events():
     """Events with their own public registration form, keyed by URL part."""
     return {
-        "launch": {"key": "launch", "title": "Collaboration Hub launch day",
+        "launch": {"key": "launch", "title": "FoLSM AI Collaboration Hub launch day",
                    "short": "launch day", "page": "main.launch",
                    "register": "main.launch_register", "cfg": LAUNCH, "exact_key": "date"},
         "hackathon": {"key": "hackathon", "title": HACKATHON["name"],
@@ -1948,7 +1992,7 @@ def key_dates(today=None):
     today = today or date.today()
     items = []
     for title, kind, cfg, exact_key, endpoint, blurb in (
-        ("Collaboration Hub launch day", "Launch", LAUNCH, "date", "main.launch",
+        ("FoLSM AI Collaboration Hub launch day", "Launch", LAUNCH, "date", "main.launch",
          "A full day of talks, demos and networking. Register to hear first."),
         (HACKATHON["name"], "Hackathon", HACKATHON, "start", "main.hackathon",
          "Challenge submissions are open now."),
@@ -1973,3 +2017,19 @@ def key_dates(today=None):
             "sort": shown or date.max,
         })
     return sorted(items, key=lambda k: k["sort"])
+
+
+# ---------------------------------------------------------------------------
+# My submissions: a member's own projects and talk proposals, with status
+# ---------------------------------------------------------------------------
+@main_bp.route("/my-submissions")
+@login_required
+def my_submissions():
+    projects = Project.query.filter(or_(Project.proposer_id == current_user.id,
+                                        Project.pi_id == current_user.id)) \
+        .order_by(Project.created_at.desc()).all()
+    # Talk proposals don't need an account, so match on the email too.
+    talks = SpeakerProposal.query.filter(or_(SpeakerProposal.user_id == current_user.id,
+                                             SpeakerProposal.email == current_user.email)) \
+        .order_by(SpeakerProposal.created_at.desc()).all()
+    return render_template("my_submissions.html", projects=projects, talks=talks)

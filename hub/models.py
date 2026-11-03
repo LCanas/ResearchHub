@@ -1,4 +1,4 @@
-"""Database models for the Collaboration Hub.
+"""Database models for the FoLSM AI Collaboration Hub.
 
 The schema mirrors the requirements:
   * User        -> researcher profiles (expertise, seniority, contract, links...)
@@ -39,8 +39,11 @@ class User(UserMixin, db.Model):
 
     # Links (requirement 5)
     linkedin_url = db.Column(db.String(255), default="")
-    teams_url = db.Column(db.String(255), default="")
+    teams_url = db.Column(db.String(255), default="")          # no longer shown or edited
     kcl_url = db.Column(db.String(255), default="")
+    website_url = db.Column(db.String(255), default="")        # personal website
+    github_url = db.Column(db.String(255), default="")
+    scholar_url = db.Column(db.String(255), default="")        # Google Scholar
 
     # Availability / directory metadata (requirement 8)
     work_status = db.Column(db.String(40), default="Active")   # Active / Keen / ...
@@ -367,6 +370,8 @@ class SpeakerProposal(db.Model):
     for_launch = db.Column(db.Boolean, default=True)     # launch day, or later events
     status = db.Column(db.String(30), default="New", index=True)
     committee_notes = db.Column(db.Text, default="")    # internal, never shown to the speaker
+    speaker_message = db.Column(db.Text, default="")    # last decision message emailed to them
+    decided_at = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

@@ -238,7 +238,7 @@
       </div>
 
       {# ---- Links ---- #}
-      {% if project.github_url %}
+      {% if project.github_url and project.github_url.startswith(('http://', 'https://')) %}
       <div class="card card-pad mt">
         <h4>Links</h4>
         <div class="link-row">

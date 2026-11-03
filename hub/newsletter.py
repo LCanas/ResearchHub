@@ -74,7 +74,7 @@ def build(user, now=None, intro="", subject=""):
 
     lines = [f"Hello {user.full_name.split()[0]},", ""]
     lines += [intro, ""] if intro else \
-        ["Here's what's happening on the Collaboration Hub this month.", ""]
+        ["Here's what's happening on the FoLSM AI Collaboration Hub this month.", ""]
 
     if projects:
         lines.append("OPEN PROJECTS FOR YOU" if personalised else "OPEN PROJECTS")
@@ -122,7 +122,7 @@ def build(user, now=None, intro="", subject=""):
                   "match projects to you:", absolute_url("main.edit_profile"), ""]
 
     lines += ["", "You're receiving this monthly update as a member of the "
-              "Collaboration Hub.",
+              "FoLSM AI Collaboration Hub.",
               "Unsubscribe: " + absolute_url("main.newsletter_unsubscribe",
                                              token=unsubscribe_token(user))]
     return (subject or "").strip() or f"Your {month} update", "\n".join(lines) + "\n"

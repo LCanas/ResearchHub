@@ -53,8 +53,14 @@
           <select name="status">{% for s in SPEAKER_PROPOSAL_STATUSES %}<option {{ 'selected' if p.status == s }}>{{ s }}</option>{% endfor %}</select>
         </div>
         <div class="form-row">
-          <label>Committee notes <span class="hint">(internal)</span></label>
+          <label>Committee notes <span class="hint">(internal, never shown to the speaker)</span></label>
           <input name="committee_notes" value="{{ p.committee_notes or '' }}">
+        </div>
+        <div class="form-row full">
+          <label>Message to the speaker <span class="hint">(emailed when the status changes; required for Shortlisted, Accepted and Declined)</span></label>
+          <textarea name="speaker_message" style="min-height:80px"
+                    placeholder="e.g. Thank you! We'd love you on the programme and will be in touch about timings…"></textarea>
+          {% if p.speaker_message %}<span class="hint">Last message sent{% if p.decided_at %} on {{ p.decided_at.strftime('%d %b %Y') }}{% endif %}: “{{ p.speaker_message }}”</span>{% endif %}
         </div>
       </div>
       <button class="btn btn-outline btn-sm" type="submit">Save</button>

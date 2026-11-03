@@ -1,4 +1,4 @@
-# Collaboration Hub for AI Deployment in Healthcare Research
+# FoLSM AI Collaboration Hub
 
 A web database for King's College London to coordinate researchers and projects
 working on the deployment of AI in healthcare. Researchers create profiles,
@@ -21,7 +21,7 @@ white, with round profile photos).
 | 6 | Project status, title, roadmap/Gantt, outcomes, GitHub, collaborators, PI | `project_detail.html` |
 | 7 | Status labels; completed projects show outcomes, not expected outcomes | `project_detail.html` |
 | 8 | Directory: contact, status, availability filter, skills, department, line manager, role | `directory.html` |
-| 9 | Named "Collaboration Hub for AI Deployment in Healthcare Research" | throughout |
+| 9 | Named "FoLSM AI Collaboration Hub" | throughout |
 | 10 | Lifecycle: Open → Waiting for PI → Launched → Ongoing → Completed | `config.py` `PROJECT_STAGES` |
 
 ## Pages

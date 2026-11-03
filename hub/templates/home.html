@@ -118,7 +118,7 @@
         {% for p in latest_news %}
         <div class="list-row">
           <a href="{{ url_for('main.news_detail', post_id=p.id) }}"><b style="color:var(--navy)">{% if p.pinned %}<span class="pin">Pinned</span> {% endif %}{{ p.title }}</b></a>
-          <div class="small muted">{{ p.created_at.strftime('%d %b %Y') }} · {{ p.author.full_name if p.author else 'Collaboration Hub team' }}</div>
+          <div class="small muted">{{ p.created_at.strftime('%d %b %Y') }} · {{ p.author.full_name if p.author else 'FoLSM AI Collaboration Hub team' }}</div>
         </div>
         {% endfor %}
       {% else %}<p class="muted">No announcements yet.</p>{% endif %}

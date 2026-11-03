@@ -80,7 +80,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        flash("Welcome to the Collaboration Hub! Complete your profile below.",
+        flash("Welcome to the FoLSM AI Collaboration Hub! Complete your profile below.",
               "success")
         return redirect(url_for("main.edit_profile"))
 
@@ -144,7 +144,7 @@ def forgot_password():
             send_mail(
                 [user.email], "Reset your password",
                 f"Hello {user.full_name},\n\nSomeone (hopefully you) asked to reset "
-                f"your Collaboration Hub password. Choose a new one here:\n\n"
+                f"your FoLSM AI Collaboration Hub password. Choose a new one here:\n\n"
                 f"    {link}\n\nThe link works once and expires in "
                 f"{RESET_LINK_HOURS} hour{'s' if RESET_LINK_HOURS != 1 else ''}. "
                 f"If you didn't ask for this, you can ignore this email.\n",
