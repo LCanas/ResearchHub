@@ -7,9 +7,9 @@ from flask import Flask
 
 from .config import (
     Config, STAGE_NAMES, STAGE_DESCRIPTIONS, STAGE_CSS, CONTRACT_TYPES,
-    SENIORITY_LEVELS, WORK_STATUSES, DB_ROLES, MILESTONE_STATUSES, DEPARTMENTS,
+    SENIORITY_LEVELS, WORK_STATUSES, DB_ROLES, MILESTONE_STATUSES, SCHOOLS,
     PROJECT_TYPES, PROJECT_TYPE_NAMES, PROJECT_TYPE_CSS, PROJECT_TYPE_BAND,
-    DEPARTMENT_KCL_URLS, PANEL_MEMBERS, REVIEW_CRITERIA,
+    SCHOOL_KCL_URLS, PANEL_MEMBERS, REVIEW_CRITERIA,
     WORKSTREAMS, WORKSTREAM_NAMES, WORKSTREAM_SLUG, WORKSTREAM_CSS,
     EVENT_TYPES, EVENT_TYPE_ICONS, LAUNCH, HACKATHON, CODE_OF_CONDUCT_VERSION,
     REVIEW_STATUSES, REVIEW_STATUS_CSS, CONTACT_EMAIL, SOCIAL_LINKS,
@@ -51,12 +51,12 @@ def create_app(config_class=Config):
         WORK_STATUSES=WORK_STATUSES,
         DB_ROLES=DB_ROLES,
         MILESTONE_STATUSES=MILESTONE_STATUSES,
-        DEPARTMENTS=DEPARTMENTS,
+        SCHOOLS=SCHOOLS,
         PROJECT_TYPES=PROJECT_TYPES,
         PROJECT_TYPE_NAMES=PROJECT_TYPE_NAMES,
         PROJECT_TYPE_CSS=PROJECT_TYPE_CSS,
         PROJECT_TYPE_BAND=PROJECT_TYPE_BAND,
-        DEPARTMENT_KCL_URLS=DEPARTMENT_KCL_URLS,
+        SCHOOL_KCL_URLS=SCHOOL_KCL_URLS,
         PANEL_MEMBERS=PANEL_MEMBERS,
         REVIEW_CRITERIA=REVIEW_CRITERIA,
         WORKSTREAMS=WORKSTREAMS,
@@ -78,7 +78,8 @@ def create_app(config_class=Config):
 
     with app.app_context():
         db.create_all()
-        _add_missing_columns()
+        # Recorded so init_db.py can run one-off data moves for new columns.
+        app.config["COLUMNS_ADDED"] = _add_missing_columns()
 
     return app
 
@@ -88,6 +89,7 @@ def _add_missing_columns():
     older database is missing. Additive changes only — no renames or drops."""
     engine = db.engine
     insp = sa.inspect(engine)
+    added = []
     with engine.begin() as conn:
         for table in db.metadata.sorted_tables:
             if not insp.has_table(table.name):
@@ -104,3 +106,5 @@ def _add_missing_columns():
                         compile_kwargs={"literal_binds": True})
                     ddl += f" DEFAULT {literal}"
                 conn.execute(sa.text(ddl))
+                added.append((table.name, col.name))
+    return added

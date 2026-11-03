@@ -5,7 +5,7 @@ explainable:
   +3  project is in one of the member's workstreams
   +2  for each project keyword that matches one of the member's keywords
   +1  for each member keyword found in the project's title / summary / description
-  +1  same department
+  +1  same school
 Only projects scoring above zero count as a match.
 """
 import re
@@ -26,7 +26,7 @@ def score(project, user):
     blob = " ".join([project.title or "", project.summary or "",
                      project.description or ""]).lower()
     s += sum(1 for k in my_keywords if len(k) > 2 and k in blob)
-    if user.department and project.department == user.department:
+    if user.school and project.school == user.school:
         s += 1
     return s
 

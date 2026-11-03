@@ -10,7 +10,7 @@
         <div class="flex gap-sm flex-wrap" style="margin-bottom:.6rem">
           {{ stage_pill(project.status) }}
           {% if project.project_type %}<span class="type-tag {{ PROJECT_TYPE_CSS.get(project.project_type,'') }}">{{ project.project_type }} · {{ PROJECT_TYPE_BAND.get(project.project_type,'') }}</span>{% endif %}
-          {% if project.department %}<span class="chip" style="background:rgba(255,255,255,.12);color:#fff;border-color:transparent">{{ project.department }}</span>{% endif %}
+          {% if project.school %}<span class="chip" style="background:rgba(255,255,255,.12);color:#fff;border-color:transparent">{{ project.school }}</span>{% endif %}
         </div>
         <h1>{{ project.title }}</h1>
         <p>{{ project.summary }}</p>

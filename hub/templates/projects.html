@@ -55,16 +55,16 @@
       </select>
     </div>
     <div class="field">
-      <label>Department</label>
-      <select name="department" onchange="this.form.submit()">
-        <option value="">All departments</option>
-        {% for d in DEPARTMENTS %}
-          <option value="{{ d }}" {{ 'selected' if active_dept == d }}>{{ d }}</option>
+      <label>School</label>
+      <select name="school" onchange="this.form.submit()">
+        <option value="">All schools</option>
+        {% for s in SCHOOLS %}
+          <option value="{{ s }}" {{ 'selected' if active_school == s }}>{{ s }}</option>
         {% endfor %}
       </select>
     </div>
     <button class="btn btn-navy" type="submit">Filter</button>
-    {% if q or active_status or active_dept or active_type or active_workstream %}
+    {% if q or active_status or active_school or active_type or active_workstream %}
       <a class="btn btn-ghost" href="{{ url_for('main.projects') }}">Reset</a>
     {% endif %}
   </form>

@@ -45,7 +45,7 @@
       <a class="flex gap-sm" href="{{ url_for('main.profile', user_id=u.id) }}" style="min-width:260px">
         {{ avatar(u, 'avatar-sm') }}
         <span><b style="color:var(--navy)">{{ u.full_name }}</b><br>
-          <span class="small muted">{{ u.email }}{% if u.department %} · {{ u.department }}{% endif %}</span></span>
+          <span class="small muted">{{ u.email }}{% if u.school %} · {{ u.school }}{% endif %}</span></span>
       </a>
       <div class="flex gap-sm flex-wrap" style="align-items:center">
         <form class="flex gap-sm" method="post" action="{{ url_for('main.admin_set_role', user_id=u.id) }}">

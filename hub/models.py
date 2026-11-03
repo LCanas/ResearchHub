@@ -32,7 +32,8 @@ class User(UserMixin, db.Model):
     workstreams = db.Column(db.String(400), default="")        # pipe-separated themes
     seniority = db.Column(db.String(60), default="")
     contract_type = db.Column(db.String(80), default="")
-    department = db.Column(db.String(120), default="")
+    school = db.Column(db.String(120), default="")             # one of config.SCHOOLS
+    department = db.Column(db.String(120), default="")         # free text, within the school
     pi = db.Column(db.String(120), default="")                 # research supervisor / PI
     line_manager = db.Column(db.String(120), default="")
 
@@ -141,7 +142,8 @@ class Project(db.Model):
     # IP, authorship and publication terms agreed up front (Code of Conduct).
     ip_agreement = db.Column(db.Text, default="")
     github_url = db.Column(db.String(255), default="")
-    department = db.Column(db.String(120), default="")
+    school = db.Column(db.String(120), default="")             # lead school (config.SCHOOLS)
+    department = db.Column(db.String(120), default="")         # legacy; no longer edited
     keywords = db.Column(db.String(255), default="")
 
     start_date = db.Column(db.Date, default=date.today)

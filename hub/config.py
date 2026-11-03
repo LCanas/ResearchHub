@@ -215,30 +215,35 @@ EVENT_TYPE_ICONS = {
     "Other": "📅",
 }
 
-DEPARTMENTS = [
-    "Biomedical Engineering & Imaging Sciences",
-    "Informatics",
-    "School of Cardiovascular & Metabolic Medicine",
-    "Population Health Sciences",
-    "Cancer & Pharmaceutical Sciences",
-    "Neuroscience",
-    "Nursing, Midwifery & Palliative Care",
-    "Life Sciences & Medicine",
-    "Other",
+# King's schools: chosen from this list on profiles and projects, and used for
+# filtering. A person's department within their school is free text.
+SCHOOLS = ["Basic & Medical Biosciences",
+           "Biomedical Engineering & Imaging Sciences",
+           "Cancer & Pharmaceutical Sciences",
+           "Cardiovascular and Metabolic Medicine & Sciences",
+           "Immunology & Microbial Sciences",
+           "Life Course & Population Health Sciences",
+           "Other",
 ]
 
-# External KCL department pages, linked from the About page.
-DEPARTMENT_KCL_URLS = {
-    "Biomedical Engineering & Imaging Sciences": "https://www.kcl.ac.uk/bmeis",
-    "Informatics": "https://www.kcl.ac.uk/informatics",
+# Earlier "department" values that were really schools, moved into the school
+# field when an existing database is upgraded (see init_db.py).
+LEGACY_SCHOOL_NAMES = {
     "School of Cardiovascular & Metabolic Medicine":
-        "https://www.kcl.ac.uk/cardiovascular-metabolic-medicine-sciences",
-    "Population Health Sciences": "https://www.kcl.ac.uk/population-health",
+        "Cardiovascular and Metabolic Medicine & Sciences",
+    "Population Health Sciences": "Life Course & Population Health Sciences",
+}
+
+# External KCL school pages, linked from the About page.
+SCHOOL_KCL_URLS = {
+    "Biomedical Engineering & Imaging Sciences": "https://www.kcl.ac.uk/bmeis",
+    "Basic & Medical Biosciences": "https://www.kcl.ac.uk/bmb",
+    "Cardiovascular and Metabolic Medicine & Sciences":
+        "https://www.kcl.ac.uk/scmms",
+    "Immunology & Microbial Sciences": "https://www.kcl.ac.uk/sims",
+    "Life Course & Population Health Sciences": "https://www.kcl.ac.uk/slcps",
     "Cancer & Pharmaceutical Sciences":
-        "https://www.kcl.ac.uk/cancer-pharmaceutical-sciences",
-    "Neuroscience": "https://www.kcl.ac.uk/ioppn",
-    "Nursing, Midwifery & Palliative Care": "https://www.kcl.ac.uk/nmpc",
-    "Life Sciences & Medicine": "https://www.kcl.ac.uk/lsm",
+        "https://www.kcl.ac.uk/scps",
     "Other": "https://www.kcl.ac.uk",
 }
 
@@ -249,22 +254,22 @@ DEPARTMENT_KCL_URLS = {
 PANEL_MEMBERS = [
     {"role": "Panel Chair", "name": "", "affiliation": "",
      "desc": "Chairs the monthly panel, sets priorities and has the final say "
-             "on whether a proposal enters the pipeline."},
-    {"role": "Clinical Lead", "name": "", "affiliation": "",
+             "on whether a proposal enters the Hub."},
+    {"role": "Clinical Chair", "name": "", "affiliation": "",
      "desc": "Ensures each project answers a genuine clinical need and assesses "
              "clinical impact and data readiness."},
-    {"role": "Technical / AI Lead", "name": "", "affiliation": "",
+    {"role": "Technical / AI Chair", "name": "", "affiliation": "",
      "desc": "Reviews the AI approach and engineering feasibility, and helps "
              "match projects to the right technical collaborators."},
-    {"role": "Governance & IG Lead", "name": "", "affiliation": "",
+    {"role": "Governance & IG Chair", "name": "", "affiliation": "",
      "desc": "Owns information governance, ethics and data-protection sign-off "
              "before a project can launch."},
     {"role": "PI Representative", "name": "", "affiliation": "",
      "desc": "Represents Principal Investigators, helping connect proposals with "
              "senior researchers willing to coordinate them."},
-    {"role": "Panel Coordinator", "name": "", "affiliation": "",
-     "desc": "Keeps the pipeline moving — contacts proposers, schedules launch "
-             "meetings and tracks the backlog."},
+    {"role": "ECR Representative", "name": "", "affiliation": "",
+     "desc": "Represents Early Career Researchers, ensuring their perspectives "
+     "are considered in the review process."},
 ]
 
 # What the panel weighs up when reviewing a submission (from the brief).

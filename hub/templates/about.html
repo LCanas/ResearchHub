@@ -14,7 +14,7 @@
       <div class="stat"><b>{{ stats.projects }}</b><span>PROJECTS</span></div>
       <div class="stat"><b>{{ stats.researchers }}</b><span>RESEARCHERS</span></div>
       <div class="stat"><b>{{ stats.completed }}</b><span>COMPLETED</span></div>
-      <div class="stat"><b>{{ stats.departments }}</b><span>DEPARTMENTS</span></div>
+      <div class="stat"><b>{{ stats.schools }}</b><span>SCHOOLS</span></div>
     </div>
   </div>
 </section>
@@ -184,21 +184,21 @@
     </div>
   </section>
 
-  {# ===================== 1.5 Departments ===================== #}
+  {# ===================== 1.5 Schools ===================== #}
   <section class="about-section">
     <div class="section-head">
       <span class="kicker">Across King's</span>
-      <h2>Departments we work with</h2>
+      <h2>Schools we work with</h2>
       <p class="muted">Spanning the Faculty of Life Sciences &amp; Medicine and
          Biomedical Engineering &amp; Imaging Sciences.</p>
     </div>
     <div class="dept-grid">
-      {% for d in DEPARTMENTS if d != 'Other' %}
+      {% for s in SCHOOLS if s != 'Other' %}
       <div class="dept-card">
-        <div class="dept-name">{{ d }}</div>
+        <div class="dept-name">{{ s }}</div>
         <div class="dept-links">
-          <a href="{{ url_for('main.directory', department=d) }}">View collaborators</a>
-          <a href="{{ DEPARTMENT_KCL_URLS.get(d, 'https://www.kcl.ac.uk') }}" target="_blank" rel="noopener">KCL page ↗</a>
+          <a href="{{ url_for('main.directory', school=s) }}">View collaborators</a>
+          <a href="{{ SCHOOL_KCL_URLS.get(s, 'https://www.kcl.ac.uk') }}" target="_blank" rel="noopener">KCL page ↗</a>
         </div>
       </div>
       {% endfor %}

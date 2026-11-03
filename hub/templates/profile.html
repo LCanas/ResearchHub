@@ -15,7 +15,7 @@
       <h1>{{ user.full_name }}</h1>
       <div class="role muted">
         {{ user.contract_type or 'Researcher' }}{% if user.seniority %} · {{ user.seniority }}{% endif %}
-        {% if user.department %} · {{ user.department }}{% endif %}
+        {% if user.school %} · {{ user.school }}{% endif %}
       </div>
       {% if user.expertise %}<p style="margin:.6rem 0 0">{{ user.expertise }}</p>{% endif %}
       {% if user.workstream_list %}
@@ -98,6 +98,7 @@
         <ul class="meta-list">
           <li><span class="k">Contract</span><span>{{ user.contract_type or '—' }}</span></li>
           <li><span class="k">Seniority</span><span>{{ user.seniority or '—' }}</span></li>
+          <li><span class="k">School</span><span>{{ user.school or '—' }}</span></li>
           <li><span class="k">Department</span><span>{{ user.department or '—' }}</span></li>
           <li><span class="k">PI / Supervisor</span><span>{{ user.pi or '—' }}</span></li>
           <li><span class="k">Line manager</span><span>{{ user.line_manager or '—' }}</span></li>

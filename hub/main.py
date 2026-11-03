@@ -301,7 +301,7 @@ def index():
 def projects():
     status = request.args.get("status", "").strip()
     q = request.args.get("q", "").strip()
-    dept = request.args.get("department", "").strip()
+    school = request.args.get("school", "").strip()
     ptype = request.args.get("type", "").strip()
     ws_slug = request.args.get("workstream", "").strip()
     ws_name = WORKSTREAM_BY_SLUG.get(ws_slug, {}).get("name", "")
@@ -313,8 +313,8 @@ def projects():
         query = query.filter(Project.project_type == ptype)
     if ws_name:
         query = query.filter(Project.workstream == ws_name)
-    if dept:
-        query = query.filter(Project.department == dept)
+    if school:
+        query = query.filter(Project.school == school)
     if q:
         like = f"%{q}%"
         query = query.filter(or_(
@@ -337,7 +337,7 @@ def projects():
 
     return render_template(
         "projects.html", projects=project_list, stage_counts=stage_counts,
-        stats=stats, active_status=status, q=q, active_dept=dept,
+        stats=stats, active_status=status, q=q, active_school=school,
         active_type=ptype, active_workstream=ws_slug,
     )
 
@@ -385,7 +385,7 @@ def project_new():
             actual_outcomes=request.form.get("actual_outcomes", "").strip(),
             ip_agreement=request.form.get("ip_agreement", "").strip(),
             github_url=request.form.get("github_url", "").strip(),
-            department=request.form.get("department", "").strip(),
+            school=request.form.get("school", "").strip(),
             keywords=request.form.get("keywords", "").strip(),
             start_date=_parse_date(request.form.get("start_date"), date.today()),
             end_date=_parse_date(request.form.get("end_date")),
@@ -473,7 +473,7 @@ def project_edit(project_id):
         project.actual_outcomes = request.form.get("actual_outcomes", "").strip()
         project.ip_agreement = request.form.get("ip_agreement", "").strip()
         project.github_url = request.form.get("github_url", "").strip()
-        project.department = request.form.get("department", "").strip()
+        project.school = request.form.get("school", "").strip()
         project.keywords = request.form.get("keywords", "").strip()
         project.start_date = _parse_date(request.form.get("start_date"),
                                          project.start_date)
@@ -637,7 +637,7 @@ def project_join(project_id):
         [u.email for u in leads],
         f"{current_user.full_name} would like to join {project.title}",
         f"{current_user.full_name}"
-        f"{' (' + current_user.department + ')' if current_user.department else ''} "
+        f"{' (' + ', '.join(x for x in (current_user.department, current_user.school) if x) + ')' if (current_user.department or current_user.school) else ''} "
         f"has asked to join \u201c{project.title}\u201d and has accepted the project's "
         f"IP and publication terms.\n\n"
         + (f"Their message:\n{req.message}\n\n" if req.message else "")
@@ -765,7 +765,7 @@ def collaboration_remove(collab_id):
 @login_required
 def directory():
     q = request.args.get("q", "").strip()
-    dept = request.args.get("department", "").strip()
+    school = request.args.get("school", "").strip()
     work_status = request.args.get("work_status", "").strip()
     db_role = request.args.get("db_role", "").strip()
     min_hours = request.args.get("min_hours", "").strip()
@@ -773,8 +773,8 @@ def directory():
     ws_name = WORKSTREAM_BY_SLUG.get(ws_slug, {}).get("name", "")
 
     query = active_users()
-    if dept:
-        query = query.filter(User.department == dept)
+    if school:
+        query = query.filter(User.school == school)
     if work_status:
         query = query.filter(User.work_status == work_status)
     if db_role:
@@ -789,12 +789,13 @@ def directory():
             User.full_name.ilike(like),
             User.keywords.ilike(like),
             User.expertise.ilike(like),
+            User.department.ilike(like),
             User.bio.ilike(like),
         ))
 
     people = query.order_by(User.full_name).all()
     return render_template(
-        "directory.html", people=people, q=q, active_dept=dept,
+        "directory.html", people=people, q=q, active_school=school,
         active_work_status=work_status, active_db_role=db_role,
         min_hours=min_hours, active_workstream=ws_slug,
     )
@@ -824,6 +825,7 @@ def edit_profile():
         user.workstreams = "|".join(chosen_ws)
         user.seniority = request.form.get("seniority", "").strip()
         user.contract_type = request.form.get("contract_type", "").strip()
+        user.school = request.form.get("school", "").strip()
         user.department = request.form.get("department", "").strip()
         user.pi = request.form.get("pi", "").strip()
         user.line_manager = request.form.get("line_manager", "").strip()
@@ -1035,8 +1037,8 @@ def about():
         "projects": live_projects().count(),
         "researchers": active_users().count(),
         "completed": live_projects().filter_by(status="Completed").count(),
-        "departments": db.session.query(User.department)
-            .filter(User.department != "").distinct().count(),
+        "schools": db.session.query(User.school)
+            .filter(User.school != "").distinct().count(),
     }
     return render_template("about.html", stats=stats)
 

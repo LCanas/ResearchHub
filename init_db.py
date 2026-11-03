@@ -17,12 +17,34 @@ from hub import create_app
 from hub.extensions import db
 
 
+def move_departments_to_schools(models):
+    """Earlier versions stored the school in the "department" field. Move those
+    values into "school" and keep anything else as the department."""
+    from hub.config import SCHOOLS, LEGACY_SCHOOL_NAMES
+    moved = 0
+    for model in models:
+        for row in model.query.filter((model.school == "") | (model.school.is_(None))):
+            name = LEGACY_SCHOOL_NAMES.get(row.department, row.department)
+            if name in SCHOOLS:
+                row.school, row.department = name, ""
+                moved += 1
+    db.session.commit()
+    return moved
+
+
 def main():
     app = create_app()
     with app.app_context():
         db.create_all()
-        from hub.models import User
+        from hub.models import User, Project
         already_populated = User.query.count() > 0
+        # Only when the school columns have just been added (an upgrade).
+        added = app.config.get("COLUMNS_ADDED", [])
+        upgrade = [m for m, t in ((User, "users"), (Project, "projects"))
+                   if (t, "school") in added]
+        if upgrade:
+            print(f"Moved {move_departments_to_schools(upgrade)} department value(s) "
+                  f"into the new school field.")
 
     if already_populated:
         print("Database already has users — skipping demo seed.")
@@ -30,6 +52,8 @@ def main():
         print("Empty database — SEED_DEMO=1, seeding demo data…")
         from seed import run
         run()
+        with app.app_context():
+            move_departments_to_schools([User, Project])
 
     with app.app_context():
         from launch_content import seed_launch_content

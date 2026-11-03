@@ -65,11 +65,16 @@
       </div>
 
       <div class="form-row">
-        <label>Department</label>
-        <select name="department">
+        <label>School</label>
+        <select name="school">
           <option value="">— Select —</option>
-          {% for d in DEPARTMENTS %}<option value="{{ d }}" {{ 'selected' if user.department == d }}>{{ d }}</option>{% endfor %}
+          {% for s in SCHOOLS %}<option value="{{ s }}" {{ 'selected' if user.school == s }}>{{ s }}</option>{% endfor %}
         </select>
+      </div>
+      <div class="form-row">
+        <label>Department <span class="hint">(within your school)</span></label>
+        <input name="department" value="{{ user.department or '' }}"
+               placeholder="e.g. Department of Imaging Physics & Engineering">
       </div>
       <div class="form-row">
         <label>Database role</label>

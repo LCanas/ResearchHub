@@ -36,13 +36,18 @@
           <input type="email" name="email" value="{{ form.get('email', '') }}" required>
         </div>
         <div class="form-row">
-          <label>Department</label>
-          <select name="department">
+          <label>School</label>
+          <select name="school" required>
             <option value="">— Select —</option>
-            {% for d in DEPARTMENTS %}
-              <option value="{{ d }}" {{ 'selected' if form.get('department') == d }}>{{ d }}</option>
+            {% for s in SCHOOLS %}
+              <option value="{{ s }}" {{ 'selected' if form.get('school') == s }}>{{ s }}</option>
             {% endfor %}
           </select>
+        </div>
+        <div class="form-row">
+          <label>Department <span class="hint">(within your school)</span></label>
+          <input name="department" value="{{ form.get('department', '') }}"
+                 placeholder="e.g. Department of Imaging Physics & Engineering">
         </div>
         <div class="form-grid">
           <div class="form-row">

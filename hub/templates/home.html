@@ -158,7 +158,7 @@
         <p class="summary">{{ p.summary or (p.description|truncate(120)) }}</p>
       </div>
       <div class="foot">
-        <span class="small muted">{{ p.department|truncate(30) }}</span>
+        <span class="small muted">{{ p.school|truncate(30) }}</span>
         <span class="small muted">{% if p.pi_user %}PI: {{ p.pi_user.full_name.split()[-1] }}{% else %}PI needed{% endif %}</span>
       </div>
     </article>

@@ -55,6 +55,8 @@ def register():
             errors.append("Passwords do not match.")
         if User.query.filter_by(email=email).first():
             errors.append("An account with that email already exists.")
+        if not request.form.get("school"):
+            errors.append("Please choose your school.")
         if not request.form.get("agree_coc"):
             errors.append("Please read and agree to the Code of Conduct.")
 
@@ -66,6 +68,7 @@ def register():
         user = User(
             full_name=full_name,
             email=email,
+            school=request.form.get("school", "").strip(),
             department=request.form.get("department", "").strip(),
             contract_type=request.form.get("contract_type", "").strip(),
             db_role=request.form.get("db_role", "Collaborator"),

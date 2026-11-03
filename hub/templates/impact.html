@@ -33,7 +33,7 @@
             </div>
             <h3><a href="{{ url_for('main.project_detail', project_id=p.id) }}" style="color:#fff">{{ p.title }}</a></h3>
             <div class="small" style="color:#cdd7ea">
-              {{ p.department }}
+              {{ p.school }}
               {% if p.start_date and p.end_date %} · {{ p.start_date.strftime('%b %Y') }} – {{ p.end_date.strftime('%b %Y') }}{% endif %}
             </div>
           </div>

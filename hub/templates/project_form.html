@@ -39,11 +39,11 @@
         <span class="hint">Open → Waiting for PI → Launched → Ongoing → Completed</span>
       </div>
       <div class="form-row">
-        <label>Department</label>
-        <select name="department">
+        <label>Lead school</label>
+        <select name="school">
           <option value="">— Select —</option>
-          {% for d in DEPARTMENTS %}
-            <option value="{{ d }}" {{ 'selected' if project and project.department == d }}>{{ d }}</option>
+          {% for s in SCHOOLS %}
+            <option value="{{ s }}" {{ 'selected' if project and project.school == s }}>{{ s }}</option>
           {% endfor %}
         </select>
       </div>
