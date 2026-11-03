@@ -40,6 +40,16 @@ def absolute_url(endpoint, **values):
     return url_for(endpoint, _external=True, **values)
 
 
+def absolute_link(path_or_url):
+    """Full address for a stored link: a hub path like "/register" gets the
+    site's address in front; full web addresses are left as they are."""
+    if path_or_url.startswith(("http://", "https://")):
+        return path_or_url
+    from flask import request
+    site = os.environ.get("SITE_URL", "").rstrip("/") or request.host_url.rstrip("/")
+    return site + "/" + path_or_url.lstrip("/")
+
+
 def _deliver(msg):
     host = os.environ.get("MAIL_SERVER", "")
     port = int(os.environ.get("MAIL_PORT", "587"))

@@ -12,7 +12,7 @@ from itsdangerous import BadSignature, URLSafeSerializer
 
 from .config import HACKATHON
 from .extensions import db
-from .mail import send_mail, absolute_url
+from .mail import send_mail, absolute_url, absolute_link
 from .models import User, Project, Event, NewsPost, NewsletterIssue
 from .recommend import matching_projects, has_interests
 
@@ -105,7 +105,12 @@ def build(user, now=None, intro="", subject=""):
         lines += ["NEWS", "-" * 40]
         for n in news:
             lines.append(f"* {n.title}")
-            lines.append(f"  {absolute_url('main.news_detail', post_id=n.id)}")
+            # Link straight to the page the post is about (e.g. "Create your
+            # profile" -> the sign-up page); otherwise to the post itself.
+            if n.link_url:
+                lines.append(f"  {n.link_label or 'Find out more'}: {absolute_link(n.link_url)}")
+            else:
+                lines.append(f"  {absolute_url('main.news_detail', post_id=n.id)}")
         lines.append("")
 
     lines += [f"{HACKATHON['name'].upper()} · {HACKATHON['when'].upper()}", "-" * 40,
