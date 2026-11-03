@@ -1424,7 +1424,7 @@ def admin_newsletter():
     preview_for = db.session.get(User, request.args.get("preview", type=int) or 0) \
         or current_user
     preview = build_newsletter(preview_for, intro=issue.intro if issue else "",
-                               subject=issue.subject if issue else "")
+                               subject=issue.subject if issue else "", preview=True)
     history = NewsletterIssue.query.order_by(NewsletterIssue.created_at.desc()).limit(12).all()
     return render_template("admin_newsletter.html", subscribers=subscribers,
                            preview_for=preview_for, preview=preview, issue=issue,

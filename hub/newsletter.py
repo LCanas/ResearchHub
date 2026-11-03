@@ -44,10 +44,12 @@ def recipients():
         .order_by(User.full_name).all()
 
 
-def build(user, now=None, intro="", subject=""):
+def build(user, now=None, intro="", subject="", preview=False):
     """Return (subject, body) for this member, or None if there's nothing
     worth sending. ``intro`` is the organisers' message for this issue (shown
-    after the greeting); ``subject`` overrides the default "Your <month> update"."""
+    after the greeting); ``subject`` overrides the default "Your <month> update".
+    ``preview`` always returns the layout, noting empty sections, so admins can
+    see what it looks like even when there's nothing new for this person."""
     now = now or datetime.utcnow()
     since = user.newsletter_last_sent or (now - timedelta(days=31))
     month = now.strftime("%B %Y")
@@ -68,15 +70,21 @@ def build(user, now=None, intro="", subject=""):
         .order_by(Event.start_at).limit(5).all()
     news = NewsPost.query.filter(NewsPost.created_at >= since) \
         .order_by(NewsPost.pinned.desc(), NewsPost.created_at.desc()).limit(4).all()
+    # Launch day and the hackathon aren't Event rows (their dates may not be
+    # fixed yet), so add them to the upcoming events from the config.
+    from .main import key_dates
+    key = key_dates(now.date())
 
     intro = (intro or "").strip()
-    if not (projects or events or news or intro):
+    if not (projects or events or key or news or intro) and not preview:
         return None
 
     lines = [f"Hello {user.full_name.split()[0]},", ""]
     lines += [intro, ""] if intro else \
         ["Here's what's happening on the FoLSM AI Collaboration Hub this month.", ""]
 
+    if preview and not projects:
+        lines += ["OPEN PROJECTS", "-" * 40, "(No open projects at the moment.)", ""]
     if projects:
         lines.append("OPEN PROJECTS FOR YOU" if personalised else "OPEN PROJECTS")
         lines.append("-" * 40)
@@ -94,14 +102,21 @@ def build(user, now=None, intro="", subject=""):
             lines.append(f"  {absolute_url('main.project_detail', project_id=p.id)}")
         lines += ["", f"All open projects: {absolute_url('main.projects', status='Open')}", ""]
 
-    if events:
+    if events or key or preview:
         lines += ["UPCOMING EVENTS", "-" * 40]
+        for k in key:
+            lines.append(f"* {k['when']}: {k['title']}")
+            lines.append(f"  {absolute_link(k['url'])}")
+        if preview and not (events or key):
+            lines.append("(No events in the next six weeks.)")
         for e in events:
             where = "Online" if e.is_online else (e.location or "Venue TBC")
             lines.append(f"* {e.start_at.strftime('%a %d %b, %H:%M')}: {e.title} ({where})")
             lines.append(f"  {absolute_url('main.event_detail', event_id=e.id)}")
         lines.append("")
 
+    if preview and not news:
+        lines += ["NEWS", "-" * 40, "(No news since this person's last newsletter.)", ""]
     if news:
         lines += ["NEWS", "-" * 40]
         for n in news:
