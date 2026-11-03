@@ -49,6 +49,10 @@ LAUNCH_PROGRAMME = []
 ATTENDEE_TYPES = ["Clinician", "Researcher / academic", "PhD student", "Postdoc",
                   "Data scientist / engineer", "NHS staff", "Industry", "Other"]
 
+# Hackathon registration: how people want to take part.
+HACKATHON_ROLES = ["Participant (join a team)", "Challenge owner", "Mentor / expert",
+                   "Not sure yet"]
+
 # Pages a news post can link to (news form), as (label, endpoint).
 NEWS_LINK_PAGES = [
     ("Launch day", "main.launch"),
@@ -83,6 +87,9 @@ HACKATHON = {
     "month_start": "2027-05-01",
     "start": "",
     "end": "",                        # last day of the hackathon, e.g. "2027-05-14"
+    # Participant registration. While empty (or in the future) the "Register to
+    # take part" button is shown greyed out; from this date it opens.
+    "registration_opens": "",         # e.g. "2027-02-01"
 }
 
 # Home-page hero illustration: "network" (original), "match" (clinicians ×

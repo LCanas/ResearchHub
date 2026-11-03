@@ -13,7 +13,7 @@ from itsdangerous import BadSignature, URLSafeSerializer
 from .config import HACKATHON
 from .extensions import db
 from .mail import send_mail, absolute_url
-from .models import User, Project, Event, NewsPost
+from .models import User, Project, Event, NewsPost, NewsletterIssue
 from .recommend import matching_projects, has_interests
 
 # Don't send to the same person twice within this window, even if the job is
@@ -43,9 +43,10 @@ def recipients():
         .order_by(User.full_name).all()
 
 
-def build(user, now=None):
+def build(user, now=None, intro="", subject=""):
     """Return (subject, body) for this member, or None if there's nothing
-    worth sending."""
+    worth sending. ``intro`` is the organisers' message for this issue (shown
+    after the greeting); ``subject`` overrides the default "Your <month> update"."""
     now = now or datetime.utcnow()
     since = user.newsletter_last_sent or (now - timedelta(days=31))
     month = now.strftime("%B %Y")
@@ -67,11 +68,13 @@ def build(user, now=None):
     news = NewsPost.query.filter(NewsPost.created_at >= since) \
         .order_by(NewsPost.pinned.desc(), NewsPost.created_at.desc()).limit(4).all()
 
-    if not (projects or events or news):
+    intro = (intro or "").strip()
+    if not (projects or events or news or intro):
         return None
 
-    lines = [f"Hello {user.full_name.split()[0]},", "",
-             f"Here's what's happening on the Collaboration Hub this month.", ""]
+    lines = [f"Hello {user.full_name.split()[0]},", ""]
+    lines += [intro, ""] if intro else \
+        ["Here's what's happening on the Collaboration Hub this month.", ""]
 
     if projects:
         lines.append("OPEN PROJECTS FOR YOU" if personalised else "OPEN PROJECTS")
@@ -117,11 +120,12 @@ def build(user, now=None):
               "Collaboration Hub.",
               "Unsubscribe: " + absolute_url("main.newsletter_unsubscribe",
                                              token=unsubscribe_token(user))]
-    return f"Your {month} update", "\n".join(lines) + "\n"
+    return (subject or "").strip() or f"Your {month} update", "\n".join(lines) + "\n"
 
 
-def send_all(force=False, only_email=None, dry_run=False):
-    """Send the newsletter to every subscriber. Returns a summary dict."""
+def send_all(force=False, only_email=None, dry_run=False, issue=None):
+    """Send the newsletter to every subscriber. Returns a summary dict.
+    ``issue`` (a NewsletterIssue) supplies the subject and message."""
     now = datetime.utcnow()
     summary = {"sent": 0, "skipped_recent": 0, "nothing_to_send": 0, "recipients": []}
     people = recipients()
@@ -132,7 +136,8 @@ def send_all(force=False, only_email=None, dry_run=False):
                 and now - user.newsletter_last_sent < timedelta(days=MIN_DAYS_BETWEEN)):
             summary["skipped_recent"] += 1
             continue
-        built = build(user, now)
+        built = build(user, now, intro=issue.intro if issue else "",
+                      subject=issue.subject if issue else "")
         if not built:
             summary["nothing_to_send"] += 1
             continue
@@ -146,3 +151,58 @@ def send_all(force=False, only_email=None, dry_run=False):
         db.session.commit()
         summary["sent"] += 1
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Issues scheduled from the admin Newsletter page
+# ---------------------------------------------------------------------------
+def send_issue(issue):
+    """Send one issue to every subscriber (the 25-day gap doesn't apply: an
+    admin chose to send it). Claims the issue first, so it's never sent twice
+    even if two processes look at the same time."""
+    claimed = NewsletterIssue.query.filter(
+        NewsletterIssue.id == issue.id,
+        NewsletterIssue.status.in_(["draft", "scheduled"]),
+    ).update({"status": "sending"}, synchronize_session=False)
+    db.session.commit()
+    if not claimed:
+        return None
+    result = send_all(force=True, issue=issue)
+    issue = db.session.get(NewsletterIssue, issue.id)
+    issue.status, issue.sent_at, issue.sent_count = "sent", datetime.utcnow(), result["sent"]
+    db.session.commit()
+    return result
+
+
+def send_due_issues(now=None):
+    """Send every scheduled issue whose time has come. Returns how many."""
+    from flask import has_request_context
+    if not has_request_context():
+        # Running in the background (scheduler / cron): links in the emails need
+        # the site's address, which normally comes from the web request.
+        import os
+        base = os.environ.get("SITE_URL") or "http://localhost:8000"
+        with current_app.test_request_context(base_url=base):
+            return send_due_issues(now)
+    now = now or datetime.utcnow()
+    due = NewsletterIssue.query.filter(NewsletterIssue.status == "scheduled",
+                                       NewsletterIssue.send_at <= now).all()
+    return sum(1 for issue in due if send_issue(issue))
+
+
+def start_scheduler(app, every_seconds=120):
+    """Check for due issues in the background while the web app runs, so no
+    cron job is needed. Started from wsgi.py (the production server)."""
+    import threading
+    import time
+
+    def loop():
+        while True:
+            time.sleep(every_seconds)
+            try:
+                with app.app_context():
+                    send_due_issues()
+            except Exception:
+                app.logger.exception("Scheduled newsletter check failed")
+
+    threading.Thread(target=loop, daemon=True, name="newsletter-scheduler").start()

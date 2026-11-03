@@ -31,6 +31,8 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://hub:${POSTGRES_PASSWORD}@db:5432/hub
+      # Public address used in email and calendar links (override in .env).
+      SITE_URL: ${SITE_URL:-https://folsm-aihub.sites.er.kcl.ac.uk}
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
     volumes:
       - uploads:/app/hub/static/uploads      # profile photos

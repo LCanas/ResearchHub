@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Launch registrations{% endblock %}
+{% set hack = ev.key == 'hackathon' %}
+{% block title %}Registrations: {{ ev.title }}{% endblock %}
 
 {% block hero %}
 <section class="page-hero">
   <div class="container">
-    <div class="hero-eyebrow">Organisers</div>
-    <h1>Launch day registrations</h1>
-    <p>Everyone who registered at <a href="{{ url_for('main.launch_register') }}" style="color:#ffb3bf">/launch/register</a>.
-       Visible to committee members and admins only.</p>
+    <div class="hero-eyebrow"><a href="{{ url_for('main.registrations') }}" style="color:#ffb3bf">Registrations</a> / {{ status|lower }}</div>
+    <h1>{{ ev.title }}</h1>
+    <p>{{ when }} · public form at <a href="{{ url_for(ev.register) }}" style="color:#ffb3bf">{{ url_for(ev.register) }}</a>
+       {% if not is_open %}(<b>not open yet</b>: the form shows "Registration isn't open yet"){% endif %}</p>
   </div>
 </section>
 {% endblock %}
@@ -17,11 +18,11 @@
   <div class="flex space-between flex-wrap gap-sm" style="margin-bottom:1.2rem;align-items:center">
     <div class="stat-chips">
       <span class="chip"><b>{{ regs|length }}</b>&nbsp;registered</span>
-      <span class="chip"><b>{{ reachable }}</b>&nbsp;receiving launch updates</span>
+      <span class="chip"><b>{{ reachable }}</b>&nbsp;receiving updates</span>
       <span class="chip"><b>{{ future }}</b>&nbsp;want future events too</span>
       {% for t, n in by_type|dictsort %}<span class="chip">{{ t }}: <b>&nbsp;{{ n }}</b></span>{% endfor %}
     </div>
-    <a class="btn btn-outline btn-sm" href="{{ url_for('main.launch_registrations', format='csv') }}">⬇ Download CSV (Excel)</a>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('main.registrations_manage', key=ev.key, format='csv') }}">⬇ Download CSV (Excel)</a>
   </div>
 
   <div class="two-col">
@@ -29,16 +30,17 @@
       {% if regs %}
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Name</th><th>Type</th><th>Organisation / school</th><th>On the day</th><th>Updates</th></tr></thead>
+          <thead><tr><th>Name</th><th>{{ 'Taking part as' if hack else 'Type' }}</th><th>Organisation / school</th><th>On the day</th><th>Updates</th></tr></thead>
           <tbody>
           {% for r in regs %}
             <tr>
               <td><b style="color:var(--navy)">{{ r.name }}</b><br><a class="small" href="mailto:{{ r.email }}">{{ r.email }}</a>
                   <div class="small muted">{{ r.created_at.strftime('%d %b %Y') }}{% if r.user %} · <a href="{{ url_for('main.profile', user_id=r.user.id) }}">hub member</a>{% endif %}</div></td>
-              <td>{{ r.attendee_type or 'Not given' }}</td>
+              <td>{% if hack %}{{ r.participation or 'Not given' }}{% if r.skills %}<div class="small muted">{{ r.skills }}</div>{% endif %}
+                  {% else %}{{ r.attendee_type or 'Not given' }}{% endif %}</td>
               <td>{{ r.organisation or 'Not given' }}{% if r.school %}<div class="small muted">{{ r.school }}</div>{% endif %}</td>
               <td class="small">{% if r.dietary %}🍽 {{ r.dietary }}<br>{% endif %}{% if r.accessibility %}♿ {{ r.accessibility }}{% endif %}{% if not r.dietary and not r.accessibility %}Not given{% endif %}</td>
-              <td class="small">{% if r.unsubscribed %}<span class="chip">unsubscribed</span>{% else %}launch{% if r.future_updates %} + future{% endif %}{% endif %}</td>
+              <td class="small">{% if r.unsubscribed %}<span class="chip">unsubscribed</span>{% else %}yes{% if r.future_updates %} + future{% endif %}{% endif %}</td>
             </tr>
           {% endfor %}
           </tbody>
@@ -46,7 +48,7 @@
       </div>
       {% else %}
         <div class="empty"><div class="big">🎟️</div><h3>No registrations yet</h3>
-          <p class="muted">Share the link: {{ url_for('main.launch_register', _external=True) }}</p></div>
+          <p class="muted">Share the link: {{ url_for(ev.register, _external=True) }}</p></div>
       {% endif %}
     </div>
 
@@ -65,11 +67,11 @@
           </div>
           <div class="form-row">
             <label>Subject</label>
-            <input name="subject" required placeholder="e.g. Launch day: date and venue confirmed">
+            <input name="subject" required placeholder="e.g. Date and venue confirmed">
           </div>
           <div class="form-row">
             <label>Message</label>
-            <textarea name="body" required style="min-height:160px" placeholder="The launch day will take place on…"></textarea>
+            <textarea name="body" required style="min-height:160px"></textarea>
           </div>
           <button class="btn btn-primary btn-block" type="submit">Send update</button>
         </form>

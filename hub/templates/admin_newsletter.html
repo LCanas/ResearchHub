@@ -5,12 +5,12 @@
 <section class="page-hero">
   <div class="container">
     <div class="hero-eyebrow">Admin</div>
-    <h1>Monthly newsletter</h1>
+    <h1>Newsletter</h1>
     <ul class="hero-list">
-      <li>Each member gets their own version: open projects matched to their keywords and workstreams,
-          plus upcoming events, recent news and the hackathon.</li>
-      <li>It's sent automatically once a month by the server (see the README), or you can send it now.</li>
-      <li>Nobody receives it twice within 25 days, so sending by hand never double-sends.</li>
+      <li>Each member gets their own version: your message at the top, then open projects matched to
+          their keywords and workstreams, upcoming events, recent news and the hackathon.</li>
+      <li>Send it now, or pick a date and time and the hub sends it for you.</li>
+      <li>Only members who ticked "monthly newsletter" receive it; every copy has an unsubscribe link.</li>
     </ul>
   </div>
 </section>
@@ -19,41 +19,99 @@
 {% block body %}
 <div class="container main">
   <div class="two-col">
-    <div class="card card-pad">
-      <div class="section-title">
-        <h2>Preview</h2>
-        <form method="get" class="flex gap-sm">
-          <select name="preview" onchange="this.form.submit()" style="width:auto">
-            {% for m in members %}
-              <option value="{{ m.id }}" {{ 'selected' if m.id == preview_for.id }}>{{ m.full_name }}</option>
-            {% endfor %}
-          </select>
+    <div>
+      {# ---- The issue being written ---- #}
+      <div class="card card-pad">
+        <div class="section-title">
+          <h2 style="margin:0">
+            {% if issue and issue.status == 'scheduled' %}Scheduled issue
+            {% elif issue %}Draft issue{% else %}New issue{% endif %}
+          </h2>
+          {% if issue %}<a class="btn btn-ghost btn-sm" href="{{ url_for('main.admin_newsletter', new=1) }}">+ Start a new issue</a>{% endif %}
+        </div>
+        {% if issue and issue.status == 'scheduled' %}
+          <div class="flash flash-info" style="margin:.6rem 0 1rem">Will be sent on
+            <b>{{ to_london(issue.send_at).strftime('%A %d %B %Y, %H:%M') }}</b> (UK time). You can still edit it.</div>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('main.admin_newsletter') }}">
+          {% if issue %}<input type="hidden" name="issue" value="{{ issue.id }}">{% endif %}
+          <div class="form-row">
+            <label>Subject <span class="hint">(optional: leave empty for "Your [month] update")</span></label>
+            <input name="subject" maxlength="200" value="{{ issue.subject if issue else '' }}"
+                   placeholder="e.g. Launch day date confirmed, and new projects">
+          </div>
+          <div class="form-row">
+            <label>Your message <span class="hint">(optional: appears at the top of every copy)</span></label>
+            <textarea name="intro" style="min-height:170px"
+                      placeholder="e.g. We're delighted to confirm the launch day for 21 January 2027…">{{ issue.intro if issue else '' }}</textarea>
+          </div>
+          <div class="form-row" style="max-width:320px">
+            <label>Send on <span class="hint">(UK time, for scheduling)</span></label>
+            <input type="datetime-local" name="send_at"
+                   value="{{ to_london(issue.send_at).strftime('%Y-%m-%dT%H:%M') if issue and issue.send_at else '' }}">
+          </div>
+          <div class="flex gap-sm flex-wrap">
+            <button class="btn btn-ghost" name="action" value="save" type="submit">Save draft</button>
+            <button class="btn btn-outline" name="action" value="schedule" type="submit">Schedule</button>
+            <button class="btn btn-primary" name="action" value="send" type="submit"
+                    data-confirm-click="Send this newsletter to all {{ subscribers|length }} subscribers now?">Send now</button>
+            {% if issue and issue.status == 'scheduled' %}
+              <button class="btn btn-ghost" name="action" value="cancel" type="submit">Cancel schedule</button>
+            {% endif %}
+          </div>
         </form>
       </div>
-      {% if preview %}
-        <p class="small muted" style="margin-top:0">To: {{ preview_for.email }}<br>
-          Subject: [Collaboration Hub] {{ preview[0] }}</p>
-        <pre class="newsletter-preview">{{ preview[1] }}</pre>
-      {% else %}
-        <p class="muted">Nothing to send to {{ preview_for.full_name }} right now (no open projects,
-          upcoming events or recent news).</p>
-      {% endif %}
+
+      {# ---- Preview ---- #}
+      <div class="card card-pad mt2">
+        <div class="section-title">
+          <h2 style="margin:0">Preview</h2>
+          <form method="get" class="flex gap-sm">
+            {% if issue %}<input type="hidden" name="issue" value="{{ issue.id }}">{% endif %}
+            <select name="preview" onchange="this.form.submit()" style="width:auto">
+              {% for m in members %}
+                <option value="{{ m.id }}" {{ 'selected' if m.id == preview_for.id }}>{{ m.full_name }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+        <p class="small muted" style="margin-top:0">Save the draft to see your latest changes here.</p>
+        {% if preview %}
+          <p class="small muted">To: {{ preview_for.email }}<br>
+            Subject: [Collaboration Hub] {{ preview[0] }}</p>
+          <pre class="newsletter-preview">{{ preview[1] }}</pre>
+        {% else %}
+          <p class="muted">Nothing to send to {{ preview_for.full_name }} right now (no message, open
+            projects, upcoming events or recent news).</p>
+        {% endif %}
+      </div>
     </div>
 
     <aside>
       <div class="card card-pad">
         <ul class="meta-list">
           <li><span class="k">Subscribers</span><span>{{ subscribers|length }}</span></li>
-          <li><span class="k">Last sent</span><span>{{ last_sent.strftime('%d %b %Y') if last_sent else 'Never' }}</span></li>
         </ul>
-        <form method="post" class="mt"
-              data-confirm="Send this month's newsletter to all {{ subscribers|length }} subscribers now?">
-          <button class="btn btn-primary btn-block" type="submit">Send to all now</button>
-          <label class="flex small mt" style="gap:.4rem">
-            <input type="checkbox" name="force" value="1" style="width:auto">
-            Include people who got one in the last 25 days
-          </label>
-        </form>
+      </div>
+      <div class="card card-pad mt">
+        <h4 style="margin-top:0">Issues</h4>
+        {% if history %}
+          {% set css = {'draft':'stage-waiting','scheduled':'stage-launched','sending':'stage-launched','sent':'stage-ongoing','cancelled':'stage-completed'} %}
+          {% for h in history %}
+          <a class="list-row" href="{{ url_for('main.admin_newsletter', issue=h.id) }}" style="text-decoration:none">
+            <b style="color:var(--navy)">{{ h.subject or 'Monthly update' }}</b>
+            <span class="small muted" style="display:block">
+              <span class="pill {{ css.get(h.status, '') }}">{{ h.status|capitalize }}</span>
+              {% if h.status == 'sent' %}{{ to_london(h.sent_at).strftime('%d %b %Y') }} · {{ h.sent_count }} sent
+              {% elif h.status == 'scheduled' %}for {{ to_london(h.send_at).strftime('%d %b %Y, %H:%M') }}
+              {% else %}created {{ h.created_at.strftime('%d %b %Y') }}{% endif %}
+            </span>
+          </a>
+          {% endfor %}
+        {% else %}
+          <p class="small muted" style="margin:0">No issues yet.</p>
+        {% endif %}
       </div>
     </aside>
   </div>

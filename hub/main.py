@@ -18,8 +18,8 @@ from sqlalchemy import or_
 from .extensions import db
 from .accounts import reset_password, delete_user, is_last_admin, set_suspended
 from .mail import send_mail, absolute_url
-from .newsletter import (build as build_newsletter, send_all as send_newsletters,
-                         recipients as newsletter_recipients,
+from .newsletter import (build as build_newsletter, recipients as newsletter_recipients,
+                         send_issue as send_newsletter_issue,
                          user_from_unsubscribe_token)
 from .recommend import matching_projects
 from .event_sync import sync_if_stale
@@ -27,14 +27,14 @@ from .calendar_feed import build_ics, google_add_link
 from .models import (
     User, Project, Milestone, Collaboration, JoinRequest,
     NewsPost, Event, EventAttendance, USER_ROLES, SpeakerProposal,
-    LaunchRegistration,
+    LaunchRegistration, Registration, NewsletterIssue,
 )
 from .config import (
     STAGE_NAMES, PROJECT_TYPE_NAMES, WORKSTREAM_NAMES, WORKSTREAM_BY_SLUG,
     EVENT_TYPES, REVIEW_STATUSES, WORKSTREAMS, HERO_ART, HACKATHON, LAUNCH,
     EVENT_FEEDS, LAUNCH_PROGRAMME, LAUNCH_SPEAKERS, SPEAKER_SESSION_TYPES,
     SPEAKER_PROPOSAL_STATUSES, CONTACT_EMAIL, ATTENDEE_TYPES, NEWS_LINK_PAGES,
-    SCHOOLS, PORTAL, PORTAL_RESOURCES,
+    SCHOOLS, PORTAL, PORTAL_RESOURCES, HACKATHON_ROLES,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -48,7 +48,7 @@ PUBLIC_ENDPOINTS = {
     "main.code_of_conduct", "main.hackathon", "main.newsletter_unsubscribe",
     "main.launch", "main.call_for_speakers", "main.launch_register",
     "main.launch_unsubscribe", "main.events_calendar", "main.event_calendar",
-    "main.learn",
+    "main.learn", "main.hackathon_register",
 }
 
 # Endpoints a signed-in user can still reach before agreeing to the Code of
@@ -1151,7 +1151,9 @@ def hackathon():
         days_left = None
     return render_template("hackathon.html", challenges=challenges,
                            countdown_target=target, countdown_exact=exact,
-                           days_left=days_left, timeline=hackathon_timeline())
+                           days_left=days_left, timeline=hackathon_timeline(),
+                           registration_is_open=registration_open("hackathon"),
+                           registration_opens_on=registration_opens("hackathon"))
 
 
 def _day(value):
@@ -1348,26 +1350,88 @@ def newsletter_unsubscribe(token):
 @main_bp.route("/admin/newsletter", methods=["GET", "POST"])
 @login_required
 def admin_newsletter():
+    """Write the next issue (subject + message), preview it, and send it now or
+    schedule it. Scheduled issues are sent by the background scheduler."""
     if not current_user.is_admin:
         abort(403)
+    issue = None
+    if request.values.get("issue", type=int):
+        issue = db.session.get(NewsletterIssue, request.values.get("issue", type=int))
+    if issue is None and "new" not in request.args:
+        # Default to the issue being worked on: a draft or one waiting to go.
+        issue = NewsletterIssue.query.filter(NewsletterIssue.status.in_(["draft", "scheduled"])) \
+            .order_by(NewsletterIssue.created_at.desc()).first()
+
     if request.method == "POST":
-        result = send_newsletters(force=bool(request.form.get("force")))
-        flash(f"Newsletter sent to {result['sent']} member(s). "
-              f"Skipped {result['skipped_recent']} who received one in the last "
-              f"few weeks and {result['nothing_to_send']} with nothing to send.",
-              "success")
-        return redirect(url_for("main.admin_newsletter"))
+        action = request.form.get("action", "save")
+        if issue and issue.status not in ("draft", "scheduled"):
+            flash("That issue has already been sent.", "warning")
+            return redirect(url_for("main.admin_newsletter", issue=issue.id))
+        if action == "cancel":
+            if issue:
+                issue.status = "draft"
+                issue.send_at = None
+                db.session.commit()
+                flash("Schedule cancelled; the issue is back to a draft.", "info")
+            return redirect(url_for("main.admin_newsletter", issue=issue.id if issue else None))
+
+        if issue is None:
+            issue = NewsletterIssue(created_by_id=current_user.id)
+            db.session.add(issue)
+        issue.subject = request.form.get("subject", "").strip()[:200]
+        issue.intro = request.form.get("intro", "").strip()
+
+        if action == "schedule":
+            send_at = _london_to_utc(request.form.get("send_at", ""))
+            if not send_at or send_at <= datetime.utcnow():
+                db.session.commit()
+                flash("Choose a send date and time in the future.", "danger")
+                return redirect(url_for("main.admin_newsletter", issue=issue.id))
+            issue.send_at, issue.status = send_at, "scheduled"
+            db.session.commit()
+            flash(f"Scheduled for {_utc_to_london(send_at).strftime('%a %d %b %Y, %H:%M')} (UK time) "
+                  f"to {len(newsletter_recipients())} subscriber(s).", "success")
+        elif action == "send":
+            issue.status = "draft"
+            db.session.commit()
+            result = send_newsletter_issue(issue)
+            flash(f"Newsletter sent to {result['sent']} member(s)"
+                  + (f"; {result['nothing_to_send']} had nothing to send" if result['nothing_to_send'] else "")
+                  + ".", "success")
+        else:
+            if issue.status != "scheduled":
+                issue.status = "draft"
+            db.session.commit()
+            flash("Draft saved.", "success")
+        return redirect(url_for("main.admin_newsletter", issue=issue.id))
 
     subscribers = newsletter_recipients()
     preview_for = db.session.get(User, request.args.get("preview", type=int) or 0) \
         or current_user
-    preview = build_newsletter(preview_for)
-    last_sent = max((u.newsletter_last_sent for u in subscribers
-                     if u.newsletter_last_sent), default=None)
+    preview = build_newsletter(preview_for, intro=issue.intro if issue else "",
+                               subject=issue.subject if issue else "")
+    history = NewsletterIssue.query.order_by(NewsletterIssue.created_at.desc()).limit(12).all()
     return render_template("admin_newsletter.html", subscribers=subscribers,
-                           preview_for=preview_for, preview=preview,
-                           last_sent=last_sent,
+                           preview_for=preview_for, preview=preview, issue=issue,
+                           history=history, to_london=_utc_to_london,
                            members=active_users().order_by(User.full_name).all())
+
+
+def _london_to_utc(value):
+    """A datetime-local value typed in UK time -> naive UTC (stored)."""
+    from zoneinfo import ZoneInfo
+    local = _parse_dt(value)
+    if not local:
+        return None
+    return local.replace(tzinfo=ZoneInfo("Europe/London")) \
+        .astimezone(ZoneInfo("UTC")).replace(tzinfo=None)
+
+
+def _utc_to_london(value):
+    from zoneinfo import ZoneInfo
+    if not value:
+        return None
+    return value.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("Europe/London"))
 
 
 # ---------------------------------------------------------------------------
@@ -1472,20 +1536,125 @@ def speaker_proposals():
 
 
 # ---------------------------------------------------------------------------
-# Launch day registration
+# Registrations: launch day and the hackathon (public forms), plus hub events
+# (members sign up on the event page). Organisers manage them all from
+# /registrations.
 # ---------------------------------------------------------------------------
+APP_NAME_TEXT = "Collaboration Hub"
+
+
+def special_events():
+    """Events with their own public registration form, keyed by URL part."""
+    return {
+        "launch": {"key": "launch", "title": "Collaboration Hub launch day",
+                   "short": "launch day", "page": "main.launch",
+                   "register": "main.launch_register", "cfg": LAUNCH, "exact_key": "date"},
+        "hackathon": {"key": "hackathon", "title": HACKATHON["name"],
+                      "short": "the hackathon", "page": "main.hackathon",
+                      "register": "main.hackathon_register", "cfg": HACKATHON,
+                      "exact_key": "start"},
+    }
+
+
+def registration_opens(key):
+    """The day registration opens, or None if it isn't scheduled yet. Launch day
+    registration is always open."""
+    if key == "launch":
+        return date.min
+    return _day(HACKATHON.get("registration_opens"))
+
+
+def registration_open(key, today=None):
+    opens = registration_opens(key)
+    return bool(opens and opens <= (today or date.today()))
+
+
+def _special_when(ev):
+    exact = _day(ev["cfg"].get(ev["exact_key"]))
+    if exact:
+        return f"{exact.day} {exact.strftime('%B %Y')}"
+    return f"{ev['cfg']['when']} · date TBA"
+
+
+def _special_status(ev, today=None):
+    """Upcoming / Ongoing / Past for launch day or the hackathon."""
+    today = today or date.today()
+    cfg = ev["cfg"]
+    exact = _day(cfg.get(ev["exact_key"]))
+    if exact:
+        last = _day(cfg.get("end")) or exact
+        if today > last:
+            return "Past"
+        return "Ongoing" if today >= exact else "Upcoming"
+    after = _after_month(cfg.get("month_start"))
+    return "Past" if after and today >= after else "Upcoming"
+
+
+def _event_status(ev, now=None):
+    now = now or datetime.utcnow()
+    end = ev.end_at or ev.start_at.replace(hour=23, minute=59)
+    if now > end:
+        return "Past"
+    return "Ongoing" if now >= ev.start_at else "Upcoming"
+
+
 def _registration_serializer():
     from itsdangerous import URLSafeSerializer
     return URLSafeSerializer(current_app.config["SECRET_KEY"], salt="launch-updates")
 
 
+def _unsubscribe_link(reg):
+    token = _registration_serializer().dumps({"k": reg.event_key, "e": reg.email})
+    return absolute_url("main.launch_unsubscribe", token=token)
+
+
+def _send_individually(messages):
+    """Send (to, subject, body) emails one by one in the background."""
+    app = current_app._get_current_object()
+
+    def run():
+        with app.app_context():
+            for to, subj, text in messages:
+                send_mail([to], subj, text, wait=True)
+
+    if app.testing:
+        run()
+    else:
+        threading.Thread(target=run, daemon=True).start()
+
+
+def _csv_response(header, rows, filename):
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(header)
+    w.writerows(rows)
+    return current_app.response_class(
+        "﻿" + out.getvalue(), mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}_{date.today()}.csv"})
+
+
+# --- public forms -------------------------------------------------------------
 @main_bp.route("/launch/register", methods=["GET", "POST"])
 def launch_register():
     """Public: guests and external partners can register without an account."""
+    return _register("launch")
+
+
+@main_bp.route("/hackathon/register", methods=["GET", "POST"])
+def hackathon_register():
+    return _register("hackathon")
+
+
+def _register(key):
+    ev = special_events()[key]
+    is_open = registration_open(key)
     form = request.form
     if request.method == "POST":
+        if not is_open:
+            flash(f"Registration for {ev['short']} isn't open yet.", "info")
+            return redirect(url_for(ev["page"]))
         if form.get("website"):                     # spam trap, as on the speaker form
-            return redirect(url_for("main.launch_register", done=1))
+            return redirect(url_for(ev["register"], done=1))
         name = form.get("name", "").strip()
         email = form.get("email", "").strip().lower()
         errors = []
@@ -1498,12 +1667,13 @@ def launch_register():
         if errors:
             for e in errors:
                 flash(e, "danger")
-            return render_template("launch_register.html", form=form)
+            return render_template("register_event.html", ev=ev, is_open=True, form=form,
+                                   when=_special_when(ev))
 
-        reg = LaunchRegistration.query.filter_by(email=email).first()
+        reg = Registration.query.filter_by(event_key=key, email=email).first()
         again = reg is not None
         if not reg:
-            reg = LaunchRegistration(email=email)
+            reg = Registration(event_key=key, email=email)
             db.session.add(reg)
         reg.name = name[:120]
         reg.organisation = form.get("organisation", "").strip()[:200]
@@ -1511,6 +1681,9 @@ def launch_register():
         reg.attendee_type = form.get("attendee_type", "") \
             if form.get("attendee_type") in ATTENDEE_TYPES else ""
         reg.interests = "|".join(w for w in form.getlist("interests") if w in WORKSTREAM_NAMES)
+        reg.participation = form.get("participation", "") \
+            if form.get("participation") in HACKATHON_ROLES else ""
+        reg.skills = form.get("skills", "").strip()[:400]
         reg.dietary = form.get("dietary", "").strip()[:200]
         reg.accessibility = form.get("accessibility", "").strip()[:300]
         reg.future_updates = bool(form.get("future_updates"))
@@ -1520,57 +1693,111 @@ def launch_register():
             reg.user_id = current_user.id
         db.session.commit()
 
+        when = _special_when(ev)
         send_mail(
-            [reg.email], "You're registered for launch day",
-            f"Hello {reg.name},\n\nThank you for registering for the {APP_NAME_TEXT} launch "
-            f"day ({LAUNCH.get('date') or LAUNCH['when']}). The exact date, venue and "
-            f"programme are still to be announced; we'll email you as soon as they're "
-            f"confirmed.\n\nLaunch day: {absolute_url('main.launch')}\n\n"
+            [reg.email], f"You're registered for {ev['short']}",
+            f"Hello {reg.name},\n\nThank you for registering for {ev['title']} ({when}). "
+            f"We'll email you with the details, including anything still to be "
+            f"confirmed, as soon as they're ready.\n\n{absolute_url(ev['page'])}\n\n"
             f"To change your details, just register again with the same email.\n"
             f"Stop receiving updates: {_unsubscribe_link(reg)}\n",
         )
-        return redirect(url_for("main.launch_register", done=1, again=int(again)))
+        return redirect(url_for(ev["register"], done=1, again=int(again)))
 
     prefill = {}
     if current_user.is_authenticated:
         prefill = {"name": current_user.full_name, "email": current_user.email,
                    "school": current_user.school}
-    return render_template("launch_register.html", form=prefill,
+    return render_template("register_event.html", ev=ev, is_open=is_open, form=prefill,
+                           when=_special_when(ev), opens=registration_opens(key),
                            done=request.args.get("done") == "1",
                            again=request.args.get("again") == "1")
-
-
-APP_NAME_TEXT = "Collaboration Hub"
-
-
-def _unsubscribe_link(reg):
-    return absolute_url("main.launch_unsubscribe",
-                        token=_registration_serializer().dumps(reg.id))
 
 
 @main_bp.route("/launch/unsubscribe/<token>", methods=["GET", "POST"])
 def launch_unsubscribe(token):
     # As with the newsletter, GET only shows a button (mail scanners open links).
+    reg = None
     try:
-        reg = db.session.get(LaunchRegistration, _registration_serializer().loads(token))
+        data = _registration_serializer().loads(token)
     except Exception:
-        reg = None
+        abort(404)
+    if isinstance(data, dict):
+        reg = Registration.query.filter_by(event_key=data.get("k"), email=data.get("e")).first()
+    else:
+        # Links in emails sent before registrations covered several events
+        # carry the old launch_registrations id.
+        old = db.session.get(LaunchRegistration, data)
+        if old:
+            reg = Registration.query.filter_by(event_key="launch", email=old.email).first()
     reg or abort(404)
     done = False
     if request.method == "POST":
         reg.unsubscribed = True
         db.session.commit()
         done = True
-    return render_template("launch_unsubscribe.html", reg=reg, done=done)
+    return render_template("launch_unsubscribe.html", reg=reg, done=done,
+                           ev=special_events().get(reg.event_key))
 
 
-@main_bp.route("/launch/registrations", methods=["GET", "POST"])
+# --- organisers: overview ------------------------------------------------------
+@main_bp.route("/registrations")
 @login_required
-def launch_registrations():
-    """For organisers: the list, a CSV export and update emails."""
+def registrations():
+    """Every event people register for, filterable by status and searchable."""
     if not current_user.can_review:
         abort(403)
-    regs = LaunchRegistration.query.order_by(LaunchRegistration.created_at.desc()).all()
+    rows = []
+    for key, ev in special_events().items():
+        regs = Registration.query.filter_by(event_key=key)
+        opens = registration_opens(key)
+        rows.append({
+            "title": ev["title"], "kind": "Hub event" if key == "launch" else "Hackathon",
+            "when": _special_when(ev), "status": _special_status(ev),
+            "count": regs.count(), "url": url_for("main.registrations_manage", key=key),
+            "sort": _day(ev["cfg"].get(ev["exact_key"])) or _day(ev["cfg"].get("month_start")) or date.max,
+            "note": "" if registration_open(key) else
+                    (f"Registration opens {opens.day} {opens.strftime('%b %Y')}" if opens
+                     else "Registration not open yet"),
+        })
+    for ev in Event.query.filter((Event.external_source == "") | (Event.external_source.is_(None))) \
+            .order_by(Event.start_at.desc()).all():
+        rows.append({
+            "title": ev.title, "kind": ev.event_type or "Event",
+            "when": ev.start_at.strftime("%a %d %b %Y, %H:%M"), "status": _event_status(ev),
+            "count": ev.attendee_count, "url": url_for("main.registrations_event", event_id=ev.id),
+            "sort": ev.start_at.date(), "note": "",
+        })
+
+    counts = {s: sum(1 for r in rows if r["status"] == s) for s in ("Upcoming", "Ongoing", "Past")}
+    status = request.args.get("status", "")
+    q = request.args.get("q", "").strip()
+    shown = [r for r in rows if (not status or r["status"] == status)
+             and (not q or q.lower() in r["title"].lower())]
+    # Upcoming / ongoing soonest first, past most recent first.
+    order = {"Ongoing": 0, "Upcoming": 1, "Past": 2}
+    shown.sort(key=lambda r: (order[r["status"]],
+                              r["sort"] if r["status"] != "Past" else date.max - (r["sort"] - date.min)))
+    return render_template("registrations.html", rows=shown, counts=counts, total=len(rows),
+                           active_status=status, q=q)
+
+
+@main_bp.route("/launch/registrations")
+@login_required
+def launch_registrations():
+    return redirect(url_for("main.registrations_manage", key="launch"))
+
+
+# --- organisers: launch day / hackathon ----------------------------------------
+@main_bp.route("/registrations/<key>", methods=["GET", "POST"])
+@login_required
+def registrations_manage(key):
+    """One event's registrations: the list, a CSV export and update emails."""
+    if not current_user.can_review:
+        abort(403)
+    ev = special_events().get(key) or abort(404)
+    regs = Registration.query.filter_by(event_key=key) \
+        .order_by(Registration.created_at.desc()).all()
 
     if request.method == "POST":
         subject = request.form.get("subject", "").strip()
@@ -1578,50 +1805,79 @@ def launch_registrations():
         audience = request.form.get("audience", "all")
         if not subject or not body:
             flash("An update needs a subject and a message.", "danger")
-            return redirect(url_for("main.launch_registrations"))
+            return redirect(url_for("main.registrations_manage", key=key))
         targets = [r for r in regs if not r.unsubscribed
                    and (audience == "all" or r.future_updates)]
-        messages = [(r.email, subject,
-                     f"Hello {r.name},\n\n{body}\n\nYou're receiving this because you "
-                     f"registered for the {APP_NAME_TEXT} launch day.\n"
-                     f"Stop receiving updates: {_unsubscribe_link(r)}\n") for r in targets]
-        app = current_app._get_current_object()
-
-        def send_all():
-            with app.app_context():
-                for to, subj, text in messages:
-                    send_mail([to], subj, text, wait=True)
-
-        if app.testing:
-            send_all()
-        else:
-            threading.Thread(target=send_all, daemon=True).start()
-        flash(f"Update sent to {len(messages)} registrant(s).", "success")
-        return redirect(url_for("main.launch_registrations"))
+        _send_individually([
+            (r.email, subject,
+             f"Hello {r.name},\n\n{body}\n\nYou're receiving this because you registered "
+             f"for {ev['title']}.\nStop receiving updates: {_unsubscribe_link(r)}\n")
+            for r in targets])
+        flash(f"Update sent to {len(targets)} registrant(s).", "success")
+        return redirect(url_for("main.registrations_manage", key=key))
 
     if request.args.get("format") == "csv":
-        out = io.StringIO()
-        w = csv.writer(out)
-        w.writerow(["Registered", "Name", "Email", "Organisation", "School", "Type",
-                    "Interests", "Dietary", "Accessibility", "Future hub updates",
-                    "Unsubscribed", "Hub member"])
+        header = ["Registered", "Name", "Email", "Organisation", "School", "Type"]
+        if key == "hackathon":
+            header += ["Taking part as", "Skills"]
+        header += ["Interests", "Dietary", "Accessibility", "Future hub updates",
+                   "Unsubscribed", "Hub member"]
+        rows = []
         for r in regs:
-            w.writerow([r.created_at.strftime("%Y-%m-%d"), r.name, r.email, r.organisation,
-                        r.school, r.attendee_type, "; ".join(r.interest_list), r.dietary,
-                        r.accessibility, "yes" if r.future_updates else "no",
-                        "yes" if r.unsubscribed else "no", "yes" if r.user_id else "no"])
-        return current_app.response_class(
-            "\ufeff" + out.getvalue(), mimetype="text/csv",
-            headers={"Content-Disposition":
-                     f"attachment; filename=launch_registrations_{date.today()}.csv"})
+            row = [r.created_at.strftime("%Y-%m-%d"), r.name, r.email, r.organisation,
+                   r.school, r.attendee_type]
+            if key == "hackathon":
+                row += [r.participation, r.skills]
+            row += ["; ".join(r.interest_list), r.dietary, r.accessibility,
+                    "yes" if r.future_updates else "no", "yes" if r.unsubscribed else "no",
+                    "yes" if r.user_id else "no"]
+            rows.append(row)
+        return _csv_response(header, rows, f"{key}_registrations")
 
     by_type = {}
     for r in regs:
-        by_type[r.attendee_type or "Not given"] = by_type.get(r.attendee_type or "Not given", 0) + 1
+        label = (r.participation if key == "hackathon" else r.attendee_type) or "Not given"
+        by_type[label] = by_type.get(label, 0) + 1
     return render_template(
-        "launch_registrations.html", regs=regs, by_type=by_type,
+        "registrations_manage.html", ev=ev, regs=regs, by_type=by_type,
+        when=_special_when(ev), status=_special_status(ev), is_open=registration_open(key),
         reachable=sum(1 for r in regs if not r.unsubscribed),
         future=sum(1 for r in regs if r.future_updates and not r.unsubscribed))
+
+
+# --- organisers: hub events ----------------------------------------------------
+@main_bp.route("/registrations/event/<int:event_id>", methods=["GET", "POST"])
+@login_required
+def registrations_event(event_id):
+    if not current_user.can_review:
+        abort(403)
+    ev = db.session.get(Event, event_id) or abort(404)
+    attendances = sorted(ev.attendances, key=lambda a: a.created_at, reverse=True)
+
+    if request.method == "POST":
+        subject = request.form.get("subject", "").strip()
+        body = request.form.get("body", "").strip()
+        if not subject or not body:
+            flash("An update needs a subject and a message.", "danger")
+            return redirect(url_for("main.registrations_event", event_id=ev.id))
+        _send_individually([
+            (a.user.email, subject,
+             f"Hello {a.user.full_name},\n\n{body}\n\nYou're receiving this because you "
+             f"signed up for “{ev.title}” on the {APP_NAME_TEXT}.\n"
+             f"{absolute_url('main.event_detail', event_id=ev.id)}\n")
+            for a in attendances if not a.user.is_suspended])
+        flash(f"Update sent to {len(attendances)} attendee(s).", "success")
+        return redirect(url_for("main.registrations_event", event_id=ev.id))
+
+    if request.args.get("format") == "csv":
+        return _csv_response(
+            ["Signed up", "Name", "Email", "School", "Department"],
+            [[a.created_at.strftime("%Y-%m-%d"), a.user.full_name, a.user.email,
+              a.user.school, a.user.department] for a in attendances],
+            f"event_{ev.id}_attendees")
+
+    return render_template("registrations_event.html", ev=ev, attendances=attendances,
+                           status=_event_status(ev))
 
 
 # ---------------------------------------------------------------------------

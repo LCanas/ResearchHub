@@ -884,3 +884,6 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 /* Key dates (launch, hackathon) whose exact day isn't fixed yet. */
 .event-date .day.tba, .mini-date .d.tba { font-size: .95rem; letter-spacing: .5px; }
 .key-date { border-left: 3px solid var(--crimson); }
+
+/* A button shown but not usable yet (e.g. registration not open). */
+.btn-disabled { opacity: .45; cursor: not-allowed; pointer-events: none; filter: grayscale(1); }

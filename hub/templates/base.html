@@ -52,7 +52,7 @@
           <a href="{{ url_for('main.my_requests') }}">Join requests</a>
           {% if current_user.can_review %}
           <a href="{{ url_for('main.review_queue') }}">Committee review{% if review_queue_count %} <span class="badge-count">{{ review_queue_count }}</span>{% endif %}</a>
-          <a href="{{ url_for('main.launch_registrations') }}">Launch registrations</a>
+          <a href="{{ url_for('main.registrations') }}">Registrations</a>
           <a href="{{ url_for('main.speaker_proposals') }}">Speaker proposals{% if new_speaker_count %} <span class="badge-count">{{ new_speaker_count }}</span>{% endif %}</a>
           {% endif %}
           {% if current_user.is_admin %}

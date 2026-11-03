@@ -32,6 +32,26 @@ def move_departments_to_schools(models):
     return moved
 
 
+def copy_launch_registrations():
+    """Registrations used to be launch-only (launch_registrations). Copy any rows
+    not yet in the shared registrations table; safe to run on every boot."""
+    from hub.models import LaunchRegistration, Registration
+    have = {r.email for r in Registration.query.filter_by(event_key="launch")}
+    copied = 0
+    for old in LaunchRegistration.query.all():
+        if old.email in have:
+            continue
+        db.session.add(Registration(
+            event_key="launch", name=old.name, email=old.email, organisation=old.organisation,
+            school=old.school, attendee_type=old.attendee_type, interests=old.interests,
+            dietary=old.dietary, accessibility=old.accessibility,
+            future_updates=old.future_updates, unsubscribed=old.unsubscribed,
+            user_id=old.user_id, created_at=old.created_at, updated_at=old.updated_at))
+        copied += 1
+    db.session.commit()
+    return copied
+
+
 def main():
     app = create_app()
     with app.app_context():
@@ -56,6 +76,9 @@ def main():
             move_departments_to_schools([User, Project])
 
     with app.app_context():
+        moved = copy_launch_registrations()
+        if moved:
+            print(f"Copied {moved} launch registration(s) into the registrations table.")
         from hub.event_sync import sync_all
         for name, result in sync_all().items():
             print(f"Events from {name}: {result}")

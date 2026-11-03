@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Launch day updates{% endblock %}
+{% block title %}Event updates{% endblock %}
 
 {% block body %}
 <div class="container main" style="max-width:560px">
   <div class="card card-pad">
     {% if done %}
       <h1>You're unsubscribed</h1>
-      <p>We won't send any more launch day updates to <b>{{ reg.email }}</b>. Registering again on the
-         launch page turns them back on.</p>
+      <p>We won't send any more updates about {{ ev.short if ev else 'this event' }} to <b>{{ reg.email }}</b>.
+         Registering again turns them back on.</p>
     {% else %}
-      <h1>Stop launch day updates?</h1>
-      <p>This stops emails about the launch day and future events to <b>{{ reg.email }}</b>.</p>
+      <h1>Stop these updates?</h1>
+      <p>This stops emails about {{ ev.short if ev else 'this event' }} to <b>{{ reg.email }}</b>.</p>
       <form method="post">
         <button class="btn btn-primary" type="submit">Unsubscribe</button>
-        <a class="btn btn-ghost" href="{{ url_for('main.launch') }}">Keep receiving them</a>
+        <a class="btn btn-ghost" href="{{ url_for(ev.page) if ev else url_for('main.index') }}">Keep receiving them</a>
       </form>
     {% endif %}
   </div>

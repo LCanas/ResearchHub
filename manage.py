@@ -79,7 +79,10 @@ def cmd_suspend(args):
 
 def cmd_newsletter(args):
     import os
-    from hub.newsletter import send_all
+    from hub.newsletter import send_all, send_due_issues
+    if args.due:
+        print(f"Sent {send_due_issues()} scheduled issue(s).")
+        return
     result = send_all(force=args.force, only_email=args.to, dry_run=args.dry_run)
     verb = "Would send" if args.dry_run else "Sent"
     count = len(result["recipients"]) if args.dry_run else result["sent"]
@@ -127,6 +130,8 @@ def main():
         sub.add_parser(name, help=text).add_argument("email")
     p_news = sub.add_parser("newsletter", help="send the monthly newsletter")
     p_news.add_argument("--dry-run", action="store_true", help="print instead of sending")
+    p_news.add_argument("--due", action="store_true",
+                        help="only send issues scheduled on the admin page whose time has come")
     p_news.add_argument("--to", help="only this member (for testing)")
     p_news.add_argument("--force", action="store_true",
                         help="send even to people who got one in the last 25 days")

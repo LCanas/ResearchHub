@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Registrations{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Organisers</div>
+    <h1>Registrations</h1>
+    <p>Everything people can register for: launch day, the hackathon and the hub's own events.
+       Open one to see who's registered, download the list or email them an update.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main" style="max-width:1100px">
+  <form class="filters" method="get" action="{{ url_for('main.registrations') }}">
+    <div class="field grow">
+      <label>Search</label>
+      <input name="q" value="{{ q }}" placeholder="Event name…">
+    </div>
+    <input type="hidden" name="status" value="{{ active_status }}">
+    <div class="field"><label>&nbsp;</label><button class="btn btn-navy" type="submit">Search</button></div>
+  </form>
+
+  <div class="flex gap-sm flex-wrap mt" style="margin-bottom:1rem">
+    <a class="btn btn-sm {{ 'btn-navy' if not active_status else 'btn-ghost' }}" href="{{ url_for('main.registrations', q=q) }}">All ({{ total }})</a>
+    {% for s in ['Upcoming', 'Ongoing', 'Past'] %}
+      <a class="btn btn-sm {{ 'btn-navy' if active_status == s else 'btn-ghost' }}" href="{{ url_for('main.registrations', status=s, q=q) }}">{{ s }} ({{ counts[s] }})</a>
+    {% endfor %}
+  </div>
+
+  <div class="card card-pad">
+    {% if rows %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Event</th><th>When</th><th>Status</th><th>Registered</th><th></th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+          {% set css = {'Upcoming':'stage-waiting','Ongoing':'stage-ongoing','Past':'stage-completed'} %}
+          <tr>
+            <td><a href="{{ r.url }}"><b style="color:var(--navy)">{{ r.title }}</b></a>
+                <div class="small muted">{{ r.kind }}{% if r.note %} · {{ r.note }}{% endif %}</div></td>
+            <td class="small">{{ r.when }}</td>
+            <td><span class="pill {{ css.get(r.status, '') }}">{{ r.status }}</span></td>
+            <td><b>{{ r.count }}</b></td>
+            <td><a class="btn btn-outline btn-sm" href="{{ r.url }}">Manage</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="empty"><div class="big">🔍</div><h3>Nothing matches</h3>
+        <a class="btn btn-ghost mt" href="{{ url_for('main.registrations') }}">Show all</a></div>
+    {% endif %}
+  </div>
+  <p class="small muted mt">Events imported from the FoLSM AI Portal aren't listed: people register for those on the portal.</p>
+</div>
+{% endblock %}

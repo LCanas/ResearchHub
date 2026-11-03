@@ -401,3 +401,57 @@ class LaunchRegistration(db.Model):
     @property
     def interest_list(self):
         return [w for w in (self.interests or "").split("|") if w]
+
+
+class Registration(db.Model):
+    """Someone registered for launch day or the hackathon (public forms, no
+    account needed). One row per person per event. Hub events use
+    EventAttendance instead; launch_registrations is the older table this
+    replaced (rows are copied across on boot, see init_db.py)."""
+    __tablename__ = "registrations"
+
+    id = db.Column(db.Integer, primary_key=True)
+    event_key = db.Column(db.String(30), nullable=False, index=True)   # "launch" / "hackathon"
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), nullable=False, index=True)
+    organisation = db.Column(db.String(200), default="")
+    school = db.Column(db.String(120), default="")
+    attendee_type = db.Column(db.String(60), default="")
+    interests = db.Column(db.String(400), default="")    # pipe-separated workstreams
+    participation = db.Column(db.String(60), default="")  # hackathon: how they'll take part
+    skills = db.Column(db.String(400), default="")        # hackathon: what they bring
+    dietary = db.Column(db.String(200), default="")
+    accessibility = db.Column(db.String(300), default="")
+    future_updates = db.Column(db.Boolean, default=False)  # opted in to later hub events
+    unsubscribed = db.Column(db.Boolean, default=False)    # no more update emails
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User")
+
+    __table_args__ = (
+        db.UniqueConstraint("event_key", "email", name="uq_registration_event_email"),
+    )
+
+    @property
+    def interest_list(self):
+        return [w for w in (self.interests or "").split("|") if w]
+
+
+class NewsletterIssue(db.Model):
+    """One newsletter issue: an optional subject and message from the organisers,
+    added to each member's personalised digest, sent now or at ``send_at``."""
+    __tablename__ = "newsletter_issues"
+
+    id = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.String(200), default="")      # "" = "Your <month> update"
+    intro = db.Column(db.Text, default="")                # the organisers' message
+    send_at = db.Column(db.DateTime)                       # UTC; set when scheduled
+    status = db.Column(db.String(20), default="draft", index=True)  # draft/scheduled/sending/sent/cancelled
+    sent_at = db.Column(db.DateTime)
+    sent_count = db.Column(db.Integer, default=0)
+    created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    created_by = db.relationship("User")

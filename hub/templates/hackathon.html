@@ -9,10 +9,21 @@
     <h1>{{ HACKATHON.name }}</h1>
     <p style="max-width:760px">Bring a real clinical or research problem, and leave with a working prototype
        and a team to take it further. Challenge submissions are <b>open now</b>.</p>
-    <div class="flex gap-sm" style="margin-top:1.2rem;flex-wrap:wrap">
+    <div class="flex gap-sm" style="margin-top:1.2rem;flex-wrap:wrap;align-items:center">
       <a class="btn btn-primary" href="{{ url_for('main.project_new', type='Hackathon') }}">Submit a challenge</a>
+      {% if registration_is_open %}
+        <a class="btn btn-outline-light" href="{{ url_for('main.hackathon_register') }}">Register to take part</a>
+      {% else %}
+        <span class="btn btn-outline-light btn-disabled" aria-disabled="true"
+              title="Registration isn't open yet">Register to take part</span>
+      {% endif %}
       <a class="btn btn-outline-light" href="{{ url_for('main.code_of_conduct') }}">Code of Conduct</a>
     </div>
+    {% if not registration_is_open %}
+    <p class="small" style="color:#b9c4da;margin:.6rem 0 0">Participant registration opens
+      {% if registration_opens_on %}on {{ registration_opens_on.day }} {{ registration_opens_on.strftime('%B %Y') }}{% else %}soon{% endif %}.
+      Challenge submissions are open now.</p>
+    {% endif %}
 
     {% if days_left is not none and days_left >= 0 %}
     <div class="countdown" data-target="{{ countdown_target }}" data-exact="{{ 1 if countdown_exact else 0 }}">

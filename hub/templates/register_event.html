@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Register for launch day{% endblock %}
+{% set hack = ev.key == 'hackathon' %}
+{% block title %}Register: {{ ev.title }}{% endblock %}
 
 {% block hero %}
 <section class="page-hero">
   <div class="container">
-    <div class="hero-eyebrow">Launch day · {{ LAUNCH.date or LAUNCH.when }}</div>
-    <h1>Register for launch day</h1>
-    <p>The date, venue and programme are still to be announced. Register now and you'll be the first to
-       hear, with the details sent straight to your inbox. You don't need a hub account.</p>
+    <div class="hero-eyebrow">{{ 'Hackathon' if hack else 'Launch day' }} · {{ when }}</div>
+    <h1>Register for {{ ev.short }}</h1>
+    {% if hack %}
+      <p>Take part in the {{ ev.title }}: join a team, bring a challenge, or mentor. Register and we'll
+         send you the details as they're confirmed. You don't need a hub account.</p>
+    {% else %}
+      <p>The date, venue and programme are still to be announced. Register now and you'll be the first to
+         hear, with the details sent straight to your inbox. You don't need a hub account.</p>
+    {% endif %}
   </div>
 </section>
 {% endblock %}
@@ -17,19 +23,30 @@
   {% if done %}
   <div class="card card-pad" style="max-width:720px">
     <h2 style="margin-top:0">{{ "Your details are updated" if again else "You're registered" }} 🎉</h2>
-    <p>We've sent a confirmation to your email. We'll be in touch as soon as the date, venue and programme
-       are confirmed.</p>
+    <p>We've sent a confirmation to your email, and we'll be in touch as soon as there's news.</p>
     <div class="flex gap-sm flex-wrap">
-      <a class="btn btn-primary" href="{{ url_for('main.launch') }}">Back to launch day</a>
+      <a class="btn btn-primary" href="{{ url_for(ev.page) }}">Back to {{ ev.short }}</a>
       {% if not current_user.is_authenticated %}
         <a class="btn btn-outline" href="{{ url_for('auth.register') }}">Create a hub profile too</a>
       {% endif %}
-      <a class="btn btn-ghost" href="{{ url_for('main.call_for_speakers') }}">Propose a talk</a>
     </div>
   </div>
+
+  {% elif not is_open %}
+  <div class="card card-pad" style="max-width:720px">
+    <h2 style="margin-top:0">Registration isn't open yet</h2>
+    <p>Registration for {{ ev.short }} opens
+       {% if opens %}on <b>{{ opens.day }} {{ opens.strftime('%B %Y') }}</b>{% else %}soon{% endif %}.
+       {% if hack %}In the meantime, you can already submit a challenge.{% endif %}</p>
+    <div class="flex gap-sm flex-wrap">
+      <a class="btn btn-primary" href="{{ url_for(ev.page) }}">Back to {{ ev.short }}</a>
+      {% if hack %}<a class="btn btn-outline" href="{{ url_for('main.project_new', type='Hackathon') }}">Submit a challenge</a>{% endif %}
+    </div>
+  </div>
+
   {% else %}
   <div class="cfs-layout">
-    <form method="post" action="{{ url_for('main.launch_register') }}" class="card card-pad">
+    <form method="post" action="{{ url_for(ev.register) }}" class="card card-pad">
       <div class="hp-field" aria-hidden="true">
         <label>Website <input name="website" tabindex="-1" autocomplete="off"></label>
       </div>
@@ -64,7 +81,24 @@
         </div>
       </div>
 
-      <h3 class="form-section-title">Your interests <span class="hint" style="text-transform:none;letter-spacing:0">(helps us plan networking)</span></h3>
+      {% if hack %}
+      <h3 class="form-section-title">Taking part</h3>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>I'd like to take part as</label>
+          <select name="participation">
+            <option value="">Select</option>
+            {% for r in HACKATHON_ROLES %}<option {{ 'selected' if form.get('participation') == r }}>{{ r }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Skills you bring <span class="hint">(optional)</span></label>
+          <input name="skills" value="{{ form.get('skills', '') }}" placeholder="e.g. Python, clinical radiology, UX design">
+        </div>
+      </div>
+      {% endif %}
+
+      <h3 class="form-section-title">Your interests <span class="hint" style="text-transform:none;letter-spacing:0">(helps us plan {{ 'teams' if hack else 'networking' }})</span></h3>
       {% set chosen = form.getlist('interests') if form.getlist is defined else [] %}
       <div class="check-grid">
         {% for w in WORKSTREAMS %}
@@ -86,25 +120,27 @@
 
       <label class="flex small mt" style="align-items:flex-start;gap:.5rem">
         <input type="checkbox" name="consent" value="1" required style="width:auto;margin-top:.2rem" {{ 'checked' if form.get('consent') }}>
-        <span>I agree that the organisers may store these details and email me about the launch day
-          (date, venue, programme and practical information). I can unsubscribe at any time.</span>
+        <span>I agree that the organisers may store these details and email me about {{ ev.short }}
+          (dates, venue, programme and practical information). I can unsubscribe at any time.</span>
       </label>
       <label class="flex small mt" style="align-items:flex-start;gap:.5rem">
         <input type="checkbox" name="future_updates" value="1" style="width:auto;margin-top:.2rem" {{ 'checked' if form.get('future_updates') }}>
-        <span>Also let me know about future {{ APP_NAME }} events, such as the {{ HACKATHON.when }} hackathon.</span>
+        <span>Also let me know about future {{ APP_NAME }} events.</span>
       </label>
       <button class="btn btn-primary btn-lg mt" type="submit">Register</button>
     </form>
 
     <aside>
       <div class="card card-pad">
-        <h4 style="margin-top:0">Launch day</h4>
+        <h4 style="margin-top:0">{{ ev.title }}</h4>
         <ul class="meta-list">
-          <li><span class="k">When</span><span>{{ LAUNCH.date or LAUNCH.when }}{% if not LAUNCH.date %} · date TBA{% endif %}</span></li>
+          <li><span class="k">When</span><span>{{ when }}</span></li>
+          {% if not hack %}
           <li><span class="k">Where</span><span>{{ LAUNCH.venue or 'To be announced' }}</span></li>
           <li><span class="k">Programme</span><span>To be announced</span></li>
+          {% endif %}
         </ul>
-        <a class="small" href="{{ url_for('main.launch') }}">More about the day →</a>
+        <a class="small" href="{{ url_for(ev.page) }}">More about {{ ev.short }} →</a>
       </div>
       <div class="card card-pad mt">
         <h4 style="margin-top:0">Already registered?</h4>

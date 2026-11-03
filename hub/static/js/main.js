@@ -1,5 +1,12 @@
 // Small progressive-enhancement helpers for the Collaboration Hub.
 document.addEventListener("DOMContentLoaded", function () {
+  // Confirm one specific button (e.g. "Send now") rather than the whole form.
+  document.querySelectorAll("[data-confirm-click]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      if (!window.confirm(btn.getAttribute("data-confirm-click"))) { e.preventDefault(); }
+    });
+  });
+
   // Confirm destructive actions.
   document.querySelectorAll("[data-confirm]").forEach(function (el) {
     el.addEventListener("submit", function (e) {

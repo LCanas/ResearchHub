@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Registrations: {{ ev.title }}{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow"><a href="{{ url_for('main.registrations') }}" style="color:#ffb3bf">Registrations</a> / {{ status|lower }}</div>
+    <h1>{{ ev.title }}</h1>
+    <p>{{ ev.event_type }} · {{ ev.start_at.strftime('%a %d %B %Y, %H:%M') }}
+       · <a href="{{ url_for('main.event_detail', event_id=ev.id) }}" style="color:#ffb3bf">event page</a></p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  <div class="flex space-between flex-wrap gap-sm" style="margin-bottom:1.2rem;align-items:center">
+    <div class="stat-chips"><span class="chip"><b>{{ attendances|length }}</b>&nbsp;signed up</span></div>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('main.registrations_event', event_id=ev.id, format='csv') }}">⬇ Download CSV (Excel)</a>
+  </div>
+
+  <div class="two-col">
+    <div class="card card-pad">
+      {% if attendances %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>School / department</th><th>Signed up</th></tr></thead>
+          <tbody>
+          {% for a in attendances %}
+            <tr>
+              <td><a href="{{ url_for('main.profile', user_id=a.user.id) }}"><b style="color:var(--navy)">{{ a.user.full_name }}</b></a>
+                  <br><a class="small" href="mailto:{{ a.user.email }}">{{ a.user.email }}</a></td>
+              <td class="small">{{ [a.user.school, a.user.department]|select|join(' · ') or 'Not given' }}</td>
+              <td class="small">{{ a.created_at.strftime('%d %b %Y') }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty"><div class="big">🎟️</div><h3>No sign-ups yet</h3>
+          <p class="muted">Members sign up with the button on the event page.</p></div>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="card card-pad">
+        <h4 style="margin-top:0">Email the attendees</h4>
+        <p class="small muted">Each person gets their own email starting "Hello [name]," with a link to the event page.</p>
+        <form method="post" data-confirm="Send this email to everyone signed up?">
+          <div class="form-row">
+            <label>Subject</label>
+            <input name="subject" required placeholder="e.g. Room change for tomorrow">
+          </div>
+          <div class="form-row">
+            <label>Message</label>
+            <textarea name="body" required style="min-height:160px"></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" {{ 'disabled' if not attendances }}>Send update</button>
+        </form>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}
