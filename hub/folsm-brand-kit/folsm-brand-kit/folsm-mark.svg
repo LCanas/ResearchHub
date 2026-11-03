@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="FoLSM AI Collaboration Hub">
+  <!-- Grey H (Hub) with nodes, sitting behind -->
+  <g stroke="#C9CDD4" stroke-width="10" stroke-linecap="round" fill="none">
+    <line x1="58" y1="14" x2="58" y2="106"/>
+    <line x1="104" y1="14" x2="104" y2="106"/>
+    <line x1="58" y1="60" x2="104" y2="60"/>
+  </g>
+  <g fill="#C9CDD4">
+    <circle cx="58" cy="14" r="10"/>
+    <circle cx="104" cy="14" r="10"/>
+    <circle cx="58" cy="106" r="10"/>
+    <circle cx="104" cy="106" r="10"/>
+    <circle cx="104" cy="60" r="10"/>
+  </g>
+  <!-- Navy F of nodes, crimson node where F meets the Hub -->
+  <g stroke="#14234A" stroke-width="9" stroke-linecap="round" fill="none">
+    <line x1="22" y1="25" x2="22" y2="95"/>
+    <line x1="22" y1="25" x2="82" y2="25"/>
+    <line x1="22" y1="60" x2="64" y2="60"/>
+  </g>
+  <g fill="#14234A">
+    <circle cx="22" cy="25" r="11"/>
+    <circle cx="82" cy="25" r="11"/>
+    <circle cx="22" cy="95" r="11"/>
+    <circle cx="22" cy="60" r="11"/>
+  </g>
+  <circle cx="66" cy="60" r="11" fill="#B3123A"/>
+</svg>

@@ -48,7 +48,7 @@ PUBLIC_ENDPOINTS = {
     "main.code_of_conduct", "main.hackathon", "main.newsletter_unsubscribe",
     "main.launch", "main.call_for_speakers", "main.launch_register",
     "main.launch_unsubscribe", "main.events_calendar", "main.event_calendar",
-    "main.learn", "main.hackathon_register",
+    "main.learn", "main.hackathon_register", "main.brand_file",
 }
 
 # Endpoints a signed-in user can still reach before agreeing to the Code of
@@ -1390,7 +1390,8 @@ def admin_newsletter():
             return redirect(url_for("main.admin_newsletter", issue=issue.id if issue else None))
 
         if issue is None:
-            issue = NewsletterIssue(created_by_id=current_user.id)
+            last = db.session.query(db.func.max(NewsletterIssue.number)).scalar() or 0
+            issue = NewsletterIssue(created_by_id=current_user.id, number=last + 1)
             db.session.add(issue)
         issue.subject = request.form.get("subject", "").strip()[:200]
         issue.intro = request.form.get("intro", "").strip()
@@ -1429,6 +1430,20 @@ def admin_newsletter():
                            preview_for=preview_for, preview=preview, issue=issue,
                            history=history, to_london=_utc_to_london,
                            members=active_users().order_by(User.full_name).all())
+
+
+@main_bp.route("/admin/newsletter/banner.png")
+@login_required
+def newsletter_banner():
+    """The banner for an issue (or the next one), for the preview."""
+    if not current_user.is_admin:
+        abort(403)
+    from .branding import newsletter_banner_png
+    from .models import banner_month
+    issue = db.session.get(NewsletterIssue, request.args.get("issue", type=int) or 0)
+    number = issue.number if issue else         (db.session.query(db.func.max(NewsletterIssue.number)).scalar() or 0) + 1
+    return current_app.response_class(newsletter_banner_png(number, banner_month(issue)),
+                                      mimetype="image/png")
 
 
 def _london_to_utc(value):
@@ -2033,3 +2048,18 @@ def my_submissions():
                                              SpeakerProposal.email == current_user.email)) \
         .order_by(SpeakerProposal.created_at.desc()).all()
     return render_template("my_submissions.html", projects=projects, talks=talks)
+
+
+# ---------------------------------------------------------------------------
+# Brand kit: logos are served straight from hub/folsm-brand-kit, so updating
+# the kit there updates the site (no copies to keep in step).
+# ---------------------------------------------------------------------------
+BRAND_KIT_DIR = os.path.join(os.path.dirname(__file__), "folsm-brand-kit", "folsm-brand-kit")
+
+
+@main_bp.route("/brand/<path:filename>")
+def brand_file(filename):
+    from flask import send_from_directory
+    if not filename.endswith(".svg"):
+        abort(404)
+    return send_from_directory(BRAND_KIT_DIR, filename, max_age=86400)

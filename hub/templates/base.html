@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ APP_NAME }}{% endblock %} · {{ APP_NAME }}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('main.brand_file', filename='folsm-favicon.svg') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -11,7 +12,7 @@
 <nav class="navbar">
   <div class="container">
     <a class="brand" href="{{ url_for('main.index') }}">
-      <span class="brand-mark">CH</span>
+      <img class="brand-mark" src="{{ url_for('main.brand_file', filename='folsm-mark-on-dark.svg') }}" alt="">
       <span class="brand-text">
         <b>{{ APP_NAME }}</b>
         <span>{{ APP_SUBTITLE }}</span>
@@ -95,7 +96,7 @@
   <div class="container footer-grid">
     <div>
       <div class="brand" style="margin-bottom:.6rem">
-        <span class="brand-mark">CH</span>
+        <img class="brand-mark" src="{{ url_for('main.brand_file', filename='folsm-mark-on-dark.svg') }}" alt="">
         <span class="brand-text"><b>{{ APP_NAME }}</b><span>{{ APP_SUBTITLE }}</span></span>
       </div>
       <p class="small" style="color:#b9c4da;max-width:320px">A King's College London hub for proposing,

@@ -54,13 +54,9 @@ img { max-width: 100%; }
 }
 .brand { display: flex; align-items: center; gap: .7rem; color: #fff; }
 .brand:hover { text-decoration: none; }
-.brand-mark {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: var(--crimson);
-  display: grid; place-items: center;
-  font-weight: 800; font-size: 1.15rem; color: #fff;
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.15);
-}
+/* FoLSM mark (brand kit: folsm-mark-on-dark.svg) on the navy bar/footer/panels. */
+.brand-mark { width: 44px; height: 44px; display: block; flex-shrink: 0; }
+.auth-brand .brand-mark { width: 72px; height: 72px; }
 .brand-text b { font-size: 1.02rem; letter-spacing: .2px; display: block; }
 .brand-text span { font-size: .72rem; color: #b9c4da; letter-spacing: .3px; }
 .nav-links { margin-left: auto; display: flex; align-items: center; gap: .12rem;

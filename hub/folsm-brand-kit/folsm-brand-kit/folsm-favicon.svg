@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="32" height="32" role="img" aria-label="FoLSM">
+  <!-- Simplified mark for 16–48px (no H, heavier strokes) -->
+  <g stroke="#14234A" stroke-width="14" stroke-linecap="round" fill="none">
+    <line x1="30" y1="25" x2="30" y2="95"/>
+    <line x1="30" y1="25" x2="90" y2="25"/>
+    <line x1="30" y1="60" x2="68" y2="60"/>
+  </g>
+  <circle cx="70" cy="60" r="15" fill="#B3123A"/>
+</svg>

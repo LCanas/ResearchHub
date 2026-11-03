@@ -24,8 +24,8 @@
       <div class="card card-pad">
         <div class="section-title">
           <h2 style="margin:0">
-            {% if issue and issue.status == 'scheduled' %}Scheduled issue
-            {% elif issue %}Draft issue{% else %}New issue{% endif %}
+            {% if issue and issue.status == 'scheduled' %}Scheduled: issue {{ issue.number }}
+            {% elif issue %}Draft: issue {{ issue.number }}{% else %}New issue{% endif %}
           </h2>
           {% if issue %}<a class="btn btn-ghost btn-sm" href="{{ url_for('main.admin_newsletter', new=1) }}">+ Start a new issue</a>{% endif %}
         </div>
@@ -80,7 +80,9 @@
         {% if preview %}
           <p class="small muted">To: {{ preview_for.email }}<br>
             Subject: [FoLSM AI Collaboration Hub] {{ preview[0] }}</p>
-          <pre class="newsletter-preview">{{ preview[1] }}</pre>
+          <img src="{{ url_for('main.newsletter_banner', issue=issue.id if issue else None) }}" alt="Newsletter banner"
+               style="display:block;width:100%;max-width:600px;border:1px solid var(--grey-200);border-bottom:0">
+          <pre class="newsletter-preview" style="max-width:600px;border-top-left-radius:0;border-top-right-radius:0">{{ preview[1] }}</pre>
         {% else %}
           <p class="muted">Nothing to send to {{ preview_for.full_name }} right now (no message, open
             projects, upcoming events or recent news).</p>
@@ -100,7 +102,7 @@
           {% set css = {'draft':'stage-waiting','scheduled':'stage-launched','sending':'stage-launched','sent':'stage-ongoing','cancelled':'stage-completed'} %}
           {% for h in history %}
           <a class="list-row" href="{{ url_for('main.admin_newsletter', issue=h.id) }}" style="text-decoration:none">
-            <b style="color:var(--navy)">{{ h.subject or 'Monthly update' }}</b>
+            <b style="color:var(--navy)">{% if h.number %}Issue {{ h.number }}: {% endif %}{{ h.subject or 'Monthly update' }}</b>
             <span class="small muted" style="display:block">
               <span class="pill {{ css.get(h.status, '') }}">{{ h.status|capitalize }}</span>
               {% if h.status == 'sent' %}{{ to_london(h.sent_at).strftime('%d %b %Y') }} · {{ h.sent_count }} sent

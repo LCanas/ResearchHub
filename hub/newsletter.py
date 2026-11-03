@@ -13,7 +13,8 @@ from itsdangerous import BadSignature, URLSafeSerializer
 from .config import HACKATHON
 from .extensions import db
 from .mail import send_mail, absolute_url, absolute_link
-from .models import User, Project, Event, NewsPost, NewsletterIssue
+from .branding import newsletter_banner_png
+from .models import User, Project, Event, NewsPost, NewsletterIssue, banner_month
 from .recommend import matching_projects, has_interests
 
 # Don't send to the same person twice within this window, even if the job is
@@ -133,6 +134,7 @@ def send_all(force=False, only_email=None, dry_run=False, issue=None):
     ``issue`` (a NewsletterIssue) supplies the subject and message."""
     now = datetime.utcnow()
     summary = {"sent": 0, "skipped_recent": 0, "nothing_to_send": 0, "recipients": []}
+    banner = newsletter_banner_png(issue.number if issue else None, banner_month(issue))
     people = recipients()
     if only_email:
         people = [u for u in people if u.email == only_email.strip().lower()]
@@ -151,7 +153,7 @@ def send_all(force=False, only_email=None, dry_run=False, issue=None):
         if dry_run:
             print(f"\n===== {user.email}: {subject} =====\n{body}")
             continue
-        send_mail([user.email], subject, body, wait=True)
+        send_mail([user.email], subject, body, wait=True, banner_png=banner)
         user.newsletter_last_sent = now
         db.session.commit()
         summary["sent"] += 1

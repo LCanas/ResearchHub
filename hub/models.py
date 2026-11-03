@@ -450,6 +450,7 @@ class NewsletterIssue(db.Model):
     __tablename__ = "newsletter_issues"
 
     id = db.Column(db.Integer, primary_key=True)
+    number = db.Column(db.Integer)                         # "Issue N" on the banner
     subject = db.Column(db.String(200), default="")      # "" = "Your <month> update"
     intro = db.Column(db.Text, default="")                # the organisers' message
     send_at = db.Column(db.DateTime)                       # UTC; set when scheduled
@@ -460,3 +461,12 @@ class NewsletterIssue(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     created_by = db.relationship("User")
+
+
+def banner_month(issue=None):
+    """The month printed on a newsletter banner: when the issue goes (or went)
+    out, in UK time; otherwise this month."""
+    from zoneinfo import ZoneInfo
+    when = (issue.sent_at or issue.send_at) if issue else None
+    when = when.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("Europe/London"))         if when else datetime.now(ZoneInfo("Europe/London"))
+    return when.strftime("%B %Y")

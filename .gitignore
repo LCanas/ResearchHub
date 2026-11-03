@@ -46,3 +46,6 @@ demo_specifications
 demo_url.txt
 # Secrets for docker compose
 .env
+
+# Brand kit guide (kept in git despite the *.md rule above)
+!hub/folsm-brand-kit/folsm-brand-kit/BRAND.md

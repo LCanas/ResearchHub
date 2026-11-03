@@ -6,3 +6,4 @@ gunicorn>=21.0     ; sys_platform != "win32"   # production server on Azure/Linu
 waitress>=3.0      ; sys_platform == "win32"    # production server for local Windows preview
 psycopg[binary]>=3.2 ; sys_platform != "win32"   # Postgres driver for a persistent production database
 tzdata>=2024.1        # UK time zone data for scheduling (Windows / slim images lack it)
+Pillow>=10.0           # draws the brand logo and newsletter banner for emails

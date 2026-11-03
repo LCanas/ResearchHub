@@ -76,6 +76,14 @@ def main():
             move_departments_to_schools([User, Project])
 
     with app.app_context():
+        from hub.models import NewsletterIssue
+        unnumbered = NewsletterIssue.query.filter(NewsletterIssue.number.is_(None))             .order_by(NewsletterIssue.created_at).all()
+        if unnumbered:
+            n = db.session.query(db.func.max(NewsletterIssue.number)).scalar() or 0
+            for issue in unnumbered:
+                n += 1
+                issue.number = n
+            db.session.commit()
         moved = copy_launch_registrations()
         if moved:
             print(f"Copied {moved} launch registration(s) into the registrations table.")
