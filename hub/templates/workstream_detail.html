@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import avatar, stage_pill %}
+{% from "_macros.html" import avatar, stage_pill, ws_icon %}
 {% block title %}{{ ws.name }}{% endblock %}
 
 {% block hero %}
@@ -7,7 +7,7 @@
   <div class="container">
     <div class="hero-eyebrow"><a href="{{ url_for('main.workstreams') }}" style="color:#ffb3bf">Workstreams</a> / theme</div>
     <div class="flex gap-sm" style="align-items:center">
-      <span style="font-size:2.4rem">{{ ws.icon }}</span>
+      <span class="ws-glyph ws-glyph-lg {{ ws.css }}">{{ ws_icon(ws.slug) }}</span>
       <div>
         <h1 style="margin:0">{{ ws.name }}</h1>
       </div>

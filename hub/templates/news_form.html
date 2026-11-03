@@ -21,7 +21,7 @@
       <div class="form-row">
         <label>Link to a hub page <span class="hint">(adds a button)</span></label>
         <select name="link_page">
-          <option value="">— None —</option>
+          <option value="">None</option>
           {% for label, endpoint in NEWS_LINK_PAGES %}<option value="{{ endpoint }}">{{ label }}</option>{% endfor %}
         </select>
       </div>
@@ -36,8 +36,8 @@
       <div class="form-row">
         <label>Related workstream <span class="hint">(optional)</span></label>
         <select name="workstream">
-          <option value="">— None —</option>
-          {% for w in WORKSTREAMS %}<option value="{{ w.name }}">{{ w.icon }} {{ w.name }}</option>{% endfor %}
+          <option value="">None</option>
+          {% for w in WORKSTREAMS %}<option value="{{ w.name }}">{{ w.name }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-row" style="justify-content:flex-end">

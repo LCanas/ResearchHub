@@ -174,11 +174,11 @@
 
       {# ---- IP / authorship / publication terms agreed up front ---- #}
       <div class="card card-pad mt2">
-        <h2>Collaboration agreement</h2>
+        <h2>Credit &amp; outcomes</h2>
         <p class="small muted" style="margin-top:0">Agreed up front under the
            <a href="{{ url_for('main.code_of_conduct') }}">Code of Conduct</a>. Publications and
            other outcomes need the approval of both parties.</p>
-        <p style="white-space:pre-line">{{ project.ip_agreement or 'Not recorded yet — the project leads should add this before anyone joins.' }}</p>
+        <p style="white-space:pre-line">{{ project.ip_agreement or 'Not recorded yet: the project leads should add this before anyone joins.' }}</p>
       </div>
     </div>
 
@@ -207,8 +207,8 @@
               </div>
               <label class="flex small" style="margin-bottom:.8rem;align-items:flex-start;gap:.5rem">
                 <input type="checkbox" name="agree_terms" value="1" required style="width:auto;margin-top:.2rem">
-                <span>I have read this project's collaboration agreement and accept its IP,
-                  authorship and publication terms.</span>
+                <span>I have read this project's credit &amp; outcomes terms (authorship,
+                  acknowledgements, code and data release) and accept them.</span>
               </label>
               <button class="btn btn-navy btn-block" type="submit">Send request</button>
             </form>
@@ -226,7 +226,7 @@
             <span class="small muted">Principal Investigator</span></span>
           </a>
         {% else %}
-          <p class="small muted">No PI assigned yet — this project needs a senior lead.</p>
+          <p class="small muted">No PI assigned yet: this project needs a senior lead.</p>
         {% endif %}
         {% if project.proposer %}
           <a class="flex mt" href="{{ url_for('main.profile', user_id=project.proposer.id) }}">

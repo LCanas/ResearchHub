@@ -26,7 +26,7 @@ class Config:
 
 
 # ---------------------------------------------------------------------------
-# Launch & hackathon. Exact dates are still to be confirmed — update these
+# Launch & hackathon. Exact dates are still to be confirmed: update these
 # labels once they are fixed and they change everywhere on the site.
 # ---------------------------------------------------------------------------
 # Dates are YYYY-MM-DD; leave "" while unknown. On the hackathon page's timeline
@@ -101,6 +101,45 @@ EVENT_FEEDS = [
 EVENT_SYNC_MINUTES = 60      # refresh at most this often while people browse
 EVENT_SYNC_PAST_DAYS = 180   # also import recent past events
 
+# The "Learn" page: guides and resources on the FoLSM AI Portal. Links go
+# straight to the portal; edit titles, text or links here.
+_P = "https://folsmaiportal.sites.er.kcl.ac.uk"
+PORTAL = {"name": "FoLSM AI Portal", "url": _P + "/",
+          "tagline": "A space for everyone in the Faculty to learn about AI and how to use it responsibly."}
+PORTAL_RESOURCES = [
+    {"key": "education", "title": "AI in Education",
+     "desc": "A curated guide to the research literature on how AI is reshaping teaching, "
+             "learning and assessment in higher education.",
+     "url": _P + "/ai-in-education/",
+     "items": [
+         ("Policy and sector overview", _P + "/policy-and-sector-overview/"),
+         ("Assessment and academic integrity", _P + "/assessment-and-academic-integrity/"),
+         ("Feedback and evaluation", _P + "/feedback-and-evaluation/"),
+         ("Knowledge, judgement and learning", _P + "/knowledge-judgement-and-learning/"),
+         ("Health professions and medical education", _P + "/health-professions-and-medical-education/"),
+         ("Ethics, relationships and academic writing", _P + "/ethics-relationships-and-academic-writing/"),
+         ("Data, analytics and research", _P + "/data-analytics-and-research/"),
+         ("Conclusions and getting involved", _P + "/conclusions-and-getting-involved/"),
+     ]},
+    {"key": "reviews", "title": "AI for systematic reviews",
+     "desc": "Where AI tools can help at each stage of evidence synthesis, where they can't, "
+             "and how to use them responsibly.",
+     "url": _P + "/the-review-process/",
+     "items": [
+         ("The systematic review process", _P + "/the-review-process/"),
+         ("Question formulation and search strategy", _P + "/question-formulation-and-the-search-strategy/"),
+         ("Screening papers", _P + "/screening-papers/"),
+         ("Data extraction", _P + "/data-extraction/"),
+         ("Quality assessment", _P + "/quality-assessment/"),
+         ("Synthesis", _P + "/synthesis/"),
+         ("Responsible AI use", _P + "/responsible-ai-use/"),
+     ]},
+    {"key": "skills", "title": "Skills: the Prompt Library",
+     "desc": "The FoLSM AI Prompt Library: a shared collection of ready-to-use prompts for "
+             "everyday research, teaching and admin tasks.",
+     "url": _P + "/skills/", "items": []},
+]
+
 CODE_OF_CONDUCT_VERSION = "1.0"
 
 # Always admin, on any machine, once they register / sign in. More admins and
@@ -108,7 +147,7 @@ CODE_OF_CONDUCT_VERSION = "1.0"
 # HUB_ADMIN_EMAILS / HUB_COMMITTEE_EMAILS environment variables.
 DEFAULT_ADMIN_EMAILS = ["k1778298@kcl.ac.uk"]
 
-# Contact & social links. Leave a value empty to hide it on the site — fill
+# Contact & social links. Leave a value empty to hide it on the site: fill
 # these in once the mailbox / pages actually exist.
 CONTACT_EMAIL = "k1778298@kcl.ac.uk"  # for now; swap for a shared hub mailbox when there is one
 SOCIAL_LINKS = {
@@ -130,7 +169,7 @@ REVIEW_STATUS_CSS = {
     "Declined": "stage-completed",
 }
 
-# Project lifecycle stages (requirement 10). Order matters — it drives the
+# Project lifecycle stages (requirement 10). Order matters: it drives the
 # timeline widget and status ordering.
 PROJECT_STAGES = [
     ("Open", "The project is seeking collaborators and PIs. Researchers are "
@@ -161,7 +200,7 @@ STAGE_CSS = {
 PROJECT_TYPES = [
     {"name": "Hackathon", "band": "Short-term", "css": "type-hackathon",
      "icon": "⚡",
-     "desc": "A focused sprint — days to a couple of weeks — to prototype an "
+     "desc": "A focused sprint (days to a couple of weeks) to prototype an "
              "idea, test a dataset or explore a question at pace."},
     {"name": "Proof of Concept", "band": "Medium-term", "css": "type-poc",
      "icon": "🧪",
@@ -181,18 +220,18 @@ PROJECT_TYPE_CSS = {t["name"]: t["css"] for t in PROJECT_TYPES}
 PROJECT_TYPE_BAND = {t["name"]: t["band"] for t in PROJECT_TYPES}
 
 # ---------------------------------------------------------------------------
-# Research workstreams / themes — the top-level way projects and people are
+# Research workstreams / themes: the top-level way projects and people are
 # organised (mirrors how KCL research hubs structure their work).
 # ---------------------------------------------------------------------------
 WORKSTREAMS = [
     {"slug": "clinical-nlp", "short": "Clinical NLP", "name": "Clinical NLP & Language Models",
      "icon": "💬", "css": "ws-1",
      "desc": "Applying large language models and natural-language processing to "
-             "clinical text — documentation, coding, summarisation and "
+             "clinical text: documentation, coding, summarisation and "
              "information extraction."},
     {"slug": "medical-imaging", "short": "Imaging", "name": "Medical Imaging AI",
      "icon": "🩻", "css": "ws-2",
-     "desc": "Computer vision for radiology, pathology and other imaging — "
+     "desc": "Computer vision for radiology, pathology and other imaging: "
              "detection, triage, segmentation and quantification."},
     {"slug": "predictive-risk", "short": "Risk models", "name": "Predictive Modelling & Risk",
      "icon": "📈", "css": "ws-3",
@@ -200,7 +239,7 @@ WORKSTREAMS = [
              "data, with a focus on calibration, fairness and clinical utility."},
     {"slug": "federated-privacy", "short": "Federated ML", "name": "Federated & Privacy-Preserving ML",
      "icon": "🔐", "css": "ws-4",
-     "desc": "Training models across sites without moving patient data — "
+     "desc": "Training models across sites without moving patient data: "
              "federated learning, privacy, and secure computation."},
     {"slug": "governance-safety", "short": "Governance", "name": "AI Governance & Safety",
      "icon": "⚖️", "css": "ws-5",
@@ -301,7 +340,7 @@ SCHOOL_KCL_URLS = {
 
 # The multidisciplinary review panel (from the project brief). It meets monthly
 # to evaluate proposals on clinical impact, data readiness, resources and AI
-# feasibility. Fill in "name" / "affiliation" once members are confirmed — the
+# feasibility. Fill in "name" / "affiliation" once members are confirmed: the
 # page shows "To be announced" until then.
 PANEL_MEMBERS = [
     {"role": "Panel Chair", "name": "", "affiliation": "",

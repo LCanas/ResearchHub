@@ -1,5 +1,5 @@
 /* =========================================================================
-   Collaboration Hub — KCL-inspired styling
+   Collaboration Hub: KCL-inspired styling
    Palette: crimson, navy, greys, white. Rounded photos, clean cards.
    ========================================================================= */
 :root {
@@ -380,7 +380,7 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 
 /* Hero: outer topics feed mid concepts feed a central AI hub.
    Nodes are revealed in a staggered build by JS (adds .anim then .show),
-   held, cleared, and rebuilt — a coordinated loop, not random flicker. */
+   held, cleared, and rebuilt: a coordinated loop, not random flicker. */
 @keyframes netPulse { 0% { opacity: .5; transform: scale(.8); } 100% { opacity: 0; transform: scale(1.95); } }
 @keyframes bioSweep { from { stroke-dashoffset: 980; } to { stroke-dashoffset: -80; } }
 .hero-net .bub, .hero-net .core { transition: opacity .6s ease; }
@@ -438,7 +438,7 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 .section-head h2 { font-size: 1.5rem; margin: 0 0 .4rem; }
 .lead { font-size: 1.12rem; color: var(--grey-700); max-width: 780px; }
 
-/* Mission aims — 2×2 grid, each with an elegant line icon */
+/* Mission aims: 2×2 grid, each with an elegant line icon */
 .aims { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.4rem 3rem; margin-top: 2.2rem; }
 .aim { display: flex; gap: 1.2rem; align-items: flex-start; }
 .aim-ico { flex-shrink: 0; width: 60px; height: 60px; border-radius: 50%;
@@ -548,7 +548,13 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 .ws-card-head { display: flex; align-items: center; gap: .7rem; padding: 1rem 1.15rem;
   color: #fff; background: linear-gradient(120deg, var(--wsc, var(--navy)), rgba(0,0,0,.28)); }
 .ws-card-head h3 { color: #fff; margin: 0; font-size: 1.05rem; }
-.ws-glyph { font-size: 1.5rem; line-height: 1; }
+/* Workstream line icon: white strokes in a soft translucent circle, so the
+   header keeps its workstream colour. */
+.ws-glyph { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); color: #fff; }
+.ws-glyph .ws-svg { width: 21px; height: 21px; }
+.ws-glyph-lg { width: 56px; height: 56px; background: var(--wsc, rgba(255,255,255,.16)); border-color: rgba(255,255,255,.35); }
+.ws-glyph-lg .ws-svg { width: 30px; height: 30px; }
 .ws-card-body { padding: 1rem 1.15rem; }
 
 /* ---------- Checkbox pills (profile workstreams) -------------------------- */
@@ -778,13 +784,15 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 .launch-facts dd { margin: 0; font-weight: 600; }
 .launch-facts small { display: block; font-weight: 400; color: #b9c4da; font-size: .78rem; }
 
-.highlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.1rem; }
-.highlight { background: #fff; border: 1px solid var(--grey-200); border-radius: var(--radius);
-  padding: 1.3rem; box-shadow: var(--shadow-sm); transition: transform .15s, box-shadow .15s; }
-.highlight:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-.highlight .hl-icon { font-size: 1.7rem; display: block; margin-bottom: .5rem; }
-.highlight h4 { margin: 0 0 .3rem; color: var(--navy); }
-.highlight p { margin: 0; color: var(--grey-700); font-size: .9rem; line-height: 1.5; }
+/* Same quiet style as the About page aims: line icon in a pale circle, no cards. */
+.highlight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.2rem 3rem; margin-top: 1.6rem; }
+.highlight { display: flex; gap: 1.2rem; align-items: flex-start; }
+.highlight .hl-ico { flex-shrink: 0; width: 60px; height: 60px; border-radius: 50%;
+  background: var(--panel, #eef2f8); display: grid; place-items: center; }
+.highlight .hl-ico svg { width: 32px; height: 32px; }
+.highlight h4 { margin: .35rem 0 .4rem; color: var(--navy); font-size: 1.08rem; }
+.highlight p { margin: 0; color: var(--grey-600, var(--grey-700)); font-size: .93rem; line-height: 1.55; }
+@media (max-width: 900px) { .highlight-grid { grid-template-columns: 1fr; gap: 1.6rem; } }
 
 .programme { list-style: none; margin: 0; padding: 0; max-width: 860px; }
 .programme li { display: grid; grid-template-columns: 76px 1fr; gap: 1.2rem; padding: .9rem 0;
@@ -851,3 +859,24 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
 .subscribe-box { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
   flex-wrap: wrap; margin-bottom: 1.6rem; background: var(--grey-50); }
 .subscribe-box > div:first-child { flex: 1; min-width: 260px; }
+
+/* ---------- Learn page (FoLSM AI Portal resources) ------------------------ */
+.learn-list { display: grid; gap: 0; max-width: 980px; }
+.learn-section { display: flex; gap: 1.4rem; align-items: flex-start; padding: 2rem 0;
+  border-bottom: 1px solid var(--grey-200); }
+.learn-section:first-child { padding-top: .4rem; }
+.learn-section .hl-ico { flex-shrink: 0; width: 60px; height: 60px; border-radius: 50%;
+  background: var(--panel, #eef2f8); display: grid; place-items: center; }
+.learn-section .hl-ico svg { width: 32px; height: 32px; }
+.learn-body { flex: 1; }
+.learn-body h2 { margin: .3rem 0 .35rem; font-size: 1.3rem; }
+.learn-body h2 a { color: var(--navy); }
+.learn-body > p { margin: 0 0 .9rem; max-width: 680px; }
+.learn-topics { list-style: none; padding: 0; margin: 0 0 .9rem; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .1rem 1.5rem; }
+.learn-topics li a { display: block; padding: .4rem 0; color: var(--ink); border-bottom: 1px solid var(--grey-100); font-size: .93rem; }
+.learn-topics li a::after { content: " ↗"; color: var(--grey-500); font-size: .8rem; }
+.learn-topics li a:hover { color: var(--crimson); text-decoration: none; }
+.learn-more { font-weight: 600; font-size: .9rem; color: var(--crimson); }
+.learn-events { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  flex-wrap: wrap; margin-top: 2rem; max-width: 980px; }

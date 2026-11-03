@@ -23,8 +23,8 @@
       <div class="form-row">
         <label>Related workstream <span class="hint">(optional)</span></label>
         <select name="workstream">
-          <option value="">— None —</option>
-          {% for w in WORKSTREAMS %}<option value="{{ w.name }}">{{ w.icon }} {{ w.name }}</option>{% endfor %}
+          <option value="">None</option>
+          {% for w in WORKSTREAMS %}<option value="{{ w.name }}">{{ w.name }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-row">

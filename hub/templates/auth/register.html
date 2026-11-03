@@ -38,7 +38,7 @@
         <div class="form-row">
           <label>School</label>
           <select name="school" required>
-            <option value="">— Select —</option>
+            <option value="">Select</option>
             {% for s in SCHOOLS %}
               <option value="{{ s }}" {{ 'selected' if form.get('school') == s }}>{{ s }}</option>
             {% endfor %}
@@ -53,7 +53,7 @@
           <div class="form-row">
             <label>Contract type</label>
             <select name="contract_type">
-              <option value="">— Select —</option>
+              <option value="">Select</option>
               {% for c in CONTRACT_TYPES %}
                 <option value="{{ c }}" {{ 'selected' if form.get('contract_type') == c }}>{{ c }}</option>
               {% endfor %}

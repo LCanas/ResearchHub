@@ -43,7 +43,7 @@
           <label class="checkbox-pill">
             <input type="checkbox" name="workstreams" value="{{ w.name }}"
                    {{ 'checked' if w.name in user.workstream_list }}>
-            <span>{{ w.icon }} {{ w.name }}</span>
+            <span>{{ w.name }}</span>
           </label>
           {% endfor %}
         </div>
@@ -52,14 +52,14 @@
       <div class="form-row">
         <label>Seniority</label>
         <select name="seniority">
-          <option value="">— Select —</option>
+          <option value="">Select</option>
           {% for s in SENIORITY_LEVELS %}<option value="{{ s }}" {{ 'selected' if user.seniority == s }}>{{ s }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-row">
         <label>Contract type</label>
         <select name="contract_type">
-          <option value="">— Select —</option>
+          <option value="">Select</option>
           {% for c in CONTRACT_TYPES %}<option value="{{ c }}" {{ 'selected' if user.contract_type == c }}>{{ c }}</option>{% endfor %}
         </select>
       </div>
@@ -67,7 +67,7 @@
       <div class="form-row">
         <label>School</label>
         <select name="school">
-          <option value="">— Select —</option>
+          <option value="">Select</option>
           {% for s in SCHOOLS %}<option value="{{ s }}" {{ 'selected' if user.school == s }}>{{ s }}</option>{% endfor %}
         </select>
       </div>

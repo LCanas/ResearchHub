@@ -1,6 +1,6 @@
 """Starter content for the live hub: launch and hackathon announcements.
 
-No fake people — posts are authored by "Collaboration Hub team" (no author).
+No fake people: posts are authored by "Collaboration Hub team" (no author).
 Dates come from LAUNCH / HACKATHON in hub/config.py, so update them there.
 
 Run on its own (inside an app context) or via init_db.py:
@@ -114,4 +114,4 @@ def seed_launch_content():
 if __name__ == "__main__":
     with create_app().app_context():
         n = seed_launch_content()
-        print(f"Added {n} announcements." if n else "Announcements already exist — nothing added.")
+        print(f"Added {n} announcements." if n else "Announcements already exist: nothing added.")

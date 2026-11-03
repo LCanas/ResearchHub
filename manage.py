@@ -1,4 +1,4 @@
-"""Command-line admin for the Collaboration Hub — run it where the app runs
+"""Command-line admin for the Collaboration Hub: run it where the app runs
 (your laptop, or on the VM / inside the container) so it uses the same database.
 
     python manage.py list                          # everyone with a role
@@ -58,7 +58,7 @@ def cmd_reset_password(args):
 def cmd_delete(args):
     user = _find(args.email)
     if is_last_admin(user):
-        sys.exit(f"{user.email} is the only admin — make someone else admin first.")
+        sys.exit(f"{user.email} is the only admin: make someone else admin first.")
     if not args.yes:
         answer = input(f"Permanently delete {user.full_name} <{user.email}>? Type 'delete': ")
         if answer.strip().lower() != "delete":
@@ -71,7 +71,7 @@ def cmd_delete(args):
 def cmd_suspend(args):
     user = _find(args.email)
     if args.cmd == "suspend" and is_last_admin(user):
-        sys.exit(f"{user.email} is the only admin — make someone else admin first.")
+        sys.exit(f"{user.email} is the only admin: make someone else admin first.")
     set_suspended(user, args.cmd == "suspend")
     print(f"{user.full_name} <{user.email}> is now "
           f"{'suspended' if user.is_suspended else 'active'}.")
@@ -98,10 +98,10 @@ def cmd_sync_events(args):
 def cmd_role(args):
     user = User.query.filter_by(email=args.email.strip().lower()).first()
     if not user:
-        sys.exit(f"No account for {args.email} — they need to register first.")
+        sys.exit(f"No account for {args.email}: they need to register first.")
     if user.is_admin and args.role != "admin" \
             and User.query.filter_by(is_admin=True).count() == 1:
-        sys.exit(f"{user.email} is the only admin — make someone else admin first.")
+        sys.exit(f"{user.email} is the only admin: make someone else admin first.")
     user.set_role(args.role)
     db.session.commit()
     print(f"{user.full_name} <{user.email}> is now {args.role}.")

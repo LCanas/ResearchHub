@@ -35,9 +35,9 @@
             <tr>
               <td><b style="color:var(--navy)">{{ r.name }}</b><br><a class="small" href="mailto:{{ r.email }}">{{ r.email }}</a>
                   <div class="small muted">{{ r.created_at.strftime('%d %b %Y') }}{% if r.user %} · <a href="{{ url_for('main.profile', user_id=r.user.id) }}">hub member</a>{% endif %}</div></td>
-              <td>{{ r.attendee_type or '—' }}</td>
-              <td>{{ r.organisation or '—' }}{% if r.school %}<div class="small muted">{{ r.school }}</div>{% endif %}</td>
-              <td class="small">{% if r.dietary %}🍽 {{ r.dietary }}<br>{% endif %}{% if r.accessibility %}♿ {{ r.accessibility }}{% endif %}{% if not r.dietary and not r.accessibility %}—{% endif %}</td>
+              <td>{{ r.attendee_type or 'Not given' }}</td>
+              <td>{{ r.organisation or 'Not given' }}{% if r.school %}<div class="small muted">{{ r.school }}</div>{% endif %}</td>
+              <td class="small">{% if r.dietary %}🍽 {{ r.dietary }}<br>{% endif %}{% if r.accessibility %}♿ {{ r.accessibility }}{% endif %}{% if not r.dietary and not r.accessibility %}Not given{% endif %}</td>
               <td class="small">{% if r.unsubscribed %}<span class="chip">unsubscribed</span>{% else %}launch{% if r.future_updates %} + future{% endif %}{% endif %}</td>
             </tr>
           {% endfor %}

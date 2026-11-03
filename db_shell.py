@@ -31,7 +31,7 @@ app = create_app()
 app.app_context().push()
 
 banner = (
-    "\nCollaboration Hub — database shell (SQLite file: hub.db)\n"
+    "\nCollaboration Hub: database shell (SQLite file: hub.db)\n"
     "Ready: db, User, Project, Milestone, Collaboration, JoinRequest, "
     "NewsPost, Event, EventAttendance\n"
     "Try:  User.query.count()\n"

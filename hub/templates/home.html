@@ -10,7 +10,7 @@
         <div class="hero-eyebrow">King's College London · FoLSM</div>
         <h1>{{ APP_NAME }}</h1>
         <p class="home-lead">An interactive matchmaking platform that bridges clinical
-           knowledge and AI expertise — helping healthcare researchers turn ideas into
+           knowledge and AI expertise, helping healthcare researchers turn ideas into
            collaborative, deployable AI projects.</p>
         <div class="flex gap-sm" style="margin-top:1.4rem;flex-wrap:wrap">
           {% if current_user.is_authenticated %}
@@ -24,7 +24,7 @@
         </div>
       </div>
 
-      {# ---- Hero art: "network" (original), "match" or "live" — see HERO_ART in config ---- #}
+      {# ---- Hero art: "network" (original), "match" or "live": see HERO_ART in config ---- #}
       <div class="home-hero-art">
         {% include "_hero_" ~ hero_art ~ ".html" %}
       </div>
@@ -98,6 +98,11 @@
       <span class="go">Explore →</span>
     </a>
     {% endif %}
+    <a class="quick-tile" href="{{ url_for('main.learn') }}">
+      <h3>Learn</h3>
+      <p>Guides on AI in education, systematic reviews and prompting, from the FoLSM AI Portal.</p>
+      <span class="go">Explore →</span>
+    </a>
     <a class="quick-tile" href="{{ url_for('main.events') }}">
       <h3>Events</h3>
       <p>Seminars, training, data clubs and workshops.</p>

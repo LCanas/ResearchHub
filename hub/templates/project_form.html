@@ -41,7 +41,7 @@
       <div class="form-row">
         <label>Lead school</label>
         <select name="school">
-          <option value="">— Select —</option>
+          <option value="">Select</option>
           {% for s in SCHOOLS %}
             <option value="{{ s }}" {{ 'selected' if project and project.school == s }}>{{ s }}</option>
           {% endfor %}
@@ -51,7 +51,7 @@
       <div class="form-row">
         <label>Project type</label>
         <select name="project_type">
-          <option value="">— Select —</option>
+          <option value="">Select</option>
           {% for t in PROJECT_TYPES %}
             <option value="{{ t.name }}" {{ 'selected' if (project and project.project_type == t.name) or (not project and preset_type == t.name) }}>{{ t.name }} · {{ t.band }}</option>
           {% endfor %}
@@ -61,9 +61,9 @@
       <div class="form-row">
         <label>Research workstream</label>
         <select name="workstream">
-          <option value="">— Select —</option>
+          <option value="">Select</option>
           {% for w in WORKSTREAMS %}
-            <option value="{{ w.name }}" {{ 'selected' if project and project.workstream == w.name }}>{{ w.icon }} {{ w.name }}</option>
+            <option value="{{ w.name }}" {{ 'selected' if project and project.workstream == w.name }}>{{ w.name }}</option>
           {% endfor %}
         </select>
         <span class="hint">The research theme this project belongs to.</span>
@@ -72,7 +72,7 @@
       <div class="form-row">
         <label>Principal Investigator</label>
         <select name="pi_id">
-          <option value="">— None yet —</option>
+          <option value="">None yet</option>
           {% for u in users %}
             <option value="{{ u.id }}" {{ 'selected' if project and project.pi_id == u.id }}>{{ u.full_name }}</option>
           {% endfor %}
@@ -102,11 +102,13 @@
         <textarea name="expected_outcomes">{{ project.expected_outcomes if project else '' }}</textarea>
       </div>
       <div class="form-row full">
-        <label>IP, authorship &amp; publication agreement</label>
-        <textarea name="ip_agreement" required style="min-height:130px"
-                  placeholder="Agree this between both parties before work starts. E.g.&#10;• Background IP: each party keeps what it brings (data, code, models).&#10;• New IP: jointly owned / owned by … , subject to KCL IP policy.&#10;• Code licence: e.g. MIT / Apache-2.0 / private until agreed.&#10;• Authorship: CRediT roles; first/last author agreed by …&#10;• Publications &amp; outcomes: need written approval of both parties (30-day review window).">{{ project.ip_agreement if project else '' }}</textarea>
-        <span class="hint">Required. See the <a href="{{ url_for('main.code_of_conduct') }}" target="_blank" rel="noopener">Code of Conduct</a>.
-          Collaborators must accept these terms when they ask to join.</span>
+        <label>Credit &amp; outcomes</label>
+        <span class="hint" style="margin:-.1rem 0 .4rem">How will collaborators be credited for their work?
+          For example: will they be co-authors on papers, or acknowledged? Will any code or data be released?</span>
+        <textarea name="ip_agreement" required style="min-height:120px"
+                  placeholder="For example:&#10;• Papers: everyone who contributes to the work is a co-author; others are acknowledged.&#10;• Code: released openly on GitHub once the paper is accepted.&#10;• Nothing is published or shared without both sides agreeing.">{{ project.ip_agreement if project else '' }}</textarea>
+        <span class="hint">Required. People who ask to join will see this and accept it first.
+          See the <a href="{{ url_for('main.code_of_conduct') }}" target="_blank" rel="noopener">Code of Conduct</a>.</span>
       </div>
 
       <div class="form-row full" data-when-completed style="display:none">

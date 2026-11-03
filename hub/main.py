@@ -34,7 +34,7 @@ from .config import (
     EVENT_TYPES, REVIEW_STATUSES, WORKSTREAMS, HERO_ART, HACKATHON, LAUNCH,
     EVENT_FEEDS, LAUNCH_PROGRAMME, LAUNCH_SPEAKERS, SPEAKER_SESSION_TYPES,
     SPEAKER_PROPOSAL_STATUSES, CONTACT_EMAIL, ATTENDEE_TYPES, NEWS_LINK_PAGES,
-    SCHOOLS,
+    SCHOOLS, PORTAL, PORTAL_RESOURCES,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -48,6 +48,7 @@ PUBLIC_ENDPOINTS = {
     "main.code_of_conduct", "main.hackathon", "main.newsletter_unsubscribe",
     "main.launch", "main.call_for_speakers", "main.launch_register",
     "main.launch_unsubscribe", "main.events_calendar", "main.event_calendar",
+    "main.learn",
 }
 
 # Endpoints a signed-in user can still reach before agreeing to the Code of
@@ -109,12 +110,12 @@ def _parse_dt(value, default=None):
 
 
 def active_users():
-    """Members who aren't suspended — the only ones shown around the hub."""
+    """Members who aren't suspended: the only ones shown around the hub."""
     return User.query.filter(User.is_suspended.isnot(True))
 
 
 def live_projects():
-    """Projects approved by a reviewer — the only ones listed on the hub."""
+    """Projects approved by a reviewer: the only ones listed on the hub."""
     return Project.query.filter(Project.review_status == "Approved")
 
 
@@ -131,7 +132,7 @@ def committee_emails():
 
 
 def project_leads(project):
-    """Proposer and PI — the people who handle join requests."""
+    """Proposer and PI: the people who handle join requests."""
     return [u for u in (project.proposer, project.pi_user) if u]
 
 
@@ -201,7 +202,7 @@ def build_hub_graph(sample=False):
     crimson) and links weighted by people who share two workstreams.
 
     ``sample`` fills in made-up numbers so the design can be previewed on an
-    empty database (debug mode only — never shown on the live site)."""
+    empty database (debug mode only: never shown on the live site)."""
     cx, cy, ring = 280, 240, 172
     users = [] if sample else active_users().all()
     week_ago = datetime.utcnow() - timedelta(days=7)
@@ -412,8 +413,8 @@ def project_new():
         if not project.title:
             errors.append("A project needs a title.")
         if not project.ip_agreement:
-            errors.append("Please set out how IP, authorship and publications "
-                          "will be agreed (see the Code of Conduct).")
+            errors.append("Please fill in Credit & outcomes: how collaborators will be "
+                          "credited (authorship, acknowledgements, code or data release).")
         if errors:
             for e in errors:
                 flash(e, "danger")
@@ -421,7 +422,7 @@ def project_new():
                                    is_new=True,
                                    users=active_users().order_by(User.full_name).all())
 
-        # Every submission — committee members' included — waits on hold
+        # Every submission, committee members' included, waits on hold
         # until the committee approves it.
         project.review_status = "Pending review"
         db.session.add(project)
@@ -556,7 +557,7 @@ def project_review(project_id):
     # an admin) must.
     own = current_user.id in (project.proposer_id, project.pi_id)
     if own and decision == "Approved" and not current_user.is_admin:
-        flash("You can't approve your own project — another committee member "
+        flash("You can't approve your own project: another committee member "
               "needs to review it.", "warning")
         return redirect(url_for("main.project_detail", project_id=project.id))
     project.review_status = decision
@@ -684,7 +685,7 @@ def request_action(request_id, action):
         note = request.form.get("note", "").strip()
         if len(note) < 10:
             flash("Please write a short message to the person explaining the "
-                  "decision — it's sent to them by email.", "danger")
+                  "decision: it's sent to them by email.", "danger")
             return redirect(request.referrer
                             or url_for("main.project_detail", project_id=req.project_id))
         req.status = "Rejected"
@@ -701,9 +702,9 @@ def request_action(request_id, action):
             [req.user.email], f"You've joined {project.title}",
             f"Hello {req.user.full_name},\n\n{current_user.full_name} has accepted "
             f"your request to join “{project.title}”. Welcome to the team!\n\n"
-            f"As agreed when you asked to join, the project's IP, authorship and "
-            f"publication terms apply, and outcomes need the approval of both "
-            f"parties before they're shared.\n\n{link}\n",
+            f"As agreed when you asked to join, the project's credit & outcomes terms "
+            f"(authorship, acknowledgements, code and data release) apply, and nothing "
+            f"is published or shared without both sides agreeing.\n\n{link}\n",
         )
     else:
         send_mail(
@@ -1123,7 +1124,7 @@ def code_of_conduct_accept():
         return redirect(url_for("main.code_of_conduct"))
     current_user.coc_accepted_at = datetime.utcnow()
     db.session.commit()
-    flash("Thank you — you've agreed to the Code of Conduct.", "success")
+    flash("Thank you. You've agreed to the Code of Conduct.", "success")
     next_url = request.form.get("next", "")
     # Only follow local paths.
     if not next_url.startswith("/") or next_url.startswith("//"):
@@ -1227,7 +1228,7 @@ def admin_set_role(user_id):
         abort(400)
     if user.id == current_user.id and role != "admin" \
             and User.query.filter_by(is_admin=True).count() == 1:
-        flash("You're the only admin — make someone else admin first.", "warning")
+        flash("You're the only admin: make someone else admin first.", "warning")
         return redirect(url_for("main.admin_members"))
     user.set_role(role)
     db.session.commit()
@@ -1250,8 +1251,8 @@ def admin_reset_password(user_id):
         f"new one.\n",
     )
     # Shown once to the admin, as email may not be configured yet.
-    flash(f"Temporary password for {user.full_name} ({user.email}): {temp} — "
-          f"pass it on securely; they must change it when they sign in.", "warning")
+    flash(f"Temporary password for {user.full_name} ({user.email}): {temp} "
+          f"(pass it on securely; they must change it when they sign in).", "warning")
     return redirect(url_for("main.admin_members", q=request.form.get("q", "")))
 
 
@@ -1265,7 +1266,7 @@ def admin_delete_member(user_id):
         flash("You can't delete your own account from here.", "warning")
         return redirect(url_for("main.admin_members"))
     if is_last_admin(user):
-        flash("That's the only admin — make someone else admin first.", "warning")
+        flash("That's the only admin: make someone else admin first.", "warning")
         return redirect(url_for("main.admin_members"))
     name = user.full_name
     delete_user(user)
@@ -1315,7 +1316,7 @@ def admin_suspend_member(user_id):
     if suspend and user.id == current_user.id:
         flash("You can't suspend your own account.", "warning")
     elif suspend and is_last_admin(user):
-        flash("That's the only admin — make someone else admin first.", "warning")
+        flash("That's the only admin: make someone else admin first.", "warning")
     else:
         set_suspended(user, suspend)
         flash(f"{user.full_name} has been {'suspended' if suspend else 'reactivated'}.",
@@ -1575,7 +1576,7 @@ def launch_registrations():
         targets = [r for r in regs if not r.unsubscribed
                    and (audience == "all" or r.future_updates)]
         messages = [(r.email, subject,
-                     f"Hello {r.name},\n\n{body}\n\n—\nYou're receiving this because you "
+                     f"Hello {r.name},\n\n{body}\n\nYou're receiving this because you "
                      f"registered for the {APP_NAME_TEXT} launch day.\n"
                      f"Stop receiving updates: {_unsubscribe_link(r)}\n") for r in targets]
         app = current_app._get_current_object()
@@ -1661,3 +1662,14 @@ def events_calendar():
 def event_calendar(event_id):
     ev = db.session.get(Event, event_id) or abort(404)
     return _ics_response([ev], f"event-{ev.id}.ics", name=ev.title)
+
+
+# ---------------------------------------------------------------------------
+# Learn: guides and resources on the FoLSM AI Portal
+# ---------------------------------------------------------------------------
+@main_bp.route("/learn")
+def learn():
+    upcoming = Event.query.filter(Event.start_at >= datetime.utcnow()) \
+        .order_by(Event.start_at).limit(3).all()
+    return render_template("learn.html", portal=PORTAL, resources=PORTAL_RESOURCES,
+                           upcoming=upcoming)

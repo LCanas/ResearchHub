@@ -94,7 +94,7 @@ def build(user, now=None):
         lines += ["UPCOMING EVENTS", "-" * 40]
         for e in events:
             where = "Online" if e.is_online else (e.location or "Venue TBC")
-            lines.append(f"* {e.start_at.strftime('%a %d %b, %H:%M')} — {e.title} ({where})")
+            lines.append(f"* {e.start_at.strftime('%a %d %b, %H:%M')}: {e.title} ({where})")
             lines.append(f"  {absolute_url('main.event_detail', event_id=e.id)}")
         lines.append("")
 
@@ -113,7 +113,7 @@ def build(user, now=None):
         lines += ["Tip: add keywords and workstreams to your profile so we can "
                   "match projects to you:", absolute_url("main.edit_profile"), ""]
 
-    lines += ["—", "You're receiving this monthly update as a member of the "
+    lines += ["", "You're receiving this monthly update as a member of the "
               "Collaboration Hub.",
               "Unsubscribe: " + absolute_url("main.newsletter_unsubscribe",
                                              token=unsubscribe_token(user))]

@@ -28,7 +28,7 @@ def main():
     with app.app_context():
         target = db.engine
         if target.dialect.name == "sqlite":
-            sys.exit("DATABASE_URL points at SQLite — set it to the Postgres database.")
+            sys.exit("DATABASE_URL points at SQLite: set it to the Postgres database.")
 
         source = sa.create_engine(f"sqlite:///{args.sqlite_file}")
         src_insp = sa.inspect(source)
@@ -38,7 +38,7 @@ def main():
         tables = db.metadata.sorted_tables          # parents before children
         with target.connect() as conn:
             if conn.execute(sa.text("SELECT count(*) FROM users")).scalar():
-                sys.exit("The Postgres database already has members — refusing to "
+                sys.exit("The Postgres database already has members: refusing to "
                          "overwrite it.")
 
         with target.begin() as conn:

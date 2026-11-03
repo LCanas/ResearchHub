@@ -25,6 +25,7 @@
       <a href="{{ url_for('main.directory') }}" class="{{ 'active' if request.endpoint == 'main.directory' }}">People</a>
       {% endif %}
       <a href="{{ url_for('main.hackathon') }}" class="{{ 'active' if request.endpoint == 'main.hackathon' }}">Hackathon</a>
+      <a href="{{ url_for('main.learn') }}" class="{{ 'active' if request.endpoint == 'main.learn' }}">Learn</a>
       <a href="{{ url_for('main.events') }}" class="{{ 'active' if request.endpoint in ['main.events', 'main.event_detail', 'main.event_new'] }}">Events</a>
       <a href="{{ url_for('main.news') }}" class="{{ 'active' if request.endpoint in ['main.news', 'main.news_detail', 'main.news_new'] }}">News</a>
       <a href="{{ url_for('main.impact') }}" class="{{ 'active' if request.endpoint == 'main.impact' }}">Impact</a>
@@ -104,6 +105,8 @@
       <a href="{{ url_for('main.projects') }}">Projects</a>
       <a href="{{ url_for('main.workstreams') }}">Workstreams</a>
       {% if current_user.is_authenticated %}<a href="{{ url_for('main.directory') }}">People</a>{% endif %}
+      <a href="{{ url_for('main.learn') }}">Learn about AI</a>
+      <a href="https://folsmaiportal.sites.er.kcl.ac.uk/" target="_blank" rel="noopener">FoLSM AI Portal ↗</a>
       <a href="{{ url_for('main.launch') }}">Launch day</a>
       <a href="{{ url_for('main.call_for_speakers') }}">Call for speakers</a>
       <a href="{{ url_for('main.hackathon') }}">Hackathon {{ HACKATHON.when.split()[-1] }}</a>

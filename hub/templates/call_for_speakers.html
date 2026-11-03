@@ -69,14 +69,14 @@
         <div class="form-row">
           <label>Format</label>
           <select name="session_type">
-            <option value="">— Select —</option>
+            <option value="">Select</option>
             {% for t in SPEAKER_SESSION_TYPES %}<option value="{{ t }}" {{ 'selected' if form.get('session_type') == t }}>{{ t }}</option>{% endfor %}
           </select>
         </div>
         <div class="form-row">
           <label>Closest research theme <span class="hint">(optional)</span></label>
           <select name="workstream">
-            <option value="">— None / several —</option>
+            <option value="">None / several</option>
             {% for w in WORKSTREAMS %}<option value="{{ w.name }}" {{ 'selected' if form.get('workstream') == w.name }}>{{ w.name }}</option>{% endfor %}
           </select>
         </div>

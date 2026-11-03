@@ -82,7 +82,7 @@ def send_mail(recipients, subject, body, wait=False):
     if not os.environ.get("MAIL_SERVER"):
         # Print it readably (the raw message wraps long lines, breaking links).
         readable = f"To: {msg['To']}\nSubject: {msg['Subject']}\n\n{body}"
-        current_app.logger.info("MAIL_SERVER not set — email not sent:\n%s", readable)
+        current_app.logger.info("MAIL_SERVER not set: email not sent:\n%s", readable)
         print(f"\n--- email (not sent: MAIL_SERVER unset) ---\n{readable}\n---\n", flush=True)
         return
     if wait or current_app.testing:

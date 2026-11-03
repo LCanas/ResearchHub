@@ -23,7 +23,7 @@ def _emails_from_env(name):
 def sync_roles(user):
     """Grant admin / committee rights to the emails listed in HUB_ADMIN_EMAILS
     and HUB_COMMITTEE_EMAILS (comma separated; HUB_REVIEWER_EMAILS is the old
-    name). Only grants — never revokes; use the Members page or manage.py."""
+    name). Only grants: never revokes; use the Members page or manage.py."""
     admins = _emails_from_env("HUB_ADMIN_EMAILS") | {e.lower() for e in DEFAULT_ADMIN_EMAILS}
     if user.email in admins:
         user.set_role("admin")

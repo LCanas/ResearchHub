@@ -52,7 +52,7 @@
     <div class="card empty">
       <div class="big">📅</div>
       <h3>No upcoming events</h3>
-      <p class="muted">The programme starts with the hub launch in {{ LAUNCH.when }} — check back soon.</p>
+      <p class="muted">The programme starts with the hub launch in {{ LAUNCH.when }}: check back soon.</p>
       {% if current_user.is_authenticated %}<a class="btn btn-outline mt" href="{{ url_for('main.event_new') }}">Schedule one</a>{% endif %}
     </div>
   {% endif %}

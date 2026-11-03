@@ -51,7 +51,7 @@
 </a>
 {% endmacro %}
 
-{# Declining a join request always needs a personal message — it goes in the email. #}
+{# Declining a join request always needs a personal message: it goes in the email. #}
 {% macro decline_form(r) %}
 <details class="decline-box">
   <summary class="btn btn-ghost btn-sm">Decline</summary>
@@ -62,4 +62,29 @@
     <button class="btn btn-navy btn-sm" type="submit">Send decline</button>
   </form>
 </details>
+{% endmacro %}
+
+{# Line icon for a research workstream. Uses currentColor, so it takes the
+   colour of its surroundings (white on the coloured workstream headers). #}
+{% macro ws_icon(slug) %}
+<svg class="ws-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  {% if slug == 'clinical-nlp' %}
+    <path d="M4 5h16v11H9l-4 3v-3H4z"/><path d="M8 9h8"/><path d="M8 12h5"/>
+  {% elif slug == 'medical-imaging' %}
+    <path d="M4 8V5a1 1 0 0 1 1-1h3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3.5"/>
+  {% elif slug == 'predictive-risk' %}
+    <path d="M4 4v16h16"/><path d="M7 15l4-4 3 3 5-6"/><path d="M16 8h3v3"/>
+  {% elif slug == 'federated-privacy' %}
+    <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><circle cx="12" cy="11" r="1.6"/><path d="M12 12.6V15"/>
+  {% elif slug == 'governance-safety' %}
+    <path d="M12 4v16"/><path d="M8 20h8"/><path d="M5 7h14"/><path d="M5 7l-2.5 6a2.5 2.5 0 0 0 5 0z"/><path d="M19 7l-2.5 6a2.5 2.5 0 0 0 5 0z"/>
+  {% elif slug == 'deployment-mlops' %}
+    <path d="M12 3l8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 16.5l8 4 8-4"/>
+  {% elif slug == 'human-centred' %}
+    <circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+  {% else %}
+    <circle cx="12" cy="12" r="7"/>
+  {% endif %}
+</svg>
 {% endmacro %}

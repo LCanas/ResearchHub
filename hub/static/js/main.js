@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Flash toasts: dismiss on click, or after a while. Only the floating
-  // toasts — inline .flash notices on pages (e.g. "You're signed up") stay.
+  // toasts: inline .flash notices on pages (e.g. "You're signed up") stay.
   var dismiss = function (f) {
     f.style.transition = "opacity .4s"; f.style.opacity = "0";
     setTimeout(function () { f.remove(); }, 400);

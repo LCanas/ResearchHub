@@ -37,7 +37,7 @@
           {% elif own %}
             <a class="link-btn link-btn-add" href="{{ url_for('main.edit_profile') }}">+ Add {{ lk.label }}</a>
           {% else %}
-            <span class="link-btn link-btn-empty"><b>{{ lk.icon }}</b> {{ lk.label }} — n/a</span>
+            <span class="link-btn link-btn-empty"><b>{{ lk.icon }}</b> {{ lk.label }}: n/a</span>
           {% endif %}
         {% endfor %}
       </div>
@@ -96,12 +96,12 @@
       <div class="card card-pad">
         <h4>Details</h4>
         <ul class="meta-list">
-          <li><span class="k">Contract</span><span>{{ user.contract_type or '—' }}</span></li>
-          <li><span class="k">Seniority</span><span>{{ user.seniority or '—' }}</span></li>
-          <li><span class="k">School</span><span>{{ user.school or '—' }}</span></li>
-          <li><span class="k">Department</span><span>{{ user.department or '—' }}</span></li>
-          <li><span class="k">PI / Supervisor</span><span>{{ user.pi or '—' }}</span></li>
-          <li><span class="k">Line manager</span><span>{{ user.line_manager or '—' }}</span></li>
+          <li><span class="k">Contract</span><span>{{ user.contract_type or 'Not given' }}</span></li>
+          <li><span class="k">Seniority</span><span>{{ user.seniority or 'Not given' }}</span></li>
+          <li><span class="k">School</span><span>{{ user.school or 'Not given' }}</span></li>
+          <li><span class="k">Department</span><span>{{ user.department or 'Not given' }}</span></li>
+          <li><span class="k">PI / Supervisor</span><span>{{ user.pi or 'Not given' }}</span></li>
+          <li><span class="k">Line manager</span><span>{{ user.line_manager or 'Not given' }}</span></li>
           <li><span class="k">Availability</span><span>{{ user.hours_available }} hrs/week</span></li>
           <li><span class="k">Status</span><span>{{ user.work_status }}</span></li>
         </ul>

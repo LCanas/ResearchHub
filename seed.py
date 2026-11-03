@@ -1,4 +1,4 @@
-"""Populate the database with demo data — cast by The Big Bang Theory.
+"""Populate the database with demo data: cast by The Big Bang Theory.
 
 The researchers are BBT characters, mapped to roles that fit their canonical
 "status" (Sheldon the professor, Amy the neuroscientist, Howard the no-PhD
@@ -76,7 +76,7 @@ def run():
             full_name="Howard Wolowitz", email="h.wolowitz@kcl.ac.uk",
             expertise="Engineering & deployment of clinical AI systems",
             bio="Engineer (MEng) building and integrating ML systems into clinical "
-                "infrastructure. No doctorate — but he did go to space.",
+                "infrastructure. No doctorate: but he did go to space.",
             keywords="engineering, MLOps, systems integration, APIs",
             seniority="Intermediate", contract_type="Software Engineer",
             department="Informatics", line_manager="Prof. Sheldon Cooper",
@@ -112,7 +112,7 @@ def run():
         penny = make_user(
             full_name="Penny Hofstadter", email="p.hofstadter@kcl.ac.uk",
             expertise="Clinical liaison & pharmaceutical engagement",
-            bio="Pharmaceutical representative and patient-engagement lead — "
+            bio="Pharmaceutical representative and patient-engagement lead: "
                 "bridges clinical teams, patients and the research group, and is "
                 "unmatched at explaining AI in plain English.",
             keywords="stakeholder engagement, clinical liaison, communication, patient voice",
@@ -125,7 +125,7 @@ def run():
         )
         stuart = make_user(
             full_name="Stuart Bloom", email="s.bloom@kcl.ac.uk",
-            expertise="Research assistant — annotation, evaluation & equity",
+            expertise="Research assistant: annotation, evaluation & equity",
             bio="Endlessly available and eager research assistant supporting "
                 "annotation, benchmarking and fairness auditing across projects. "
                 "Rarely turns anything down.",
@@ -140,7 +140,7 @@ def run():
         today = date.today()
 
         # ---------------- Projects ----------------
-        # 1) Ongoing — Medical Imaging AI, led by Sheldon
+        # 1) Ongoing: Medical Imaging AI, led by Sheldon
         p1 = Project(
             title="Foundation models for cardiac MRI reporting",
             summary="Deploying and evaluating a foundation model to draft "
@@ -185,7 +185,7 @@ def run():
             Collaboration(user_id=raj.id, project_id=p1.id, role="Modelling & stats"),
         ])
 
-        # 2) Open — Federated & Privacy-Preserving ML, proposed by Bernadette
+        # 2) Open: Federated & Privacy-Preserving ML, proposed by Bernadette
         p2 = Project(
             title="Federated learning across pharma and NHS datasets",
             summary="Privacy-preserving models trained across industry and NHS "
@@ -217,7 +217,7 @@ def run():
         db.session.add(Collaboration(user_id=bernadette.id, project_id=p2.id,
                                      role="Proposer"))
 
-        # 3) Waiting for PI — AI Governance & Safety, proposed by Stuart
+        # 3) Waiting for PI: AI Governance & Safety, proposed by Stuart
         p3 = Project(
             title="Equity audit of deployed diagnostic AI",
             summary="Auditing deployed diagnostic models for performance gaps "
@@ -240,7 +240,7 @@ def run():
         db.session.add(Collaboration(user_id=stuart.id, project_id=p3.id,
                                      role="Proposer"))
 
-        # 4) Launched — Clinical NLP, led by Leonard
+        # 4) Launched: Clinical NLP, led by Leonard
         p4 = Project(
             title="Ambient AI scribe for outpatient clinics",
             summary="A launched project integrating an ambient LLM scribe to draft "
@@ -274,7 +274,7 @@ def run():
             Collaboration(user_id=howard.id, project_id=p4.id, role="Engineering"),
         ])
 
-        # 5) Completed — Predictive Modelling & Risk, led by Bernadette
+        # 5) Completed: Predictive Modelling & Risk, led by Bernadette
         p5 = Project(
             title="Sepsis early-warning score validation",
             summary="Completed external validation of an ML sepsis early-warning "
@@ -316,7 +316,7 @@ def run():
             Collaboration(user_id=stuart.id, project_id=p5.id, role="Data & annotation"),
         ])
 
-        # 6) Open — Human-Centred AI, led by Amy, proposed by Penny
+        # 6) Open: Human-Centred AI, led by Amy, proposed by Penny
         p6 = Project(
             title="Patient-facing explanations for AI decisions",
             summary="Designing plain-language explanations for AI-assisted "

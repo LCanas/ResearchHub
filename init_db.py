@@ -1,8 +1,8 @@
 """Initialise the database on boot.
 
 Creates the tables and, **only if the database is empty**, adds the starter
-launch & hackathon announcements (no fake people — researchers create their own
-profiles). Safe to run on every startup — it never wipes existing data.
+launch & hackathon announcements (no fake people: researchers create their own
+profiles). Safe to run on every startup: it never wipes existing data.
 
 This is used in the production startup command:
 
@@ -47,9 +47,9 @@ def main():
                   f"into the new school field.")
 
     if already_populated:
-        print("Database already has users — skipping demo seed.")
+        print("Database already has users: skipping demo seed.")
     elif os.environ.get("SEED_DEMO", "0") == "1":
-        print("Empty database — SEED_DEMO=1, seeding demo data…")
+        print("Empty database: SEED_DEMO=1, seeding demo data…")
         from seed import run
         run()
         with app.app_context():

@@ -47,7 +47,7 @@
         <div class="form-row">
           <label>I am a…</label>
           <select name="attendee_type">
-            <option value="">— Select —</option>
+            <option value="">Select</option>
             {% for t in ATTENDEE_TYPES %}<option {{ 'selected' if form.get('attendee_type') == t }}>{{ t }}</option>{% endfor %}
           </select>
         </div>
@@ -58,7 +58,7 @@
         <div class="form-row full">
           <label>King's school <span class="hint">(if you're at King's)</span></label>
           <select name="school">
-            <option value="">— Not at King's / not applicable —</option>
+            <option value="">Not at King's / not applicable</option>
             {% for s in SCHOOLS %}<option {{ 'selected' if form.get('school') == s }}>{{ s }}</option>{% endfor %}
           </select>
         </div>
@@ -68,7 +68,7 @@
       {% set chosen = form.getlist('interests') if form.getlist is defined else [] %}
       <div class="check-grid">
         {% for w in WORKSTREAMS %}
-          <label><input type="checkbox" name="interests" value="{{ w.name }}" {{ 'checked' if w.name in chosen }}> {{ w.icon }} {{ w.name }}</label>
+          <label><input type="checkbox" name="interests" value="{{ w.name }}" {{ 'checked' if w.name in chosen }}> {{ w.name }}</label>
         {% endfor %}
       </div>
 

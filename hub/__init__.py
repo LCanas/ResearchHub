@@ -105,7 +105,7 @@ def _linkify(text):
 
 def _add_missing_columns():
     """db.create_all() never alters existing tables, so add any model columns an
-    older database is missing. Additive changes only — no renames or drops."""
+    older database is missing. Additive changes only: no renames or drops."""
     engine = db.engine
     insp = sa.inspect(engine)
     added = []

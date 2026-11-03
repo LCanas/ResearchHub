@@ -29,7 +29,7 @@
       </div>
       <h3 style="margin:.6rem 0 .3rem"><a href="{{ url_for('main.project_detail', project_id=p.id) }}" style="color:var(--navy)">{{ p.title }}</a></h3>
       <p class="muted small" style="margin:0">{{ p.summary or (p.description|truncate(180)) }}</p>
-      {% if not p.ip_agreement %}<p class="small" style="color:var(--crimson);margin:.4rem 0 0">No collaboration agreement recorded.</p>{% endif %}
+      {% if not p.ip_agreement %}<p class="small" style="color:var(--crimson);margin:.4rem 0 0">No credit &amp; outcomes terms given.</p>{% endif %}
       <a class="btn btn-outline btn-sm mt" href="{{ url_for('main.project_detail', project_id=p.id) }}">Open &amp; review →</a>
     </article>
     {% endfor %}
