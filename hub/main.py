@@ -1,6 +1,9 @@
 """Main application routes: projects, profiles, directory, join flow."""
+import csv
+import io
 import math
 import os
+import threading
 import uuid
 from datetime import datetime, date, timedelta
 
@@ -20,15 +23,18 @@ from .newsletter import (build as build_newsletter, send_all as send_newsletters
                          user_from_unsubscribe_token)
 from .recommend import matching_projects
 from .event_sync import sync_if_stale
+from .calendar_feed import build_ics, google_add_link
 from .models import (
     User, Project, Milestone, Collaboration, JoinRequest,
     NewsPost, Event, EventAttendance, USER_ROLES, SpeakerProposal,
+    LaunchRegistration,
 )
 from .config import (
     STAGE_NAMES, PROJECT_TYPE_NAMES, WORKSTREAM_NAMES, WORKSTREAM_BY_SLUG,
     EVENT_TYPES, REVIEW_STATUSES, WORKSTREAMS, HERO_ART, HACKATHON, LAUNCH,
     EVENT_FEEDS, LAUNCH_PROGRAMME, LAUNCH_SPEAKERS, SPEAKER_SESSION_TYPES,
-    SPEAKER_PROPOSAL_STATUSES, CONTACT_EMAIL,
+    SPEAKER_PROPOSAL_STATUSES, CONTACT_EMAIL, ATTENDEE_TYPES, NEWS_LINK_PAGES,
+    SCHOOLS,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -40,7 +46,8 @@ PUBLIC_ENDPOINTS = {
     "main.workstreams", "main.workstream_detail", "main.news",
     "main.news_detail", "main.events", "main.event_detail",
     "main.code_of_conduct", "main.hackathon", "main.newsletter_unsubscribe",
-    "main.launch", "main.call_for_speakers",
+    "main.launch", "main.call_for_speakers", "main.launch_register",
+    "main.launch_unsubscribe", "main.events_calendar", "main.event_calendar",
 }
 
 # Endpoints a signed-in user can still reach before agreeing to the Code of
@@ -906,11 +913,17 @@ def news_new():
         if not title:
             flash("An announcement needs a title.", "danger")
             return render_template("news_form.html", post=None)
+        link_url, link_label = _news_link_from_form(request.form)
+        if link_url is None:
+            flash("The link must be a page on the hub (starting with /) or a full "
+                  "web address (https://…).", "danger")
+            return render_template("news_form.html", post=None)
         post = NewsPost(
             title=title,
             body=request.form.get("body", "").strip(),
             workstream=request.form.get("workstream", "").strip(),
             pinned=bool(request.form.get("pinned")),
+            link_url=link_url, link_label=link_label,
             author_id=current_user.id,
         )
         db.session.add(post)
@@ -918,6 +931,22 @@ def news_new():
         flash("Announcement published.", "success")
         return redirect(url_for("main.news_detail", post_id=post.id))
     return render_template("news_form.html", post=None)
+
+
+def _news_link_from_form(form):
+    """(url, label) for a news post's "Go to page" button; (None, "") if the
+    custom link isn't acceptable."""
+    page = form.get("link_page", "")
+    pages = dict((endpoint, label) for label, endpoint in NEWS_LINK_PAGES)
+    if page in pages:
+        return url_for(page), form.get("link_label", "").strip() or pages[page]
+    custom = form.get("link_custom", "").strip()
+    if not custom:
+        return "", ""
+    if not (custom.startswith("/") or custom.startswith(("https://", "http://"))) \
+            or custom.startswith("//"):
+        return None, ""
+    return custom[:255], (form.get("link_label", "").strip() or "Find out more")[:80]
 
 
 @main_bp.route("/news/<int:post_id>")
@@ -954,7 +983,7 @@ def events():
         my_ids = {a.event_id for a in EventAttendance.query
                   .filter_by(user_id=current_user.id).all()}
     return render_template("events.html", upcoming=upcoming, past=past,
-                           my_ids=my_ids, feeds=EVENT_FEEDS)
+                           my_ids=my_ids, feeds=EVENT_FEEDS, **_calendar_links())
 
 
 @main_bp.route("/events/new", methods=["GET", "POST"])
@@ -993,7 +1022,10 @@ def event_detail(event_id):
         is_registered = EventAttendance.query.filter_by(
             user_id=current_user.id, event_id=ev.id).first() is not None
         can_manage_event = current_user.is_admin or ev.host_id == current_user.id
+    page_url = absolute_url("main.event_detail", event_id=ev.id)
     return render_template("event_detail.html", event=ev,
+                           ics_url=url_for("main.event_calendar", event_id=ev.id),
+                           google_add_url=google_add_link(ev, page_url),
                            is_registered=is_registered,
                            can_manage_event=can_manage_event)
 
@@ -1430,3 +1462,202 @@ def speaker_proposals():
               for s in SPEAKER_PROPOSAL_STATUSES}
     return render_template("speaker_proposals.html", proposals=proposals,
                            counts=counts, active_status=status)
+
+
+# ---------------------------------------------------------------------------
+# Launch day registration
+# ---------------------------------------------------------------------------
+def _registration_serializer():
+    from itsdangerous import URLSafeSerializer
+    return URLSafeSerializer(current_app.config["SECRET_KEY"], salt="launch-updates")
+
+
+@main_bp.route("/launch/register", methods=["GET", "POST"])
+def launch_register():
+    """Public: guests and external partners can register without an account."""
+    form = request.form
+    if request.method == "POST":
+        if form.get("website"):                     # spam trap, as on the speaker form
+            return redirect(url_for("main.launch_register", done=1))
+        name = form.get("name", "").strip()
+        email = form.get("email", "").strip().lower()
+        errors = []
+        if not name:
+            errors.append("Please enter your name.")
+        if "@" not in email or "." not in email.split("@")[-1]:
+            errors.append("Please enter a valid email address.")
+        if not form.get("consent"):
+            errors.append("Please confirm we may store your details for the event.")
+        if errors:
+            for e in errors:
+                flash(e, "danger")
+            return render_template("launch_register.html", form=form)
+
+        reg = LaunchRegistration.query.filter_by(email=email).first()
+        again = reg is not None
+        if not reg:
+            reg = LaunchRegistration(email=email)
+            db.session.add(reg)
+        reg.name = name[:120]
+        reg.organisation = form.get("organisation", "").strip()[:200]
+        reg.school = form.get("school", "") if form.get("school") in SCHOOLS else ""
+        reg.attendee_type = form.get("attendee_type", "") \
+            if form.get("attendee_type") in ATTENDEE_TYPES else ""
+        reg.interests = "|".join(w for w in form.getlist("interests") if w in WORKSTREAM_NAMES)
+        reg.dietary = form.get("dietary", "").strip()[:200]
+        reg.accessibility = form.get("accessibility", "").strip()[:300]
+        reg.future_updates = bool(form.get("future_updates"))
+        reg.unsubscribed = False
+        reg.updated_at = datetime.utcnow()
+        if current_user.is_authenticated and current_user.email == email:
+            reg.user_id = current_user.id
+        db.session.commit()
+
+        send_mail(
+            [reg.email], "You're registered for launch day",
+            f"Hello {reg.name},\n\nThank you for registering for the {APP_NAME_TEXT} launch "
+            f"day ({LAUNCH.get('date') or LAUNCH['when']}). The exact date, venue and "
+            f"programme are still to be announced; we'll email you as soon as they're "
+            f"confirmed.\n\nLaunch day: {absolute_url('main.launch')}\n\n"
+            f"To change your details, just register again with the same email.\n"
+            f"Stop receiving updates: {_unsubscribe_link(reg)}\n",
+        )
+        return redirect(url_for("main.launch_register", done=1, again=int(again)))
+
+    prefill = {}
+    if current_user.is_authenticated:
+        prefill = {"name": current_user.full_name, "email": current_user.email,
+                   "school": current_user.school}
+    return render_template("launch_register.html", form=prefill,
+                           done=request.args.get("done") == "1",
+                           again=request.args.get("again") == "1")
+
+
+APP_NAME_TEXT = "Collaboration Hub"
+
+
+def _unsubscribe_link(reg):
+    return absolute_url("main.launch_unsubscribe",
+                        token=_registration_serializer().dumps(reg.id))
+
+
+@main_bp.route("/launch/unsubscribe/<token>", methods=["GET", "POST"])
+def launch_unsubscribe(token):
+    # As with the newsletter, GET only shows a button (mail scanners open links).
+    try:
+        reg = db.session.get(LaunchRegistration, _registration_serializer().loads(token))
+    except Exception:
+        reg = None
+    reg or abort(404)
+    done = False
+    if request.method == "POST":
+        reg.unsubscribed = True
+        db.session.commit()
+        done = True
+    return render_template("launch_unsubscribe.html", reg=reg, done=done)
+
+
+@main_bp.route("/launch/registrations", methods=["GET", "POST"])
+@login_required
+def launch_registrations():
+    """For organisers: the list, a CSV export and update emails."""
+    if not current_user.can_review:
+        abort(403)
+    regs = LaunchRegistration.query.order_by(LaunchRegistration.created_at.desc()).all()
+
+    if request.method == "POST":
+        subject = request.form.get("subject", "").strip()
+        body = request.form.get("body", "").strip()
+        audience = request.form.get("audience", "all")
+        if not subject or not body:
+            flash("An update needs a subject and a message.", "danger")
+            return redirect(url_for("main.launch_registrations"))
+        targets = [r for r in regs if not r.unsubscribed
+                   and (audience == "all" or r.future_updates)]
+        messages = [(r.email, subject,
+                     f"Hello {r.name},\n\n{body}\n\n—\nYou're receiving this because you "
+                     f"registered for the {APP_NAME_TEXT} launch day.\n"
+                     f"Stop receiving updates: {_unsubscribe_link(r)}\n") for r in targets]
+        app = current_app._get_current_object()
+
+        def send_all():
+            with app.app_context():
+                for to, subj, text in messages:
+                    send_mail([to], subj, text, wait=True)
+
+        if app.testing:
+            send_all()
+        else:
+            threading.Thread(target=send_all, daemon=True).start()
+        flash(f"Update sent to {len(messages)} registrant(s).", "success")
+        return redirect(url_for("main.launch_registrations"))
+
+    if request.args.get("format") == "csv":
+        out = io.StringIO()
+        w = csv.writer(out)
+        w.writerow(["Registered", "Name", "Email", "Organisation", "School", "Type",
+                    "Interests", "Dietary", "Accessibility", "Future hub updates",
+                    "Unsubscribed", "Hub member"])
+        for r in regs:
+            w.writerow([r.created_at.strftime("%Y-%m-%d"), r.name, r.email, r.organisation,
+                        r.school, r.attendee_type, "; ".join(r.interest_list), r.dietary,
+                        r.accessibility, "yes" if r.future_updates else "no",
+                        "yes" if r.unsubscribed else "no", "yes" if r.user_id else "no"])
+        return current_app.response_class(
+            "\ufeff" + out.getvalue(), mimetype="text/csv",
+            headers={"Content-Disposition":
+                     f"attachment; filename=launch_registrations_{date.today()}.csv"})
+
+    by_type = {}
+    for r in regs:
+        by_type[r.attendee_type or "Not given"] = by_type.get(r.attendee_type or "Not given", 0) + 1
+    return render_template(
+        "launch_registrations.html", regs=regs, by_type=by_type,
+        reachable=sum(1 for r in regs if not r.unsubscribed),
+        future=sum(1 for r in regs if r.future_updates and not r.unsubscribed))
+
+
+# ---------------------------------------------------------------------------
+# Calendar subscription (.ics)
+# ---------------------------------------------------------------------------
+def _calendar_links():
+    """Links for the "Subscribe to calendar" buttons. Calendar apps fetch the
+    feed themselves, so it must use the hub's public address (SITE_URL)."""
+    from urllib.parse import quote
+    feed = absolute_url("main.events_calendar")
+    webcal = "webcal://" + feed.split("://", 1)[-1]
+    return {
+        "calendar_feed_url": feed,
+        "calendar_webcal_url": webcal,
+        "calendar_google_url": "https://calendar.google.com/calendar/render?cid="
+                               + quote(webcal, safe=""),
+        "calendar_outlook_url": "https://outlook.office.com/calendar/addfromweb?url="
+                                + quote(feed, safe="") + "&name="
+                                + quote("FoLSM AI Collaboration Hub events", safe=""),
+    }
+
+
+def _ics_response(events, filename, name=None):
+    from urllib.parse import urlparse
+    host = urlparse(absolute_url("main.events")).hostname or "collaboration-hub"
+    kwargs = {"name": name} if name else {}
+    body = build_ics(events, lambda ev: absolute_url("main.event_detail", event_id=ev.id),
+                     host, **kwargs)
+    return current_app.response_class(
+        body, mimetype="text/calendar",
+        headers={"Content-Disposition": f'inline; filename="{filename}"',
+                 "Cache-Control": "public, max-age=1800"})
+
+
+@main_bp.route("/events/calendar.ics")
+def events_calendar():
+    """Subscribable feed: recent past and all upcoming events, hub and portal."""
+    since = datetime.utcnow() - timedelta(days=90)
+    events = Event.query.filter(Event.start_at >= since).order_by(Event.start_at).all()
+    return _ics_response(events, "folsm-ai-hub-events.ics")
+
+
+@main_bp.route("/events/<int:event_id>/calendar.ics")
+def event_calendar(event_id):
+    ev = db.session.get(Event, event_id) or abort(404)
+    return _ics_response([ev], f"event-{ev.id}.ics", name=ev.title)

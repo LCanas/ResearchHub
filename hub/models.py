@@ -250,6 +250,9 @@ class NewsPost(db.Model):
     body = db.Column(db.Text, default="")
     workstream = db.Column(db.String(80), default="")
     pinned = db.Column(db.Boolean, default=False)
+    # Optional "Go to page" button: a path on the hub ("/hackathon") or a full URL.
+    link_url = db.Column(db.String(255), default="")
+    link_label = db.Column(db.String(80), default="")
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -369,3 +372,30 @@ class SpeakerProposal(db.Model):
 
     def __repr__(self):
         return f"<SpeakerProposal {self.talk_title}>"
+
+
+class LaunchRegistration(db.Model):
+    """Someone registered for launch day. Public form, so the person may not
+    have a hub account. Used for event logistics and later updates."""
+    __tablename__ = "launch_registrations"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), nullable=False, unique=True, index=True)
+    organisation = db.Column(db.String(200), default="")
+    school = db.Column(db.String(120), default="")
+    attendee_type = db.Column(db.String(60), default="")
+    interests = db.Column(db.String(400), default="")    # pipe-separated workstreams
+    dietary = db.Column(db.String(200), default="")
+    accessibility = db.Column(db.String(300), default="")
+    future_updates = db.Column(db.Boolean, default=False)  # opted in to later hub events
+    unsubscribed = db.Column(db.Boolean, default=False)    # no more update emails at all
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User")
+
+    @property
+    def interest_list(self):
+        return [w for w in (self.interests or "").split("|") if w]

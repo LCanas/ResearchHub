@@ -40,27 +40,26 @@ LAUNCH = {
     "venue": "",                      # e.g. "Guy's Campus, London"; "" shows "to be announced"
 }
 
-# The Launch Day page (/launch). The programme is provisional; edit freely.
-LAUNCH_PROGRAMME = [
-    ("09:30", "Registration & coffee", "Pick up your badge and meet the hub team."),
-    ("10:00", "Welcome: why a Collaboration Hub?",
-     "The vision for AI deployment across the Faculty, and how the hub works."),
-    ("10:20", "Keynote: AI at the bedside",
-     "An external speaker on taking AI from research into routine clinical care."),
-    ("11:00", "Panel: from prototype to patient",
-     "Clinicians, engineers and governance experts on what it really takes to deploy AI safely."),
-    ("12:00", "Lightning talks",
-     "Five-minute pitches from researchers and the first hub projects."),
-    ("12:45", "Lunch & networking", "Time to meet people outside your own school."),
-    ("13:45", "Meet the workstreams",
-     "Demo tables for each research theme: see tools, data and open problems up close."),
-    ("14:45", "Keynote: industry & NHS perspectives",
-     "An external speaker on partnerships, procurement and scaling AI in the health service."),
-    ("15:30", "Matchmaking session",
-     "Structured speed-networking pairing clinical questions with AI expertise."),
-    ("16:30", "Hackathon briefing & challenge pitches",
-     "The first challenges for the May hackathon, pitched by their owners."),
-    ("17:00", "Drinks reception & showcase", "Posters, demos and conversations to close the day."),
+# The Launch Day page (/launch). The programme is to be announced: while this
+# list is empty the page says so. Once it's fixed, add sessions as
+#   ("09:30", "Registration & coffee", "Short description"),
+LAUNCH_PROGRAMME = []
+
+# Who is registering for launch day (registration form).
+ATTENDEE_TYPES = ["Clinician", "Researcher / academic", "PhD student", "Postdoc",
+                  "Data scientist / engineer", "NHS staff", "Industry", "Other"]
+
+# Pages a news post can link to (news form), as (label, endpoint).
+NEWS_LINK_PAGES = [
+    ("Launch day", "main.launch"),
+    ("Register for launch day", "main.launch_register"),
+    ("Hackathon", "main.hackathon"),
+    ("Call for speakers", "main.call_for_speakers"),
+    ("Code of Conduct", "main.code_of_conduct"),
+    ("Create your profile", "auth.register"),
+    ("Projects", "main.projects"),
+    ("Events", "main.events"),
+    ("Workstreams", "main.workstreams"),
 ]
 
 # Confirmed speakers, shown on the launch page. Add them as they confirm:
@@ -114,7 +113,7 @@ DEFAULT_ADMIN_EMAILS = ["k1778298@kcl.ac.uk"]
 CONTACT_EMAIL = "k1778298@kcl.ac.uk"  # for now; swap for a shared hub mailbox when there is one
 SOCIAL_LINKS = {
     "LinkedIn": "",
-    "GitHub": "",           # e.g. the BMEIS GitHub organisation / repo
+    "GitHub": "",           # e.g. the hub's GitHub organisation / repo
     "X": "",
 }
 

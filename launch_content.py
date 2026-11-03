@@ -30,9 +30,10 @@ What you can do now:
 • Propose a project, or submit a challenge for the {hack} hackathon.
 • Read our Code of Conduct, which explains how teams agree IP, authorship and publications up front.
 
-Launch day will include an introduction to the hub and its review panel, short talks from researchers deploying AI in healthcare, a showcase of the first hackathon challenges, and time to meet potential collaborators.
+Launch day will be a full day with external speakers and plenty of time for networking. The programme is still being put together and will be announced soon. Register for launch day now and we'll email you the date, venue and programme as soon as they're confirmed.
 
 Questions, or ideas for the launch? Please {contact}.""",
+            link_url="/launch/register", link_label="Register for launch day",
         ),
         dict(
             title=f"Hackathon {hack}: challenge submissions are open",
@@ -48,6 +49,7 @@ How to submit:
 Every submission stays on hold until the committee has checked it against the panel criteria (clinical impact, data readiness, resources and AI feasibility). The committee may approve it, ask for changes or decline it, and you'll be emailed the decision, with any note from the committee. Approved challenges are listed on the Hackathon page for participants to join.
 
 The closing date for submissions will be announced soon. Submitting early gives you time to refine your challenge with the committee's feedback.""",
+            link_url="/hackathon", link_label="Hackathon & how to submit",
         ),
         dict(
             title="Introducing our Code of Conduct: agree before you start",
@@ -56,7 +58,8 @@ The closing date for submissions will be announced soon. Submitting early gives 
 • Agree a priori. Before work starts, both parties agree how intellectual property, software licences, data use and authorship will be handled. Each project records this on its page, and collaborators accept it when they ask to join.
 • Approve together. Publications, presentations, code releases and other outcomes need the written approval of both parties before they are shared.
 
-The Code works alongside King's College London policies and formal agreements, not instead of them. You can read it in full from the link in the site footer.""",
+The Code works alongside King's College London policies and formal agreements, not instead of them.""",
+            link_url="/code-of-conduct", link_label="Read the Code of Conduct",
         ),
         dict(
             title="Create your profile: help us map AI expertise across the Faculty",
@@ -66,6 +69,7 @@ The Code works alongside King's College London policies and formal agreements, n
 • your availability (hours per week), and whether you'd be open to leading a project as a PI
 
 Profiles are only visible to signed-in members of the hub.""",
+            link_url="/register", link_label="Create your profile",
         ),
         dict(
             title="Call for seminar speakers, trainers and data club hosts",
@@ -74,9 +78,25 @@ Profiles are only visible to signed-in members of the hub.""",
 • host a data club introducing a dataset that others could use
 • run a training session, e.g. LLMs for clinical text, federated learning, model evaluation, or information governance for AI projects
 
-To offer a session, fill in the Call for speakers form on the hub (link in the site footer). It only takes a few minutes, and you don't need an account.""",
+To offer a session, fill in the Call for speakers form. It only takes a few minutes, and you don't need an account.""",
+            link_url="/call-for-speakers", link_label="Propose a session",
         ),
     ]
+
+
+def backfill_links():
+    """Give the starter announcements already in a database their page buttons
+    (they were created before posts could link to pages). Matches on title and
+    only fills empty links, so it's safe to run on every boot."""
+    by_title = {a["title"]: a for a in announcements()}
+    changed = 0
+    for post in NewsPost.query.filter((NewsPost.link_url == "") | (NewsPost.link_url.is_(None))):
+        a = by_title.get(post.title)
+        if a and a.get("link_url"):
+            post.link_url, post.link_label = a["link_url"], a["link_label"]
+            changed += 1
+    db.session.commit()
+    return changed
 
 
 def seed_launch_content():

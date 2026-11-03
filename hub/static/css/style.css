@@ -830,3 +830,24 @@ table.tbl th { color: var(--grey-500); font-size: .74rem; text-transform: upperc
   .launch-hero-grid, .cfs-layout { grid-template-columns: 1fr; }
   .programme li { grid-template-columns: 60px 1fr; }
 }
+
+/* ---------- Launch registration ------------------------------------------- */
+.btn-lg { padding: .8rem 1.5rem; font-size: 1.02rem; }
+.tbd-card { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; max-width: 860px;
+  background: #fff; border: 2px dashed var(--grey-300); border-radius: var(--radius); padding: 1.4rem 1.6rem; }
+.tbd-card > div { flex: 1; min-width: 240px; }
+.tbd-icon { font-size: 2.2rem; }
+.check-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .35rem .9rem; }
+.check-grid label { display: flex; gap: .45rem; align-items: flex-start; font-weight: 400; font-size: .9rem; }
+.check-grid input { width: auto; margin-top: .2rem; }
+.stat-chips { display: flex; gap: .6rem; flex-wrap: wrap; }
+.stat-chips .chip b { color: var(--navy); }
+.table-wrap { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.data-table th, .data-table td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid var(--grey-200); vertical-align: top; }
+.data-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .8px; color: var(--grey-500); }
+
+/* ---------- Calendar subscription ----------------------------------------- */
+.subscribe-box { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  flex-wrap: wrap; margin-bottom: 1.6rem; background: var(--grey-50); }
+.subscribe-box > div:first-child { flex: 1; min-width: 260px; }

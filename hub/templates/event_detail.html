@@ -54,6 +54,13 @@
           {% if event.host %}<li><span class="k">Host</span><span><a href="{{ url_for('main.profile', user_id=event.host.id) }}">{{ event.host.full_name }}</a></span></li>{% endif %}
         </ul>
 
+        {% if not event.is_past %}
+        <div class="flex gap-sm mt" style="flex-wrap:wrap">
+          <a class="btn btn-ghost btn-sm" href="{{ ics_url }}">📅 Add to calendar (.ics)</a>
+          <a class="btn btn-ghost btn-sm" href="{{ google_add_url }}" target="_blank" rel="noopener">Google Calendar</a>
+        </div>
+        {% endif %}
+
         {% if event.is_external %}
           <a class="btn btn-primary btn-block mt" href="{{ event.url }}" target="_blank" rel="noopener">
             {{ 'View' if event.is_past else 'Details & registration' }} on the {{ event.source_name }} ↗</a>

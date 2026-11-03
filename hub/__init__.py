@@ -1,8 +1,10 @@
 """Application factory for the Collaboration Hub for AI Deployment in
 Healthcare Research (King's College London)."""
 import os
+import re
 
 import sqlalchemy as sa
+from markupsafe import Markup, escape
 from flask import Flask
 
 from .config import (
@@ -13,7 +15,7 @@ from .config import (
     WORKSTREAMS, WORKSTREAM_NAMES, WORKSTREAM_SLUG, WORKSTREAM_CSS,
     EVENT_TYPES, EVENT_TYPE_ICONS, LAUNCH, HACKATHON, CODE_OF_CONDUCT_VERSION,
     REVIEW_STATUSES, REVIEW_STATUS_CSS, CONTACT_EMAIL, SOCIAL_LINKS,
-    SPEAKER_SESSION_TYPES, SPEAKER_PROPOSAL_STATUSES,
+    SPEAKER_SESSION_TYPES, SPEAKER_PROPOSAL_STATUSES, ATTENDEE_TYPES, NEWS_LINK_PAGES,
 )
 from .extensions import db, login_manager
 
@@ -75,9 +77,14 @@ def create_app(config_class=Config):
         SOCIAL_LINKS=SOCIAL_LINKS,
         SPEAKER_SESSION_TYPES=SPEAKER_SESSION_TYPES,
         SPEAKER_PROPOSAL_STATUSES=SPEAKER_PROPOSAL_STATUSES,
+        ATTENDEE_TYPES=ATTENDEE_TYPES,
+        NEWS_LINK_PAGES=NEWS_LINK_PAGES,
         APP_NAME="Collaboration Hub",
         APP_SUBTITLE="AI Deployment in Healthcare Research",
     )
+
+    # Turn web addresses in plain text (news posts) into links, safely.
+    app.jinja_env.filters["linkify"] = _linkify
 
     with app.app_context():
         db.create_all()
@@ -85,6 +92,15 @@ def create_app(config_class=Config):
         app.config["COLUMNS_ADDED"] = _add_missing_columns()
 
     return app
+
+
+_URL_RE = re.compile(r"(https?://[^\s<]+[^\s<.,;:!?)\]'\"])")
+
+
+def _linkify(text):
+    escaped = str(escape(text or ""))
+    return Markup(_URL_RE.sub(
+        r'<a href="\1" target="_blank" rel="noopener">\1</a>', escaped))
 
 
 def _add_missing_columns():

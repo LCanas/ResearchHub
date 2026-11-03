@@ -25,6 +25,20 @@
     <a class="btn btn-outline btn-sm" href="{{ f.events_page }}" target="_blank" rel="noopener">{{ f.name }} events ↗</a>
   </div>
   {% endfor %}
+  <div class="card card-pad subscribe-box">
+    <div>
+      <b>📅 Subscribe to the calendar</b>
+      <div class="small muted">All hub events, including those from the FoLSM AI Portal, in your own
+        calendar. New and changed events appear automatically.</div>
+    </div>
+    <div class="flex gap-sm flex-wrap">
+      <a class="btn btn-primary btn-sm" href="{{ calendar_outlook_url }}" target="_blank" rel="noopener">Outlook</a>
+      <a class="btn btn-outline btn-sm" href="{{ calendar_google_url }}" target="_blank" rel="noopener">Google Calendar</a>
+      <a class="btn btn-outline btn-sm" href="{{ calendar_webcal_url }}">Apple / other</a>
+      <button class="btn btn-ghost btn-sm" type="button" data-copy="{{ calendar_feed_url }}">Copy link</button>
+    </div>
+  </div>
+
   <div class="section-title">
     <h2>Upcoming <span class="muted small">({{ upcoming|length }})</span></h2>
     {% if current_user.is_authenticated %}<a class="btn btn-primary" href="{{ url_for('main.event_new') }}">+ New event</a>{% endif %}

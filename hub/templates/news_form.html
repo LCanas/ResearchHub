@@ -19,6 +19,21 @@
     </div>
     <div class="form-grid">
       <div class="form-row">
+        <label>Link to a hub page <span class="hint">(adds a button)</span></label>
+        <select name="link_page">
+          <option value="">— None —</option>
+          {% for label, endpoint in NEWS_LINK_PAGES %}<option value="{{ endpoint }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>…or another web address <span class="hint">(optional)</span></label>
+        <input name="link_custom" placeholder="https://… or /events/3">
+      </div>
+      <div class="form-row full">
+        <label>Button text <span class="hint">(optional)</span></label>
+        <input name="link_label" maxlength="80" placeholder="e.g. Submit a challenge">
+      </div>
+      <div class="form-row">
         <label>Related workstream <span class="hint">(optional)</span></label>
         <select name="workstream">
           <option value="">— None —</option>

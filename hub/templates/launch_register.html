@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Register for launch day{% endblock %}
+
+{% block hero %}
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Launch day · {{ LAUNCH.date or LAUNCH.when }}</div>
+    <h1>Register for launch day</h1>
+    <p>The date, venue and programme are still to be announced. Register now and you'll be the first to
+       hear, with the details sent straight to your inbox. You don't need a hub account.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div class="container main">
+  {% if done %}
+  <div class="card card-pad" style="max-width:720px">
+    <h2 style="margin-top:0">{{ "Your details are updated" if again else "You're registered" }} 🎉</h2>
+    <p>We've sent a confirmation to your email. We'll be in touch as soon as the date, venue and programme
+       are confirmed.</p>
+    <div class="flex gap-sm flex-wrap">
+      <a class="btn btn-primary" href="{{ url_for('main.launch') }}">Back to launch day</a>
+      {% if not current_user.is_authenticated %}
+        <a class="btn btn-outline" href="{{ url_for('auth.register') }}">Create a hub profile too</a>
+      {% endif %}
+      <a class="btn btn-ghost" href="{{ url_for('main.call_for_speakers') }}">Propose a talk</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="cfs-layout">
+    <form method="post" action="{{ url_for('main.launch_register') }}" class="card card-pad">
+      <div class="hp-field" aria-hidden="true">
+        <label>Website <input name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <h3 class="form-section-title">Your details</h3>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Full name</label>
+          <input name="name" required value="{{ form.get('name', '') }}">
+        </div>
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" name="email" required value="{{ form.get('email', '') }}">
+        </div>
+        <div class="form-row">
+          <label>I am a…</label>
+          <select name="attendee_type">
+            <option value="">— Select —</option>
+            {% for t in ATTENDEE_TYPES %}<option {{ 'selected' if form.get('attendee_type') == t }}>{{ t }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Organisation</label>
+          <input name="organisation" value="{{ form.get('organisation', '') }}" placeholder="e.g. King's College London, an NHS trust, a company">
+        </div>
+        <div class="form-row full">
+          <label>King's school <span class="hint">(if you're at King's)</span></label>
+          <select name="school">
+            <option value="">— Not at King's / not applicable —</option>
+            {% for s in SCHOOLS %}<option {{ 'selected' if form.get('school') == s }}>{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <h3 class="form-section-title">Your interests <span class="hint" style="text-transform:none;letter-spacing:0">(helps us plan networking)</span></h3>
+      {% set chosen = form.getlist('interests') if form.getlist is defined else [] %}
+      <div class="check-grid">
+        {% for w in WORKSTREAMS %}
+          <label><input type="checkbox" name="interests" value="{{ w.name }}" {{ 'checked' if w.name in chosen }}> {{ w.icon }} {{ w.name }}</label>
+        {% endfor %}
+      </div>
+
+      <h3 class="form-section-title">On the day <span class="hint" style="text-transform:none;letter-spacing:0">(optional)</span></h3>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Dietary requirements</label>
+          <input name="dietary" value="{{ form.get('dietary', '') }}" placeholder="e.g. vegetarian, halal, nut allergy">
+        </div>
+        <div class="form-row">
+          <label>Accessibility needs</label>
+          <input name="accessibility" value="{{ form.get('accessibility', '') }}" placeholder="Anything that would help you take part">
+        </div>
+      </div>
+
+      <label class="flex small mt" style="align-items:flex-start;gap:.5rem">
+        <input type="checkbox" name="consent" value="1" required style="width:auto;margin-top:.2rem" {{ 'checked' if form.get('consent') }}>
+        <span>I agree that the organisers may store these details and email me about the launch day
+          (date, venue, programme and practical information). I can unsubscribe at any time.</span>
+      </label>
+      <label class="flex small mt" style="align-items:flex-start;gap:.5rem">
+        <input type="checkbox" name="future_updates" value="1" style="width:auto;margin-top:.2rem" {{ 'checked' if form.get('future_updates') }}>
+        <span>Also let me know about future {{ APP_NAME }} events, such as the {{ HACKATHON.when }} hackathon.</span>
+      </label>
+      <button class="btn btn-primary btn-lg mt" type="submit">Register</button>
+    </form>
+
+    <aside>
+      <div class="card card-pad">
+        <h4 style="margin-top:0">Launch day</h4>
+        <ul class="meta-list">
+          <li><span class="k">When</span><span>{{ LAUNCH.date or LAUNCH.when }}{% if not LAUNCH.date %} · date TBA{% endif %}</span></li>
+          <li><span class="k">Where</span><span>{{ LAUNCH.venue or 'To be announced' }}</span></li>
+          <li><span class="k">Programme</span><span>To be announced</span></li>
+        </ul>
+        <a class="small" href="{{ url_for('main.launch') }}">More about the day →</a>
+      </div>
+      <div class="card card-pad mt">
+        <h4 style="margin-top:0">Already registered?</h4>
+        <p class="small muted" style="margin:0">Fill in the form again with the same email to update your
+          details. Every email we send includes a link to stop receiving updates.</p>
+      </div>
+    </aside>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -49,6 +49,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // "Copy link" buttons (e.g. the calendar feed).
+  document.querySelectorAll("[data-copy]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var text = btn.getAttribute("data-copy");
+      var done = function () {
+        var old = btn.textContent;
+        btn.textContent = "Copied ✓";
+        setTimeout(function () { btn.textContent = old; }, 2000);
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(done, function () { window.prompt("Copy this link:", text); });
+      } else {
+        window.prompt("Copy this link:", text);
+      }
+    });
+  });
+
   // Close the account menu when clicking elsewhere.
   var menu = document.querySelector(".user-menu");
   if (menu) {

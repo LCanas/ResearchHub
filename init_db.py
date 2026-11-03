@@ -59,10 +59,13 @@ def main():
         from hub.event_sync import sync_all
         for name, result in sync_all().items():
             print(f"Events from {name}: {result}")
-        from launch_content import seed_launch_content
+        from launch_content import seed_launch_content, backfill_links
         added = seed_launch_content()
         if added:
             print(f"Added {added} launch announcements.")
+        linked = backfill_links()
+        if linked:
+            print(f"Added page buttons to {linked} announcement(s).")
 
 
 if __name__ == "__main__":

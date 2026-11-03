@@ -12,18 +12,16 @@
            external speakers, an honest panel on deployment, live demos, structured matchmaking
            and a drinks reception: the official launch of the {{ APP_NAME }}.</p>
         <div class="flex gap-sm" style="flex-wrap:wrap;margin-top:1.4rem">
-          {% if current_user.is_authenticated %}
-            <a class="btn btn-primary" href="{{ url_for('main.edit_profile') }}">Complete your profile</a>
-          {% else %}
-            <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Create your profile</a>
-          {% endif %}
+          <a class="btn btn-primary btn-lg" href="{{ url_for('main.launch_register') }}">Register for launch day</a>
           <a class="btn btn-outline-light" href="{{ url_for('main.call_for_speakers') }}">Propose a talk</a>
         </div>
+        <p class="small" style="color:#b9c4da;margin:.7rem 0 0">Register now and we'll email you the date,
+           venue and programme as soon as they're confirmed.</p>
       </div>
       <dl class="launch-facts">
         <div><dt>When</dt><dd>{{ LAUNCH.date or LAUNCH.when }}{% if not LAUNCH.date %}<small>exact date to be announced</small>{% endif %}</dd></div>
         <div><dt>Where</dt><dd>{{ LAUNCH.venue or "King's College London" }}{% if not LAUNCH.venue %}<small>venue to be announced</small>{% endif %}</dd></div>
-        <div><dt>Format</dt><dd>Full day<small>{{ programme[0][0] if programme else '' }} to evening reception</small></dd></div>
+        <div><dt>Format</dt><dd>Full day<small>{{ 'programme below' if programme else 'programme to be announced' }}</small></dd></div>
         <div><dt>For</dt><dd>Clinicians, researchers, engineers &amp; partners</dd></div>
       </dl>
     </div>
@@ -37,7 +35,7 @@
   {# ---- Highlights ---- #}
   <section class="about-section">
     <div class="section-head">
-      <span class="kicker">What to expect</span>
+      <span class="kicker">What we're planning</span>
       <h2>More than a launch: a day built for making connections</h2>
     </div>
     <div class="highlight-grid">
@@ -60,9 +58,19 @@
   <section class="about-section">
     <div class="section-head">
       <span class="kicker">Programme</span>
-      <h2>The day at a glance</h2>
-      <p class="muted">Provisional. Speakers and session details will be added as they are confirmed.</p>
+      <h2>{{ 'The day at a glance' if programme else 'Programme to be announced' }}</h2>
     </div>
+    {% if not programme %}
+    <div class="tbd-card">
+      <span class="tbd-icon">🗓️</span>
+      <div>
+        <p style="margin:0 0 .4rem">We're putting the programme together now: keynotes, a panel,
+           demos and plenty of time for networking. Timings and speakers will be published here.</p>
+        <p class="small muted" style="margin:0">Registered guests are emailed as soon as it's ready.</p>
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('main.launch_register') }}">Register to hear first</a>
+    </div>
+    {% else %}
     <ol class="programme">
       {% for time, title, desc in programme %}
       <li class="{{ 'is-break' if 'networking' in title|lower or 'coffee' in title|lower or 'reception' in title|lower }}">
@@ -71,6 +79,7 @@
       </li>
       {% endfor %}
     </ol>
+    {% endif %}
   </section>
 
   {# ---- Speakers ---- #}
@@ -124,12 +133,13 @@
   <section class="launch-cta">
     <div>
       <h2>Be part of the first day</h2>
-      <p>Create your profile so we can match you with people before the day, and tick the newsletter
-         box to hear first when the date, venue and speakers are confirmed.</p>
+      <p>Register to be the first to hear the date, venue and speakers. Create a hub profile too, and we
+         can match you with people to meet on the day.</p>
     </div>
     <div class="flex gap-sm" style="flex-wrap:wrap">
+      <a class="btn btn-primary" href="{{ url_for('main.launch_register') }}">Register for launch day</a>
       {% if not current_user.is_authenticated %}
-        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Create your profile</a>
+        <a class="btn btn-outline-light" href="{{ url_for('auth.register') }}">Create your profile</a>
       {% endif %}
       <a class="btn btn-outline-light" href="{{ url_for('main.call_for_speakers') }}">Call for speakers</a>
       <a class="btn btn-outline-light" href="{{ url_for('main.hackathon') }}">Hackathon {{ HACKATHON.when }}</a>

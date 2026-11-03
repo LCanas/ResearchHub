@@ -24,7 +24,10 @@
     </div>
     {% endif %}
 
-    <div style="white-space:pre-line;font-size:1.02rem;color:var(--grey-800)">{{ post.body }}</div>
+    <div style="white-space:pre-line;font-size:1.02rem;color:var(--grey-800)">{{ post.body|linkify }}</div>
+    {% if post.link_url %}
+      <a class="btn btn-primary mt" href="{{ post.link_url }}">{{ post.link_label or 'Find out more' }} →</a>
+    {% endif %}
 
     {% if current_user.is_authenticated and (current_user.is_admin or (post.author and post.author_id == current_user.id)) %}
     <hr class="divider">
